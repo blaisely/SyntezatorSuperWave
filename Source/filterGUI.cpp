@@ -18,8 +18,6 @@ typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 {
     cutOffSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-   // cutOffSlider.setRange(20.0f, 20000.0f);
-    //cutOffSlider.setValue(1000.0f);
     cutOffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     filterCutOffAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterCutoff", cutOffSlider));
     
@@ -29,8 +27,6 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     cutOffSlider.setSkewFactorFromMidPoint(1000.0f);
 
     filterResonance.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    //filterResonance.setRange(0.1f, 1.0f);
-   // filterResonance.setValue(0.1f);
     filterResonance.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     filterResonanceAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterRes", filterResonance));
 
@@ -49,7 +45,6 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeSlider(lfoDepth, lfoDepthAttach, ID_lfoDepth, lfoDepthLabel, 0.0f, 1000.0f, 0.0f);
 
     filterOn.setButtonText("Digital");
-    //filterOn.setLookAndFeel(&buttonLook);
     buttonAttach.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(audioProcessor.state, "filterbutton", filterOn));
     addAndMakeVisible(filterOn);
     filterOn.addListener(this);
@@ -66,12 +61,10 @@ filterGUI::~filterGUI()
 void filterGUI::paint (juce::Graphics& g)
 {
     
-    g.fillAll(juce::Colours::black);   // clear the background
+    g.fillAll(juce::Colours::black);
 
     g.setColour(juce::Colours::white);
-    g.drawRect(getLocalBounds(), 1);   // draw an outline around the component
-   // g.drawText("Oscillator", getLocalBounds(),
-        // draw some placeholder text
+    g.drawRect(getLocalBounds(), 1);  
    
 
 }
@@ -131,7 +124,6 @@ void filterGUI::makeSlider(juce::Slider& slider, std::unique_ptr<juce::AudioProc
     slider.setValue(initValue);
     slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, ID, slider));
-    //attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, ID, slider);
     
     addAndMakeVisible(&slider);
     slider.addListener(this);

@@ -111,7 +111,6 @@ public:
 	void checkForFilter(float *on)
 	{
 		filterOn = *on;
-		//juce::Logger::outputDebugString(std::to_string(filterOn));
 
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
@@ -136,7 +135,7 @@ public:
 			}
 			audioBlock.add(audioBlock_osc2);
 
-		if (filterOn==0) {
+		/*if (filterOn==0) {
 			for (auto i = 0; i < numChannelsToProcess; i++)
 			{
 				Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
@@ -155,7 +154,7 @@ public:
 					audioOut[k] = SVF[channel].processSample(audioIn[k]);
 				}
 			}
-		}
+		}*/
 		const auto context = juce::dsp::ProcessContextReplacing<float>(audioBlock);
 		level.process(context);
 		envelope.applyEnvelopeToBuffer(synthBuffer, 0, numSamples);

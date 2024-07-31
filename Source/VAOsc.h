@@ -124,12 +124,12 @@ public:
     //----------------------------------------------------------------
     float randomPhase()
     {
-        std::random_device rd;  // Random number from hardware
-        std::mt19937 gen(rd()); // Seed the generator
-        std::uniform_real_distribution<> distr(0.0, 1.0); // Define the range
+        std::random_device rd; 
+        std::mt19937 gen(rd()); 
+        std::uniform_real_distribution<> distr(0.0, 1.0); 
         float randomValue = distr(gen);
         return randomValue;
-        //std::cout << "Random float value between 0 and 1: " << randomValue << std::endl;
+      
 
     }
     void setRandomPhase(float phase)

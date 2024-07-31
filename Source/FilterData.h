@@ -53,8 +53,6 @@ public:
         // Scale LFO value to the logarithmic range and convert back to linear frequency
         float logCutoff = juce::jmap(lfoMod, -1.0f, 1.0f, 20.0f, 20000.0f);
         float cutoffFrequency = std::pow(10.0f, logCutoff);
-        //juce::Logger::outputDebugString("CutOffFreq: " + std::to_string(cutOffMod));
-       // juce::Logger::outputDebugString("CutOffModulation: " + std::to_string(lfoMod));
 		setCutoffFrequency(logCutoff);
 		setResonance(resonance);
 		setFType();

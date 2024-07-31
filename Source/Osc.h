@@ -30,7 +30,7 @@ public:
         case 1: return poly_saw(phase);
         case 2: return square(phase);
         case 3: return triangle(phase);
-        default: return sine(phase);
+        default: return poly_saw(phase);
         }
     }
 
@@ -98,9 +98,9 @@ public:
     }
     float randomPhase()
     {
-        std::random_device rd;  // random number
-        std::mt19937 gen(rd()); // seed
-        std::uniform_real_distribution<> distr(0.0, 1.0); // range
+        std::random_device rd; 
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> distr(0.0, 1.0);
         float randomValue = distr(gen);
         return randomValue;
     }
@@ -118,7 +118,7 @@ public:
         double t = phase / juce::MathConstants<float>::twoPi;
         double value = 0.0;
 
-        switch (static_cast<int>(type)) {
+        switch (static_cast<int>(state[IDs::SWtype])) {
         case 0:
             value = sine(phase);
             break;
@@ -209,11 +209,11 @@ public:
         double result = 1.0f;
         while (power > 0) {
 
-            if (power % 2 == 1) { // Can also use (power & 1) to make code even faster
+            if (power % 2 == 1) { 
                 result = std::fmod((result * base), MOD);
             }
             base = std::fmod((base * base), MOD);
-            power = power / 2; // Can also use power >>= 1; to make code even faster
+            power = power / 2; 
         }
         return result;
     }
@@ -221,10 +221,6 @@ public:
     {
         if (v == state)
         {
-            juce::Logger::outputDebugString("ValueTree property changed: " + id.toString());
-
-            if (id == IDs::SuperWaveOsc)
-            {
                 if (id == IDs::SWdetuneS || id == IDs::SWvolumeS) {
                     setSuperOscillators(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
                 }
@@ -250,7 +246,7 @@ public:
                     juce::Logger::outputDebugString("Freq: " + std::to_string((float)state[IDs::SWFrequency]));
                 }
 
-            }
+            
         }
     }
 private:

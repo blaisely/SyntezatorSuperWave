@@ -12,6 +12,7 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "SharedData.h"
 
 //==============================================================================
 /*
@@ -49,7 +50,6 @@ private:
     juce::Slider Gain_osc2;
     juce::Slider detune;
     juce::Slider volume;
-
     juce::Slider octave_osc1;
     juce::Slider octave_osc2;
     juce::Slider coarse_osc1;
@@ -62,9 +62,7 @@ private:
     std::unique_ptr<SliderAttachment> octave_osc2Attach;
     std::unique_ptr<SliderAttachment> coarse_osc1Attach;
     std::unique_ptr<SliderAttachment> coarse_osc2Attach;
-
-    
-     
+    juce::ValueTree tree;
     SimpleSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (oscGUI)
 };

@@ -13,7 +13,7 @@
 #include <JuceHeader.h>
 class LFO {
 public:
-    void prepareToPlay(float sampleRate, unsigned int numChannels, unsigned int blockSize)
+    void prepareToPlay(double sampleRate, unsigned int numChannels, unsigned int blockSize)
     {
         this->sampleRate = sampleRate;
         this->numChannels = numChannels;
@@ -21,10 +21,9 @@ public:
         auto spec = juce::dsp::ProcessSpec{ sampleRate/updateRate,blockSize,numChannels };
         
         lfo1.prepare(spec);
-        //lfo2.prepare(spec);
         reset();
        
-        //lfo2.initialise([](float x) { return std::sin(x); });
+        lfo1.initialise([](float x) { return std::sin(x); });
 	        
     }
     void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample,int numSamples)
@@ -39,7 +38,7 @@ public:
             {
                 updateCounter = updateRate;
                 paramsLfo1.modValue = lfo1.processSample(0.0) * paramsLfo1.depth;
-                //juce::Logger::outputDebugString("LFO Modulation: " + std::to_string(paramsLfo1.modValue));
+                
             }
         }
 

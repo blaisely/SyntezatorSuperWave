@@ -18,13 +18,13 @@
 class Osc :juce::ValueTree::Listener
 {
 public:
-    Osc(juce::ValueTree& v) :state(v), keyTrack(juce::dsp::IIR::Coefficients<float>::makeHighPass(48000, 0.1f))
+    Osc(juce::ValueTree& v) :state(v)
     {
 
         state.addListener(this);
 
     }
-    double OscType(int oscillatorType, double phase) {
+    float OscType(int oscillatorType, float phase) {
         switch (oscillatorType) {
         case 0: return sine(phase);
         case 1: return poly_saw(phase);
@@ -34,37 +34,37 @@ public:
         }
     }
 
-    double poly_blep(double t, double phaseIncrement) {
-        double dt = phaseIncrement / juce::MathConstants<float>::twoPi;
+    float poly_blep(float t, float phaseIncrement) {
+        float dt = phaseIncrement / juce::MathConstants<float>::twoPi;
         if (t < dt) {
             t /= dt;
-            return t + t - t * t - 1.;
+            return t + t - t * t - 1.f;
         }
-        else if (t > 1. - dt) {
-            t = (t - 1.) / dt;
-            return t * t + t + t + 1.;
+        else if (t > 1.f - dt) {
+            t = (t - 1.f) / dt;
+            return t * t + t + t + 1.f;
         }
         else {
             return 0.;
         }
     }
 
-    double poly_saw(double phase) {
-        double value = (2.0 * phase / juce::MathConstants<float>::twoPi) - 1.0;
+    float poly_saw(float phase) {
+        float value = (2.0f * phase / juce::MathConstants<float>::twoPi) - 1.0f;
         return value;
     }
 
-    double sine(double phase) {
+    float sine(float phase) {
         return sin(phase);
     }
 
-    double square(double phase) {
-        return (phase < juce::MathConstants<double>::pi) ? 1.0 : -1.0;
+    float square(float phase) {
+        return (phase < juce::MathConstants<float>::pi) ? 1.0f : -1.0f;
     }
 
-    double triangle(double phase) {
-        double value = -1.0 + (2.0 * phase / juce::MathConstants<float>::twoPi);
-        return 2.0 * (fabs(value) - 0.5);
+    float triangle(float phase) {
+        float value = -1.0f + (2.0f * phase / juce::MathConstants<float>::twoPi);
+        return 2.0f * (fabs(value) - 0.5f);
     }
     void getNextBlock(juce::dsp::AudioBlock<float>& block, const int channel)
     {
@@ -72,7 +72,7 @@ public:
         auto numChannels = block.getNumChannels();
         auto* sample = block.getChannelPointer(channel);
         auto* sample2 = block.getChannelPointer(1);
-        //setKeyTrackedFreq();
+        
         for (size_t i = 0; i < numSamples; i++)
         {
             sample[i] = nextSampleUniversal(superOscSettings.phases[0], superOscSettings.phaseIncrements[0], superOscSettings.lastOutputs[0]) * superOscSettings.volumeMain;
@@ -102,7 +102,7 @@ public:
         std::random_device rd; 
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> distr(0.0, 1.0);
-        float randomValue = distr(gen);
+        float randomValue =static_cast<float> (distr(gen));
         return randomValue;
     }
     void setRandomPhase(float phase, float phaseOsc1, float phaseOsc2, float phaseOsc3, float phaseOsc5, float phaseOsc6, float phaseOsc7)
@@ -115,9 +115,9 @@ public:
         superOscSettings.phases[5] = phaseOsc6;
         superOscSettings.phases[6] = phaseOsc7;
     }
-    double nextSampleUniversal(double& phase, double& phaseIncrement, double& lastOutput) {
-        double t = phase / juce::MathConstants<float>::twoPi;
-        double value = 0.0;
+    float nextSampleUniversal(float& phase,const float& phaseIncrement, float& lastOutput) {
+        float t = phase / juce::MathConstants<float>::twoPi;
+        float value = 0.0f;
 
         switch (static_cast<int>(state[IDs::SWtype])) {
         case 0:
@@ -130,15 +130,18 @@ public:
         case 2:
             value = square(phase);
             value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5, 1.0), phaseIncrement);
+            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
             break;
         case 3:
             value = triangle(phase);
             value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5, 1.0), phaseIncrement);
-            value = phaseIncrement * value + (1.0 - phaseIncrement) * lastOutput;
+            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
             lastOutput = value;
             break;
+            default:
+                value = sine(phase);
+        	break;
         }
 
         phase += phaseIncrement;
@@ -157,14 +160,14 @@ public:
         keyTrack.prepare(spec);
         lastSampleRate = sampleRate;
     }
-    void getPhaseIncrement(double frequency, int midiNote) {
+    void getPhaseIncrement(float frequency, int midiNote) {
         float freq = juce::MidiMessage::getMidiNoteInHertz(midiNote + octavePitchShift);
         freq += coarseDetune;
         oldFrequency = newFrequency;
         this->newFrequency = freq;
         superOscSettings.phaseIncrements[0] = frequency / lastSampleRate;
         lastFreq = freq;
-        setSuperOscilllatorFrequency();
+        setSuperOscillatorFrequency();
     }
     void setPitchMod(const int oct, const float detune)
     {
@@ -177,37 +180,38 @@ public:
         superOscSettings.volume = sideVolume(volume);
         superOscSettings.volumeMain = mainVolume(volume);
     }
-    void setSuperOscilllatorFrequency()
+    void setSuperOscillatorFrequency()
     {
-        superOscSettings.phaseIncrements[1] = (double)(((newFrequency * (1 - (0.11002313 * superOscSettings.detune))) / lastSampleRate));
-        superOscSettings.phaseIncrements[2] = (double)(((newFrequency * (1 - (0.06288439 * superOscSettings.detune))) / lastSampleRate));
-        superOscSettings.phaseIncrements[3] = (double)(((newFrequency * (1 - (0.01952356 * superOscSettings.detune))) / lastSampleRate));
-        superOscSettings.phaseIncrements[4] = (double)(((newFrequency * (1 + (0.01991221 * superOscSettings.detune))) / lastSampleRate));
-        superOscSettings.phaseIncrements[5] = (double)(((newFrequency * (1 + (0.06216538 * superOscSettings.detune))) / lastSampleRate));
-        superOscSettings.phaseIncrements[6] = (double)(((newFrequency * (1 + (0.10745242 * superOscSettings.detune))) / lastSampleRate));
+        superOscSettings.phaseIncrements[1] = ((newFrequency * (1 - (0.11002313 * superOscSettings.detune))) / lastSampleRate);
+        superOscSettings.phaseIncrements[2] = ((newFrequency * (1 - (0.06288439 * superOscSettings.detune))) / lastSampleRate);
+        superOscSettings.phaseIncrements[3] = ((newFrequency * (1 - (0.01952356 * superOscSettings.detune))) / lastSampleRate);
+        superOscSettings.phaseIncrements[4] =((newFrequency * (1 + (0.01991221 * superOscSettings.detune))) / lastSampleRate);
+        superOscSettings.phaseIncrements[5] = ((newFrequency * (1 + (0.06216538 * superOscSettings.detune))) / lastSampleRate);
+        superOscSettings.phaseIncrements[6] = ((newFrequency * (1 + (0.10745242 * superOscSettings.detune))) / lastSampleRate);
     }
     float polyFit(float x)
     {
+        //TODO can be approximated with 3 functions
         float y{ 0.0f };
-        y = (10028.7312891634 * fast_power(x, 11)) - (50818.8652045924 * fast_power(x, 10)) + (111363.4808729368 * fast_power(x, 9)) -
-            (138150.6761080548 * fast_power(x, 8)) + (106649.6679158292 * fast_power(x, 7)) - (53046.9642751875 * fast_power(x, 6)) + (17019.9518580080 * fast_power(x, 5)) -
+        y = (10028.7312891634f * fast_power(x, 11)) - (50818.8652045924f * fast_power(x, 10)) + (111363.4808729368f * fast_power(x, 9)) -
+            (138150.6761080548 * fast_power(x, 8)) + (106649.6679158292 * fast_power(x, 7)) - (53046.9642751875f * fast_power(x, 6)) + (17019.9518580080 * fast_power(x, 5)) -
             (3425.0836591318 * fast_power(x, 4)) + (404.2703938388 * fast_power(x, 3)) - (24.1878824391 * fast_power(x, 2)) + (0.6717417634 * x) + 0.0030115596;
         return y;
     }
-    double sideVolume(float x)
+    float sideVolume(float x)
     {
         float y{ 0.0f };
-        y = -0.73764 * fast_power(x, 2) + 1.2841 * x + 0.044372;
+        y = -0.73764f * fast_power(x, 2) + 1.2841f * x + 0.044372f;
         return y;
     }
-    double mainVolume(float x)
+    float mainVolume(float x)
     {
-        double y{ 0.0f };
-        y = -0.55366 * x + 0.99785;
+        float y{ 0.0f };
+        y = -0.55366f * x + 0.99785f;
         return y;
     }
-    double fast_power(float base, int power) {
-        double result = 1.0f;
+    float fast_power(float base, int power) {
+        float result = 1.0f;
         while (power > 0) {
 
             if (power % 2 == 1) { 
@@ -254,23 +258,22 @@ private:
     juce::ValueTree state;
     struct oscSuper
     {
-        double detune{ 0.0f };
-        double volume{ 0.0f };
-        double volumeMain{ 0.0f };
-        std::array<double, 7> phaseIncrements{0.0f};
-        std::array<double, 7> phases;
-        std::array<double, 7> lastOutputs{ 0.0f };
+        float detune{ 0.0f };
+        float volume{ 0.0f };
+        float volumeMain{ 0.0f };
+        std::array<float, 7> phaseIncrements{0.0f};
+        std::array<float, 7> phases;
+        std::array<float, 7> lastOutputs{ 0.0f };
     };
     oscSuper superOscSettings;
     float type{ 0.0f };
     juce::dsp::Oscillator<float> fmOsc{ [](float x) {return std::sin(x); } };
     juce::dsp::Gain<float> gain;
     float lastFreq;
-    double lastSampleRate{0.0f};
+    float lastSampleRate{0.0f};
     float newFrequency{ 0.0f };
     float oldFrequency{ 0.0f };
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
     int octavePitchShift{ 0 };
     float coarseDetune{ 0.0f };
-    //float sampleRate;
 };

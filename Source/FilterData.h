@@ -14,16 +14,23 @@
 #include <JuceHeader.h>
 
 
-class Filter: private juce::dsp::StateVariableTPTFilter<float>
+class Filter: public juce::dsp::StateVariableTPTFilter<float>,public juce::ValueTree::Listener
 {
 public:
-	void setFilterParam(float *cutOffFreq, float* res, float* type)
+    Filter(juce::ValueTree v):tree(v)
+    {
+        tree.addListener(this);
+    }
+    ~Filter()
+    {
+        tree.removeListener(this);
+    }
+	void setFilterParam(float cutOffFreq, float res, float type)
 	{
-		cutOff = *cutOffFreq;
-        resonance = juce::jmap(*res, 0.707f, 10.0f, 0.01f, 1.0f);
-		f_type = *type;
+		cutOff = cutOffFreq;
+        resonance = res;
+		f_type = type;
 	}
-	
 
 	void setFType()
 	{
@@ -53,7 +60,7 @@ public:
         // Scale LFO value to the logarithmic range and convert back to linear frequency
         float logCutoff = juce::jmap(lfoMod, -1.0f, 1.0f, 20.0f, 20000.0f);
         float cutoffFrequency = std::pow(10.0f, logCutoff);
-		setCutoffFrequency(logCutoff);
+		setCutoffFrequency(cutOff);
 		setResonance(resonance);
 		setFType();
 	}
@@ -83,13 +90,25 @@ public:
 	{
 		processSample(channel, input);
 	}
+    void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override
+    {
+        
+        if(treeWhosePropertyHasChanged==tree)
+        {
+            DBG("Cutoff Moved!");
+            setFilterParam(tree[IDs::Cutoff], tree[IDs::Resonance], f_type);
+        }
+	    
+	    
+    }
 
 
 private:
 	float cutOffMod{ 0.0f };
 	float cutOff{ 0.0f };
-	float resonance{ 0.0f };
+	float resonance{ 0.1f };
 	float f_type{ 0.0f };
+    juce::ValueTree tree;
 };
 class StateVariableFilter
 {

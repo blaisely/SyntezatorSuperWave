@@ -191,8 +191,7 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 
         if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
            myVoice->setEnvelope(&chainSettings.attack, &chainSettings.decay, &chainSettings.sustain, &chainSettings.release);
-           myVoice->checkForFilter(&chainSettings.filterOn);
-          
+           //myVoice->checkForFilter(&chainSettings.filterOn);
         }
     }
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -376,7 +375,7 @@ juce::ValueTree SimpleSynthAudioProcessor::createValueTree()
     VAosc.setProperty(IDs::VAoctave, 0.0, nullptr);
 
     Filter.setProperty(IDs::Cutoff, 0.0f, nullptr);
-    Filter.setProperty(IDs::Resonance, 0.0f, nullptr);
+    Filter.setProperty(IDs::Resonance, 0.1f, nullptr);
 
     Lfo.setProperty(IDs::LFODepth, 0.0f, nullptr);
     Lfo.setProperty(IDs::LFOFreq, 0.0f, nullptr);

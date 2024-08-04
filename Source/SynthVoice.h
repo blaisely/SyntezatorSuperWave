@@ -21,8 +21,8 @@ class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener
 public:
 	
 	SynthVoice::SynthVoice(juce::ValueTree& v):
-	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)),  state(v),
-	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)}
+	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
+	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},TPTFilter{Filter(v),Filter(v)}
 	{
 		state.addListener(this);
 	}
@@ -129,14 +129,15 @@ public:
 			}
 			audioBlock.add(audioBlock_osc2);
 
-		/*if (filterOn==0) {
+		
 			for (auto i = 0; i < numChannelsToProcess; i++)
 			{
 				Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
 				TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());
 				TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
 			}
-		}
+		
+		/*
 		else if (filterOn==1)
 		{
 			for (auto channel = 0; channel < numChannelsToProcess; channel++)

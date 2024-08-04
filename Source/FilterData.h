@@ -99,8 +99,8 @@ public:
     void setCoefficients(double sampleRate, double freq, double Q) noexcept
     {
         g = std::tan(juce::MathConstants<float>::pi * freq / sampleRate);
-        k = 1.0 / Q;
-        a1 = 1.0 / (1.0 + g * (g + k));
+        k =static_cast<float>( 1.0f / Q);
+        a1 = static_cast<float>(1.0f / (1.0f + g * (g + k)));
         a2 = g * a1;
         a3 = g * a2;
     }

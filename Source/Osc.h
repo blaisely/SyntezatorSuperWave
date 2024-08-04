@@ -75,15 +75,16 @@ public:
         //setKeyTrackedFreq();
         for (size_t i = 0; i < numSamples; i++)
         {
-            sample[i] = nextSampleUniversal(superOscSettings.phases[0], superOscSettings.phaseIncrements[0], superOscSettings.lastOutputs[0]) /** superOscSettings.volumeMain*/;
-            /* sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[1], superOscSettings.phaseIncrements[1], superOscSettings.lastOutputs[1]) * superOscSettings.volume);
-             sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[2], superOscSettings.phaseIncrements[2], superOscSettings.lastOutputs[2]) * superOscSettings.volume);
-             sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[3], superOscSettings.phaseIncrements[3], superOscSettings.lastOutputs[3]) * superOscSettings.volume);
-             sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[4], superOscSettings.phaseIncrements[4], superOscSettings.lastOutputs[4]) * superOscSettings.volume);
-             sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[5], superOscSettings.phaseIncrements[5], superOscSettings.lastOutputs[5]) * superOscSettings.volume);
-             sample[i] += gain.processSample(nextSampleUniversal(superOscSettings.phases[6], superOscSettings.phaseIncrements[6], superOscSettings.lastOutputs[6]) * superOscSettings.volume);*/
-    
-            //sample[i] = gain.processSample(nextKeyTrackedsample());
+            sample[i] = nextSampleUniversal(superOscSettings.phases[0], superOscSettings.phaseIncrements[0], superOscSettings.lastOutputs[0]) * superOscSettings.volumeMain;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[1], superOscSettings.phaseIncrements[1], superOscSettings.lastOutputs[1]) * superOscSettings.volume;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[2], superOscSettings.phaseIncrements[2], superOscSettings.lastOutputs[2]) * superOscSettings.volume;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[3], superOscSettings.phaseIncrements[3], superOscSettings.lastOutputs[3]) * superOscSettings.volume;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[4], superOscSettings.phaseIncrements[4], superOscSettings.lastOutputs[4]) * superOscSettings.volume;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[5], superOscSettings.phaseIncrements[5], superOscSettings.lastOutputs[5]) * superOscSettings.volume;
+             sample[i] += nextSampleUniversal(superOscSettings.phases[6], superOscSettings.phaseIncrements[6], superOscSettings.lastOutputs[6]) * superOscSettings.volume;
+             
+            sample[i] = gain.processSample(sample[i]);
+            sample[i] = sample[i] * 0.5f;
         }
     }
 
@@ -167,7 +168,7 @@ public:
     }
     void setPitchMod(const int oct, const float detune)
     {
-        octavePitchShift = (float)(oct * 12);
+        octavePitchShift = oct * 12;
         coarseDetune = detune;
     }
     void setSuperOscillators(float detune, float volume)

@@ -21,10 +21,8 @@ class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener
 public:
 	
 	SynthVoice::SynthVoice(juce::ValueTree& v):
-	state(v),
-	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)),
+	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)),  state(v),
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)}
-	
 	{
 		state.addListener(this);
 	}
@@ -46,13 +44,9 @@ public:
 		frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 		frequency2 = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 
-		//state.setPropertyExcludingListener(this,IDs::MidiNote,midiNoteNumber,nullptr);//setting global midi note
-		//state.setProperty(IDs::SWFrequency, frequency, nullptr);//setting frequency for SW osc
-		//state.sendPropertyChangeMessage(IDs::SWFrequency);
-		//state.setProperty(IDs::VAFrequency, frequency2, nullptr);//setting frequency for VA osc
-		osc1[0].getPhaseIncrement(frequency, midiNoteNumber);
-		osc1[1].getPhaseIncrement(frequency, midiNoteNumber);
-		//state.sendPropertyChangeMessage(IDs::MidiNote);
+		state.setPropertyExcludingListener(this,IDs::MidiNote,midiNoteNumber,nullptr);//setting global midi note
+		state.setProperty(IDs::SWFrequency, frequency, nullptr);//setting frequency for SW osc
+		state.setProperty(IDs::VAFrequency, frequency2, nullptr);//setting frequency for VA osc
 		oldFrequency = frequency;
 		phase = osc1[0].randomPhase();
 		for(auto i=0;i<phases.size();i++)
@@ -70,7 +64,7 @@ public:
 	void stopNote(float velocity, bool allowTailOff) override
 	{
 		envelope.noteOff();
-		//allowTailOff = true;
+		allowTailOff = true;
 		if (envelope.isActive() == false)
 		{
 			clearCurrentNote();
@@ -165,19 +159,6 @@ public:
 		if (!envelope.isActive())
 			clearCurrentNote();
 	}
-	Filter& returnFilter(const int channel)
-	{
-		return TPTFilter[channel];
-	}
-
-	LFO& returnLfo1(const int channel)
-	{
-		return Lfo1[channel];
-	}
-	LFO& returnLfo2(const int channel)
-	{
-		return Lfo2[channel];
-	}
 	void reset()
 	{
 		for (int i = 0; i < numChannelsToProcess; i++) {
@@ -192,11 +173,6 @@ public:
 		keyTrack.reset();
 		
 	}
-	StateVariableFilter& returnSVF(const int channel)
-	{
-		return SVF[channel];
-	}
-	
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
 	{
 		
@@ -217,10 +193,6 @@ private:
 	juce::AudioBuffer<float> synthBuffer;
 	juce::AudioBuffer<float> synthesisBuffer;
 	juce::AudioBuffer<float> synthBuffer_osc2;
-	double wave;
-	float filterChoice;
-	float cutOff;
-	float resonance;
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
 	float t = 0;

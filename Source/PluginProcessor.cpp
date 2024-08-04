@@ -192,12 +192,7 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
         if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
            myVoice->setEnvelope(&chainSettings.attack, &chainSettings.decay, &chainSettings.sustain, &chainSettings.release);
            myVoice->checkForFilter(&chainSettings.filterOn);
-           for (auto j = 0;j< 2; j++) {
-               myVoice->returnFilter(j).setFilterParam(&chainSettings.cutoff, &chainSettings.resonance, &chainSettings.filterType);
-               myVoice->returnSVF(j).setSVF(chainSettings.filterType, lastSampleRate, chainSettings.cutoff, chainSettings.resonance);
-               myVoice->returnLfo1(j).getParametersLfo1(&chainSettings.lfofreq, &chainSettings.lfodepth, 0, 0);
-               myVoice->returnLfo2(j).getParametersLfo1(&chainSettings.lfofreq, &chainSettings.lfodepth, 0, 0);
-           }
+          
         }
     }
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {

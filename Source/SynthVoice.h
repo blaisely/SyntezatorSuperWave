@@ -44,9 +44,11 @@ public:
 		frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 		frequency2 = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
 
-		state.setPropertyExcludingListener(this,IDs::MidiNote,midiNoteNumber,nullptr);//setting global midi note
-		state.setProperty(IDs::SWFrequency, frequency, nullptr);//setting frequency for SW osc
-		state.setProperty(IDs::VAFrequency, frequency2, nullptr);//setting frequency for VA osc
+		osc1[0].getPhaseIncrement(frequency, midiNoteNumber);
+		osc1[1].getPhaseIncrement(frequency, midiNoteNumber);
+		//state.setPropertyExcludingListener(this,IDs::MidiNote,midiNoteNumber,nullptr);//setting global midi note
+		//state.setProperty(IDs::SWFrequency, frequency, nullptr);//setting frequency for SW osc
+		//state.setProperty(IDs::VAFrequency, frequency2, nullptr);//setting frequency for VA osc
 		oldFrequency = frequency;
 		phase = osc1[0].randomPhase();
 		for(auto i=0;i<phases.size();i++)

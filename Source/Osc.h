@@ -84,7 +84,7 @@ public:
              sample[i] += nextSampleUniversal(superOscSettings.phases[6], superOscSettings.phaseIncrements[6], superOscSettings.lastOutputs[6]) * superOscSettings.volume;
              
             sample[i] = gain.processSample(sample[i]);
-            sample[i] = sample[i] * 0.5f;
+            sample[i] = sample[i] * 0.05f;
         }
     }
 
@@ -161,8 +161,8 @@ public:
         lastSampleRate = sampleRate;
     }
     void getPhaseIncrement(float frequency, int midiNote) {
-        float freq = juce::MidiMessage::getMidiNoteInHertz(midiNote + octavePitchShift);
-        freq += coarseDetune;
+        float freq = frequency;
+        //freq += coarseDetune;
         oldFrequency = newFrequency;
         this->newFrequency = freq;
         superOscSettings.phaseIncrements[0] = frequency / lastSampleRate;
@@ -248,7 +248,6 @@ public:
                 if (id == IDs::SWFrequency)
                 {
                     getPhaseIncrement(state[IDs::SWFrequency], state[IDs::MidiNote]);
-                    juce::Logger::outputDebugString("Freq: " + std::to_string((float)state[IDs::SWFrequency]));
                 }
 
             

@@ -52,12 +52,10 @@ public:
 	}
 	void setClampedCutOff(float lfoMod)
 	{
-        float minCutoff = 20.0f; // Example minimum cutoff frequency
-        float maxCutoff = 20000.0f; // Example maximum cutoff frequency
+        float minCutoff = 20.0f; 
+        float maxCutoff = 20000.0f; 
         float logMin = std::log10(minCutoff);
         float logMax = std::log10(maxCutoff);
-
-        // Scale LFO value to the logarithmic range and convert back to linear frequency
         float logCutoff = juce::jmap(lfoMod, -1.0f, 1.0f, 20.0f, 20000.0f);
         float cutoffFrequency = std::pow(10.0f, logCutoff);
 		setCutoffFrequency(cutOff);
@@ -96,7 +94,7 @@ public:
         if(treeWhosePropertyHasChanged==tree)
         {
             DBG("Cutoff Moved!");
-            setFilterParam(tree[IDs::Cutoff], tree[IDs::Resonance], f_type);
+            setFilterParam(tree[IDs::Cutoff], tree[IDs::Resonance], tree[IDs::FilterT]);
         }
 	    
 	    

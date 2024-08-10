@@ -19,7 +19,7 @@
 class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener
 {
 public:
-	
+
 	SynthVoice::SynthVoice(juce::ValueTree& v):
 	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},TPTFilter{Filter(v),Filter(v)}
@@ -41,14 +41,10 @@ public:
 
 	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
 	               int currentPitchWheelPosition) override {
-		frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-		frequency2 = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-
+		frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber+12 -4);
+		frequency2 = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber+12- 4);
 		osc1[0].getPhaseIncrement(frequency, midiNoteNumber);
 		osc1[1].getPhaseIncrement(frequency, midiNoteNumber);
-		//state.setPropertyExcludingListener(this,IDs::MidiNote,midiNoteNumber,nullptr);//setting global midi note
-		//state.setProperty(IDs::SWFrequency, frequency, nullptr);//setting frequency for SW osc
-		//state.setProperty(IDs::VAFrequency, frequency2, nullptr);//setting frequency for VA osc
 		oldFrequency = frequency;
 		phase = osc1[0].randomPhase();
 		for(auto i=0;i<phases.size();i++)
@@ -131,27 +127,14 @@ public:
 			}
 			audioBlock.add(audioBlock_osc2);
 
-		
+
 			for (auto i = 0; i < numChannelsToProcess; i++)
 			{
 				Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
 				TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());
 				TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
 			}
-		
-		/*
-		else if (filterOn==1)
-		{
-			for (auto channel = 0; channel < numChannelsToProcess; channel++)
-			{
-				auto audioIn = synthBuffer.getReadPointer(channel);
-				auto audioOut = synthBuffer.getWritePointer(channel);
-				for (auto k = 0; k < numSamples; k++)
-				{
-					audioOut[k] = SVF[channel].processSample(audioIn[k]);
-				}
-			}
-		}*/
+
 		const auto context = juce::dsp::ProcessContextReplacing<float>(audioBlock);
 		level.process(context);
 		envelope.applyEnvelopeToBuffer(synthBuffer, 0, numSamples);
@@ -174,11 +157,11 @@ public:
 		level.reset();
 		envelope.reset();
 		keyTrack.reset();
-		
+
 	}
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
 	{
-		
+
 	}
 
 	float frequency;
@@ -186,7 +169,7 @@ public:
 	static constexpr int numChannelsToProcess{2};
 
 private:
-	
+
 	juce::dsp::Gain<float> level;
 	bool isPrepared{false};
 	std::array<Filter,numChannelsToProcess> TPTFilter;
@@ -231,6 +214,6 @@ private:
 	};
 
 	juce::ValueTree state;
-	
-	
+
+
 };

@@ -9,6 +9,8 @@
 */
 
 #include <JuceHeader.h>
+
+#include <memory>
 #include "oscGUI.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
@@ -22,7 +24,7 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(&oscMenu_osc1);
     oscMenu_osc1.addListener(this);
 
-    osc1Selection.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.state, "oscType_osc1", oscMenu_osc1));
+    osc1Selection = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.state, "oscType_osc1", oscMenu_osc1);
 
     oscMenu_osc1.setJustificationType(juce::Justification::centred);
 
@@ -33,16 +35,16 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(&oscMenu_osc2);
     oscMenu_osc2.addListener(this);
 
-    osc2Selection.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.state, "oscType_osc2", oscMenu_osc2));
+    osc2Selection = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.state, "oscType_osc2", oscMenu_osc2);
 
     oscMenu_osc2.setJustificationType(juce::Justification::centred);
 
 
     Gain_osc1.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     Gain_osc1.setRange(0.0f, 1.0f, 0.1f);
-    Gain_osc1.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 25, 10);
+    Gain_osc1.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 30);
     Gain_osc1.setValue(-20.0f);
-    Gain_osc1Attach.reset(new SliderAttachment(audioProcessor.state, "gain_osc1", Gain_osc1));
+    Gain_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc1", Gain_osc1);
    // Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "fmfreq", fmFreq);
     //filterCutOffAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterCutoff", cutOffSlider));
     
@@ -56,9 +58,9 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     Gain_osc2.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     Gain_osc2.setRange(0.0f, 1.0f, 0.1f);
-    Gain_osc2.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 25, 10);
+    Gain_osc2.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 30);
     Gain_osc2.setValue(-60.0f);
-    Gain_osc2Attach.reset(new SliderAttachment(audioProcessor.state, "gain_osc2", Gain_osc2));
+    Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc2", Gain_osc2);
    
     addAndMakeVisible(Gain_osc2);
     Gain_osc2.addListener(this);
@@ -72,9 +74,9 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     detune.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     detune.setRange(0.0f, 1.0f, 0.01f);
-    detune.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 25, 10);
+    detune.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 30);
     detune.setValue(0.0f);
-    detuneAttach.reset(new SliderAttachment(audioProcessor.state, "detuneSuper", detune));
+    detuneAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "detuneSuper", detune);
     // Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "fmfreq", fmFreq);
      //filterCutOffAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterCutoff", cutOffSlider));
 
@@ -89,11 +91,9 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     volume.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     volume.setRange(0.0f, 1.0f, 0.01f);
-    volume.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 25, 10);
+    volume.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50, 30);
     volume.setValue(0.0f);
-    volumeAttach.reset(new SliderAttachment(audioProcessor.state, "volumeSuper", volume));
-    // Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "fmfreq", fmFreq);
-     //filterCutOffAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterCutoff", cutOffSlider));
+    volumeAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "volumeSuper", volume);
 
     addAndMakeVisible(volume);
     volume.addListener(this);
@@ -102,24 +102,21 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     volumeLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(volumeLabel);
 
-  /*  setSliderWithLabel(fmFreq, Gain_osc1_label, audioProcessor.state, fmFreqId, Gain_osc1Attach);
-    setSliderWithLabel(fmDepth, Gain_osc2_label, audioProcessor.state, fmDepthId, Gain_osc2Attach);*/
-
     //detune
 //-------------------------
     makeSlider(octave_osc1,  "octave_osc1", octave_osc1_label);
-    octave_osc1Attach.reset(new SliderAttachment(audioProcessor.state, "octave_osc1", octave_osc1));
+    octave_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc1", octave_osc1);
     makeSlider(octave_osc2, "octave_osc2", octave_osc2_label);
-    octave_osc2Attach.reset(new SliderAttachment(audioProcessor.state, "octave_osc2", octave_osc2));
+    octave_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc2", octave_osc2);
     makeSlider(coarse_osc1, "octave_osc1", octave_osc1_label);
-    coarse_osc1Attach.reset(new SliderAttachment(audioProcessor.state, "coarse_osc1", coarse_osc1));
+    coarse_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc1", coarse_osc1);
     makeSlider(coarse_osc2, "coarse_osc2", coarse_osc2_label);
-    coarse_osc2Attach.reset(new SliderAttachment(audioProcessor.state, "coarse_osc2", coarse_osc2));
+    coarse_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc2", coarse_osc2);
 
     
    
 
-    setSize(400, 200);
+    setSize(600, 200);
 
 }
 
@@ -143,7 +140,7 @@ void oscGUI::resized()
     juce::Rectangle<int> bottomArea = getLocalBounds().removeFromBottom(25);
     juce::Rectangle<int> topArea = getLocalBounds().removeFromTop(75);
     juce::Rectangle<int> middleArea(0, 75.0f, 400.0f, 100.0f);
- 
+
     
     oscMenu_osc1.setBounds(topArea.removeFromLeft(60));
     octave_osc1.setBounds(topArea.removeFromLeft(60));

@@ -18,13 +18,13 @@
 class Osc :juce::ValueTree::Listener
 {
 public:
-    Osc(juce::ValueTree& v) :state(v)
+    explicit Osc(juce::ValueTree& v) :state(v)
     {
 
         state.addListener(this);
 
     }
-    float OscType(int oscillatorType, float phase) {
+    static float OscType(int oscillatorType, float phase) {
         switch (oscillatorType) {
         case 0: return sine(phase);
         case 1: return poly_saw(phase);
@@ -34,7 +34,7 @@ public:
         }
     }
 
-    float poly_blep(float t, float phaseIncrement) {
+    static float poly_blep(float t, float phaseIncrement) {
         float dt = phaseIncrement / juce::MathConstants<float>::twoPi;
         if (t < dt) {
             t /= dt;
@@ -49,29 +49,27 @@ public:
         }
     }
 
-    float poly_saw(float phase) {
+    static float poly_saw(float phase) {
         float value = (2.0f * phase / juce::MathConstants<float>::twoPi) - 1.0f;
         return value;
     }
 
-    float sine(float phase) {
+    static float sine(float phase) {
         return sin(phase);
     }
 
-    float square(float phase) {
+    static float square(float phase) {
         return (phase < juce::MathConstants<float>::pi) ? 1.0f : -1.0f;
     }
 
-    float triangle(float phase) {
+    static float triangle(float phase) {
         float value = -1.0f + (2.0f * phase / juce::MathConstants<float>::twoPi);
         return 2.0f * (fabs(value) - 0.5f);
     }
     void getNextBlock(juce::dsp::AudioBlock<float>& block, const int channel)
     {
         auto numSamples = block.getNumSamples();
-        auto numChannels = block.getNumChannels();
         auto* sample = block.getChannelPointer(channel);
-        auto* sample2 = block.getChannelPointer(1);
         
         for (size_t i = 0; i < numSamples; i++)
         {
@@ -84,7 +82,7 @@ public:
              sample[i] += nextSampleUniversal(superOscSettings.phases[6], superOscSettings.phaseIncrements[6], superOscSettings.lastOutputs[6]) * superOscSettings.volume;
              
             sample[i] = gain.processSample(sample[i]);
-            sample[i] = sample[i] * 0.05f;
+
         }
     }
 
@@ -97,12 +95,12 @@ public:
             superOscSettings.phaseIncrements[i] = 0.0f;
         }
     }
-    float randomPhase()
+    static float randomPhase()
     {
         std::random_device rd; 
         std::mt19937 gen(rd());
         std::uniform_real_distribution<> distr(0.0, 1.0);
-        float randomValue =static_cast<float> (distr(gen));
+        auto randomValue = static_cast<float> (distr(gen));
         return randomValue;
     }
     void setRandomPhase(float phase, float phaseOsc1, float phaseOsc2, float phaseOsc3, float phaseOsc5, float phaseOsc6, float phaseOsc7)
@@ -160,20 +158,17 @@ public:
         keyTrack.prepare(spec);
         lastSampleRate = sampleRate;
     }
-    void getPhaseIncrement(float frequency, int midiNote) {
-        float freq = frequency;
-        //freq += coarseDetune;
+    void setUpFrequency(const double& frequency,const int midiNote) {
+        const int currentModPitch =static_cast<int>(state[IDs::SWoctave]) * 12 +static_cast<int>( state[IDs::SWdetune]);
+        const double midiPitch = juce::MidiMessage::getMidiNoteInHertz(midiNote+currentModPitch);
+        const double freq = midiPitch;
         oldFrequency = newFrequency;
         this->newFrequency = freq;
-        superOscSettings.phaseIncrements[0] = frequency / lastSampleRate;
+        superOscSettings.phaseIncrements[0] = freq / lastSampleRate;
         lastFreq = freq;
         setSuperOscillatorFrequency();
     }
-    void setPitchMod(const int oct, const float detune)
-    {
-        octavePitchShift = oct * 12;
-        coarseDetune = detune;
-    }
+
     void setSuperOscillators(float detune, float volume)
     {
         superOscSettings.detune = polyFit(detune);
@@ -189,7 +184,7 @@ public:
         superOscSettings.phaseIncrements[5] = ((newFrequency * (1 + (0.06216538 * superOscSettings.detune))) / lastSampleRate);
         superOscSettings.phaseIncrements[6] = ((newFrequency * (1 + (0.10745242 * superOscSettings.detune))) / lastSampleRate);
     }
-    float polyFit(float x)
+    static float polyFit(float x)
     {
         //TODO can be approximated with 3 functions
         float y{ 0.0f };
@@ -198,19 +193,19 @@ public:
             (3425.0836591318 * fast_power(x, 4)) + (404.2703938388 * fast_power(x, 3)) - (24.1878824391 * fast_power(x, 2)) + (0.6717417634 * x) + 0.0030115596;
         return y;
     }
-    float sideVolume(float x)
+    static float sideVolume(float x)
     {
         float y{ 0.0f };
         y = -0.73764f * fast_power(x, 2) + 1.2841f * x + 0.044372f;
         return y;
     }
-    float mainVolume(float x)
+    static float mainVolume(float x)
     {
         float y{ 0.0f };
         y = -0.55366f * x + 0.99785f;
         return y;
     }
-    float fast_power(float base, int power) {
+    static float fast_power(float base, int power) {
         float result = 1.0f;
         while (power > 0) {
 
@@ -231,13 +226,9 @@ public:
                 }
                 if (id == IDs::SWoctave) {
                     octavePitchShift = state.getProperty(IDs::SWoctave);
-                    setPitchMod(octavePitchShift, coarseDetune);
-                    getPhaseIncrement(state.getProperty(IDs::SWFrequency), state.getProperty(IDs::MidiNote));
                 }
                 if (id == IDs::SWdetune) {
                     coarseDetune = state.getProperty(IDs::SWdetune);
-                    setPitchMod(octavePitchShift, coarseDetune);
-                    getPhaseIncrement(state.getProperty(IDs::SWFrequency), state.getProperty(IDs::MidiNote));
                 }
                 if (id == IDs::SWtype) {
                     type = state.getProperty(IDs::SWtype);
@@ -247,7 +238,7 @@ public:
                 }
                 if (id == IDs::SWFrequency)
                 {
-                    getPhaseIncrement(state[IDs::SWFrequency], state[IDs::MidiNote]);
+                    setUpFrequency(state[IDs::SWFrequency], state[IDs::MidiNote]);
                 }
 
             
@@ -261,18 +252,18 @@ private:
         float volume{ 0.0f };
         float volumeMain{ 0.0f };
         std::array<float, 7> phaseIncrements{0.0f};
-        std::array<float, 7> phases;
+        std::array<float, 7> phases{};
         std::array<float, 7> lastOutputs{ 0.0f };
     };
     oscSuper superOscSettings;
     float type{ 0.0f };
     juce::dsp::Oscillator<float> fmOsc{ [](float x) {return std::sin(x); } };
     juce::dsp::Gain<float> gain;
-    float lastFreq;
-    float lastSampleRate{0.0f};
-    float newFrequency{ 0.0f };
-    float oldFrequency{ 0.0f };
+    float lastFreq{};
+    double lastSampleRate{0.0f};
+    double newFrequency{ 0.0f };
+    double oldFrequency{ 0.0f };
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
     int octavePitchShift{ 0 };
-    float coarseDetune{ 0.0f };
+    int coarseDetune{ 0 };
 };

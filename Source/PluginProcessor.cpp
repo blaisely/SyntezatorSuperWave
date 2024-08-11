@@ -274,8 +274,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterInt>("octave_osc1", "Octave_osc1", -3, 3, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterInt>("octave_osc2", "Octave_osc2", -3, 3, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc1", "coarse_osc1", 0, 100, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc2", "coarse_osc2", 0, 100, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc1", "coarse_osc1", -12, 12, 0));
+    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc2", "coarse_osc2", -12, 12, 0.));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",logRangeAttack,0.001f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",logRangeDecay,0.1f));

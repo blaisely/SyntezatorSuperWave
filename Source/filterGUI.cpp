@@ -123,7 +123,7 @@ void filterGUI::makeSlider(juce::Slider& slider, std::unique_ptr<juce::AudioProc
     slider.setRange(minValue, maxValue);
     slider.setValue(initValue);
     slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
-    attachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, ID, slider));
+    attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, ID, slider);
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);

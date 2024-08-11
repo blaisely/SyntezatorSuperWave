@@ -15,7 +15,7 @@ SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAud
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (600, 400);
+    setSize (600, 600);
 
     addAndMakeVisible(filterGui);
     addAndMakeVisible(oscGui);
@@ -42,7 +42,7 @@ void SimpleSynthAudioProcessorEditor::paint (juce::Graphics& g)
 void SimpleSynthAudioProcessorEditor::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
-    juce::Rectangle<int> topSection = getLocalBounds().removeFromTop(200);
+    juce::Rectangle<int> topSection = getLocalBounds().removeFromTop(400);
     juce::Rectangle<int> topSection2 = getLocalBounds().removeFromTop(400);
     juce::Rectangle<int> bottomSection = getLocalBounds().removeFromBottom(200);
     

@@ -36,8 +36,8 @@ public:
 	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
 	               int currentPitchWheelPosition) override {
 
-		frequencyFirstOsc = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber+24 -4,440);
-		const auto midiNote = midiNoteNumber+20;
+
+		const auto midiNote = midiNoteNumber+32;
 		osc1[0].setFrequency(frequencyFirstOsc, midiNote);
 		osc1[1].setFrequency(frequencyFirstOsc, midiNote);
 		oldFrequency = frequencyFirstOsc;

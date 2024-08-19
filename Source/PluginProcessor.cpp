@@ -272,10 +272,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "Gain_osc1", 0.0f, 1.0f, 0.2f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "Gain_osc2", 0.0f, 1.0f, 0.0f));
 
-    layout.add(std::make_unique<juce::AudioParameterInt>("octave_osc1", "Octave_osc1", -3, 3, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterInt>("octave_osc2", "Octave_osc2", -3, 3, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc1", "coarse_osc1", -12, 12, 0));
-    layout.add(std::make_unique<juce::AudioParameterInt>("coarse_osc2", "coarse_osc2", -12, 12, 0.));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave_osc1",
+        juce::NormalisableRange<float>{-3,3,1},0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "Octave_osc2",
+        juce::NormalisableRange<float>{-3,3,1},0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarse_osc1",
+        juce::NormalisableRange<float>{-12,12,1},0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse_osc2",
+        juce::NormalisableRange<float>{-12,12,1},0));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",logRangeAttack,0.001f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",logRangeDecay,0.1f));
@@ -287,11 +291,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("sustain_osc2", "Sustain_osc2", 0.1f, 1.f, 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("release_osc2", "Release_osc2", 0.1f, 10.f, 0.5f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LFDepth", juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.1f,0.3f}, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("lfofreq", "LFOFreq", juce::NormalisableRange<float>{ 0.0f, 30.0f, 0.1f,0.3f},0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LFDepth",
+        juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.1f,0.3f}, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("lfofreq", "LFOFreq",
+        juce::NormalisableRange<float>{ 0.0f, 30.0f, 0.1f,0.3f},0.0f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "DetuneSuper", juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("volumeSuper", "volumeSuper", juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f}, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "DetuneSuper",
+        juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("volumeSuper", "volumeSuper",
+        juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f}, 0.0f));
     
 
     auto attributesFilter = juce::AudioParameterChoiceAttributes().withLabel("selectedFilterType");
@@ -331,8 +339,8 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
 
     settings.detune = apvts.getRawParameterValue("detuneSuper")->load();
     settings.volume = apvts.getRawParameterValue("volumeSuper")->load();
-
     settings.filterOn = apvts.getRawParameterValue("filterbutton")->load();
+
     settings.coarseosc1 = apvts.getRawParameterValue("coarse_osc1")->load();
     settings.coarseosc2 = apvts.getRawParameterValue("coarse_osc2")->load();
     settings.octaveosc2 = apvts.getRawParameterValue("octave_osc2")->load();

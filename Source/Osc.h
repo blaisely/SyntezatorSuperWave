@@ -106,7 +106,7 @@ public:
     {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<> distr(0.0, 1.0);
+        std::uniform_real_distribution<> distr(0.0, 0.5);
         auto randomValue = static_cast<float> (distr(gen));
         return randomValue;
     }
@@ -156,7 +156,7 @@ public:
 
         return static_cast<float>(value);
     }
-    void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels) {
+    void prepareToPlay(const double& sampleRate,const int& samplesPerBlock,const int& outputChannels) {
         juce::dsp::ProcessSpec spec{};
         spec.maximumBlockSize = samplesPerBlock;
         spec.sampleRate = sampleRate;
@@ -172,7 +172,9 @@ public:
     }
     void updatePitch()
     {
-        const double modPitch = std::pow(2.0,(static_cast<int>(state[IDs::SWoctave]) * 12 + static_cast<int>(state[IDs::SWdetune]))/12);
+        double modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
+        DBG("Detune in semi: "<<detuneSemi);
+        DBG("Pitch Mod: "<<modPitch);
         const double freq = midiPitch * modPitch;
         this->oscFrequency = freq;
         const double phaseInc = freq / lastSampleRate;
@@ -236,9 +238,11 @@ public:
                     setSideOsc(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
                 }
                 if (id == IDs::SWoctave) {
+                    octave = static_cast<float>(state[IDs::SWoctave])*12;
                     updatePitch();
                 }
                 if (id == IDs::SWdetune) {
+                    detuneSemi = static_cast<float>(state[IDs::SWdetune])/12;
                     updatePitch();
                 }
                 if (id == IDs::SWtype) {
@@ -269,6 +273,8 @@ private:
     synthParams params;
     float type{ 0.0f };
     juce::dsp::Gain<float> gain;
+    float octave{0};
+    float detuneSemi{0};
     double midiPitch{0.f};
     double lastSampleRate{0.0f};
     double oscFrequency{ 0.0f };

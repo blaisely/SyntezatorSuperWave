@@ -38,8 +38,8 @@ public:
 
 		frequencyFirstOsc = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber+24 -4,440);
 		const auto midiNote = midiNoteNumber+20;
-		osc1[0].setUpFrequency(frequencyFirstOsc, midiNote);
-		osc1[1].setUpFrequency(frequencyFirstOsc, midiNote);
+		osc1[0].setFrequency(frequencyFirstOsc, midiNote);
+		osc1[1].setFrequency(frequencyFirstOsc, midiNote);
 		oldFrequency = frequencyFirstOsc;
 		phase = osc1[0].randomPhase();
 		for(auto i=0;i<phases.size();i++)

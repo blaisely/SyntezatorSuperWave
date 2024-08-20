@@ -38,13 +38,16 @@ public:
 
 
 		const auto midiNote = midiNoteNumber+32;
+
 		osc1[0].setFrequency(frequencyFirstOsc, midiNote);
 		osc1[1].setFrequency(frequencyFirstOsc, midiNote);
-		oldFrequency = frequencyFirstOsc;
+		osc2[0].setFrequency(frequencyFirstOsc, midiNote);
+		osc2[1].setFrequency(frequencyFirstOsc, midiNote);
+
 		phase = osc1[0].randomPhase();
-		for(auto i=0;i<phases.size();i++)
+		for(float & phase : phases)
 		{
-			phases[i] = osc1[0].randomPhase();
+			phase = osc1[0].randomPhase();
 		}
 		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{

@@ -172,9 +172,7 @@ public:
     }
     void updatePitch()
     {
-        double modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
-        DBG("Detune in semi: "<<detuneSemi);
-        DBG("Pitch Mod: "<<modPitch);
+        const double modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
         const double freq = midiPitch * modPitch;
         this->oscFrequency = freq;
         const double phaseInc = freq / lastSampleRate;

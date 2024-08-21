@@ -12,7 +12,7 @@ public:
     {
         state.addListener(this);
     }
-   static double OscType(const int& oscillatorType,const double& phase) {
+   static float OscType(const int& oscillatorType,const float& phase) {
         switch (oscillatorType) {
         case 0: return sine(phase);
         case 1: return poly_saw(phase);
@@ -22,49 +22,50 @@ public:
         }
     }
 
-    static double poly_blep(double t, const double& phaseIncrement) {
-        const double dt = phaseIncrement / juce::MathConstants<float>::twoPi;
+    static float poly_blep(float t, const float& phaseIncrement) {
+        const float dt = phaseIncrement / juce::MathConstants<float>::twoPi;
         if (t < dt) {
             t /= dt;
-            return t + t - t * t - 1.;
+            return t + t - t * t - 1.f;
         }
         else if (t > 1.f - dt) {
             t = (t - 1.f) / dt;
-            return t * t + t + t + 1.;
+            return t * t + t + t + 1.f;
         }
         else {
             return 0.;
         }
     }
 
-    static double poly_saw(const double& phase) {
-        const double value = (2.0 * phase / juce::MathConstants<float>::twoPi) - 1.0;
+    static float poly_saw(const float& phase) {
+        const float value = (2.0f * phase / juce::MathConstants<float>::twoPi) - 1.0f;
         return value;
     }
 
-    static double sine(const double& phase) {
+    static float sine(const float& phase) {
         return sin(phase);
     }
 
-    static double square(const double& phase) {
+    static float square(const float& phase) {
         return (phase < juce::MathConstants<float>::pi) ? 1.0f : -1.0f;
     }
 
-    static double triangle(const double& phase) {
-        const double& value = -1.0f + (2.0f * phase / juce::MathConstants<float>::twoPi);
+    static float triangle(const float& phase) {
+        const float& value = -1.0f + (2.0f * phase / juce::MathConstants<float>::twoPi);
         return 2.0f * (fabs(value) - 0.5f);
     }
-    void getNextBlock(juce::dsp::AudioBlock<float>& block, const int channel)
+    void getNextBlock(const juce::dsp::AudioBlock<float>& block, const int channel)
     {
-        auto numSamples = block.getNumSamples();
+        const auto numSamples = block.getNumSamples();
         auto* sample = block.getChannelPointer(channel);
 
-        for (size_t i = 0; i < numSamples; i++)
+        for (size_t i = 0; i < numSamples; ++i)
         {
             sample[i] = nextSampleUniversal(phase,phaseIncrement,
-                lastOutput)*0.25;
-            DBG("Second osc Out: "<<sample[i]);
+                lastOutput);
+
             sample[i] = gain.processSample(sample[i]);
+            sample[i] = sample[i]*0.5f;
 
         }
     }
@@ -73,16 +74,17 @@ public:
         gain.reset();
         phase = 0.0f;
         phaseIncrement = 0.0f;
+        lastOutput = 0.0f;
 
     }
-    void setRandomPhase(const double& phase)
+    void setRandomPhase(const float& phase)
     {
         this->phase = phase;
     }
 
-    float nextSampleUniversal(double& phase,const double& phaseIncrement, double& lastOutput) const {
-        const double t = phase / juce::MathConstants<float>::twoPi;
-        double value = 0.0f;
+    float nextSampleUniversal(float& phase,const float& phaseIncrement, float& lastOutput) const {
+        const float t = phase / juce::MathConstants<float>::twoPi;
+        float value = 0.0f;
 
         switch (static_cast<int>(state[IDs::VAtype])) {
         case 0:
@@ -115,28 +117,25 @@ public:
 
         return static_cast<float>(value);
     }
-    void prepareToPlay(const double& sampleRate,const int& samplesPerBlock,const int& outputChannels) {
+    void prepareToPlay(const float& sampleRate,const int& samplesPerBlock,const int& outputChannels) {
         juce::dsp::ProcessSpec spec{};
         spec.maximumBlockSize = samplesPerBlock;
         spec.sampleRate = sampleRate;
         spec.numChannels = outputChannels;
         gain.prepare(spec);
-
         lastSampleRate = sampleRate;
     }
-    void setFrequency(const double& frequency,const int midiNote)
+    void setFrequency(const float& frequency,const int midiNote)
     {
         midiPitch = juce::MidiMessage::getMidiNoteInHertz(midiNote);
        updatePitch();
     }
     void updatePitch()
     {
-        const double modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
-        const double freq = midiPitch * modPitch;
+        const float modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
+        const float freq = midiPitch * modPitch;
         this->oscFrequency = freq;
-        const double phaseInc = freq / lastSampleRate;
-        phaseIncrement = phaseInc;
-
+        phaseIncrement = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
     }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
@@ -166,15 +165,14 @@ private:
     juce::ValueTree state;
     float type{ 0.0f };
     juce::dsp::Gain<float> gain;
-    double lastOutput{};
-    double phaseIncrement;
-    double phase;
-    double output{};
-    double lastSampleRate{};
-    double oscFrequency{ 0.0f };
+    float lastOutput{};
+    float phaseIncrement;
+    float phase;
+    float output{};
+    float lastSampleRate{};
+    float oscFrequency{ 0.0f };
     float octave{0};
     float detuneSemi{0};
-    double midiPitch{0.f};
-    //float sampleRate;
+    float midiPitch{0.f};
 };
 

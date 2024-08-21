@@ -35,10 +35,7 @@ public:
 
 	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
 	               int currentPitchWheelPosition) override {
-
-
-		const auto midiNote = midiNoteNumber+32;
-
+		const auto midiNote = midiNoteNumber;
 		osc1[0].setFrequency(frequencyFirstOsc, midiNote);
 		osc1[1].setFrequency(frequencyFirstOsc, midiNote);
 		osc2[0].setFrequency(frequencyFirstOsc, midiNote);
@@ -66,7 +63,7 @@ public:
 			clearCurrentNote();
 			osc1[0].resetOsc();
 			osc2[1].resetOsc();
-			phase = 0.0f;
+
 		}
 	}
 	void pitchWheelMoved(int newPitchWheelValue) override
@@ -88,7 +85,7 @@ public:
 		level.prepare(spec);
 		keyTrack.prepare(spec);
 		level.setGainLinear(1.0f);
-		for (auto i = 0; i < numChannelsToProcess; i++)
+		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
@@ -109,15 +106,15 @@ public:
 		envelope.setParameters(envelopeParameters);
 		setUpFirstOscBuffer(outputBuffer, numSamples);
 		setUpSecondOscBuffer(outputBuffer, numSamples);
-		juce::dsp::AudioBlock<float> audioBlock{synthBuffer};
-		juce::dsp::AudioBlock<float> audioBlock_osc2{synthBuffer_osc2};
+		juce::dsp::AudioBlock<float> oscillatorSW{synthBuffer};
+		juce::dsp::AudioBlock<float> oscillatorVA{synthBuffer_osc2};
 
 		for (auto i = 0; i < numChannelsToProcess; i++)
 		{
-			osc1[i].getNextBlock(audioBlock, i);
-			osc2[i].getNextBlock(audioBlock_osc2, i);
+			osc1[i].getNextBlock(oscillatorSW, i);
+			osc2[i].getNextBlock(oscillatorVA, i);
 		}
-		audioBlock.add(audioBlock_osc2);
+		oscillatorSW.add(oscillatorVA);
 
 
 		for (auto i = 0; i < numChannelsToProcess; i++)
@@ -127,7 +124,7 @@ public:
 			TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
 		}
 
-		const auto context = juce::dsp::ProcessContextReplacing<float>(audioBlock);
+		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
 		level.process(context);
 
 		envelope.applyEnvelopeToBuffer(synthBuffer, 0, numSamples);

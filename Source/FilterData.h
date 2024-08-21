@@ -93,7 +93,6 @@ public:
         
         if(treeWhosePropertyHasChanged==tree)
         {
-            DBG("Cutoff Moved!");
             setFilterParam(tree[IDs::Cutoff], tree[IDs::Resonance], tree[IDs::FilterT]);
         }
 	    

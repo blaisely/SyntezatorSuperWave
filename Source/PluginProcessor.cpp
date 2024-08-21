@@ -261,10 +261,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     auto logRange = makeLogarithmicRange(20.0f, 20000.0f);
-    auto logRangeAttack = makeLogarithmicRange(0.001f, 10.0f);
-    auto logRangeDecay = makeLogarithmicRange(0.001f, 10.0f);
-    auto logRangeSustain = makeLogarithmicRange(0.001f, 1.0f);
-    auto logRangeRelease = makeLogarithmicRange(0.001f, 10.0f);
+    juce::NormalisableRange<float> attackRange{0.01f,5.0f,0.01f,0.5};
+    juce::NormalisableRange<float> decayRange{0.01f,5.0f,0.01f,0.5};
+    juce::NormalisableRange<float> sustainRange{0.0f,1.0f,0.01f};
+    juce::NormalisableRange<float> releaseRange{0.01f,7.0f,0.01f,0.5};
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20000.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes", 0.707f, 10.0f, 0.707f));
@@ -281,10 +281,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse_osc2",
         juce::NormalisableRange<float>{-12,12,1},0));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",logRangeAttack,0.001f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",logRangeDecay,0.1f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain",logRangeSustain , 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("release", "Release",logRangeRelease,0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.01f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",decayRange,0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain",sustainRange , 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("release", "Release",releaseRange,0.5f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack_osc2", "Attack_osc2", 0.1f, 10.f, 0.1f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decay_osc2", "Decay_osc", 0.1f, 15.f, 6.0f));

@@ -9,28 +9,18 @@
 */
 
 #include <JuceHeader.h>
+
+#include <memory>
 #include "Envelope.h"
 
 //==============================================================================
 Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 {
-    attack.setRange(0.1f, 10.0f, 0.01f);
-    decay.setRange(0.1f, 15.0f, 0.01f);
-    sustain.setRange(0.1f, 1.0f, 0.01f);
-    release.setRange(0.1f, 10.0f, 0.01f);
-
-    attack.setValue(0.1f);
-    decay.setValue(6.0f);
-    sustain.setValue(1.0f);
-    release.setValue(.5f);
-
     attack.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     decay.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     sustain.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
     release.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
 
-    
-   
     attack.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     decay.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     sustain.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
@@ -47,10 +37,10 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(sustain);
     addAndMakeVisible(release);
 
-    attackAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "attack", attack));
-    decayAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "decay", decay));
-    sustainAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "sustain", sustain));
-    releaseAttachment.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "release", release));
+    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attack);
+    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decay);
+    sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "sustain", sustain);
+    releaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "release", release);
 
     
 
@@ -58,23 +48,12 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 }
 
 Envelope::~Envelope()
-{
-}
+= default;
 
 void Envelope::paint (juce::Graphics& g)
 {
-    /* This demo code just fills the component's background and
-       draws some placeholder text to get you started.
-
-       You should replace everything in this method with your own
-       drawing code..
-    */
 
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
-
-    g.setColour (juce::Colours::blueviolet);
-    g.drawRect (getLocalBounds(), 1);   // draw an outline around the component
-
     g.setColour (juce::Colours::white);
     g.setFont (14.0f);
    

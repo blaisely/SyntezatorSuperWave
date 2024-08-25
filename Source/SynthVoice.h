@@ -22,7 +22,9 @@ public:
 
 	explicit SynthVoice::SynthVoice(juce::ValueTree& v):
 	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
-	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},TPTFilter{Filter(v),Filter(v)}
+	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
+	TPTFilter{Filter(v),Filter(v)},
+	vaSVF{ZVAFilter(v),ZVAFilter(v)}
 	{
 		state.addListener(this);
 	}
@@ -116,9 +118,19 @@ public:
 		}
 		oscillatorSW.add(oscillatorVA);
 
-
+		for(auto i=0;i<numChannelsToProcess;++i)
+		{
+			vaSVF[i].reset(getSampleRate());
+			vaSVF[i].setParameters();
+		}
 		for (auto i = 0; i < numChannelsToProcess; i++)
 		{
+			auto input = synthBuffer.getReadPointer(i);
+			auto output = synthBuffer.getWritePointer(i);
+			for(auto sample =0;sample<numSamples;++sample)
+			{
+				output[sample] = vaSVF[i].processAudioSample(input[sample]);
+			}
 			//commented for test purposes
 			// Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
 			// TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());

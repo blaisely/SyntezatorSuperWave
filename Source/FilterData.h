@@ -12,6 +12,7 @@
 #include <complex>
 #include <cmath>
 #include <JuceHeader.h>
+#include "helpers.h"
 
 
 class Filter: public juce::dsp::StateVariableTPTFilter<float>,public juce::ValueTree::Listener
@@ -254,7 +255,10 @@ private:
 class ZVAFilter
 {
 public:
-   ZVAFilter()=default;
+   ZVAFilter(juce::ValueTree& v):tree(v)
+   {
+
+   };
 	~ZVAFilter()=default;
 
 	bool reset (double sampleRate)
@@ -264,10 +268,36 @@ public:
 		integrator_z[1] = 0.0;
 		return true;
 	}
+	void setParameters()
+	{
+		if(vaFilterParameters.fc!=static_cast<float>(tree[IDs::Cutoff])||
+			vaFilterParameters.Q!=static_cast<float>(tree[IDs::Resonance]))
+		{
+			vaFilterParameters.fc=tree[IDs::Cutoff];
+			vaFilterParameters.Q=tree[IDs::Resonance];
+			int filterType = static_cast<int>(tree[IDs::FilterT]);
+			switch(filterType)
+			{
+				case 0:
+				vaFilterParameters.filterAlgorithm = vaFilterAlgorithm::kSVF_LP;
+				break;
+			case 1:
+				vaFilterParameters.filterAlgorithm = vaFilterAlgorithm::kSVF_HP;
+				break;
+			case 2:
+				vaFilterParameters.filterAlgorithm = vaFilterAlgorithm::kSVF_BP;
+				break;
+			default:
+				vaFilterParameters.filterAlgorithm = vaFilterAlgorithm::kSVF_LP;
+				break;
+			}
+			calculateFilterCoeffs();
+		}
+	}
 	double processAudioSample(double xn)
 	{
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
-		bool matchAnalogNyquist = vaFilterParameters.matchAnalogNyquistLPF;
+		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
 		if (vaFilterParameters.enableGainComp)
 		{
 			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
@@ -277,8 +307,72 @@ public:
 				xn *= halfPeak_dBGain;
 			}
 		}
+		double hpf = alpha0*(xn - rho*integrator_z[0] - integrator_z[1]);
+
+		// --- BPF Out
+		double bpf = alpha*hpf + integrator_z[0];
+		if (vaFilterParameters.enableNLP)
+			bpf = softClipWaveShaper(bpf, 1.0);
+
+		// --- LPF Out
+		double lpf = alpha*bpf + integrator_z[1];
+
+		// --- BSF Out
+		double bsf = hpf + lpf;
+
+		// --- finite gain at Nyquist; slight error at VHF
+		double sn = integrator_z[0];
+
+		// update memory
+		integrator_z[0] = alpha*hpf + bpf;
+		integrator_z[1] = alpha*bpf + lpf;
+
+		double filterOutputGain = pow(10.0, vaFilterParameters.filterOutputGain_dB / 20.0);
+
+		// return our selected type
+		if (filterAlgorithm == vaFilterAlgorithm::kSVF_LP)
+		{
+			if (matchAnalogNyquistLPF)
+				lpf += analogMatchSigma*(sn);
+			return filterOutputGain*lpf;
+		}
+		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_HP)
+			return filterOutputGain*hpf;
+		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BP)
+			return filterOutputGain*bpf;
+		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BS)
+			return filterOutputGain*bsf;
+
+		// --- unknown filter
+		return filterOutputGain*lpf;
+	}
+	void calculateFilterCoeffs()
+	{
+		double fc = vaFilterParameters.fc;
+		double Q = vaFilterParameters.Q;
+		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
+
+		// --- normal Zavalishin SVF calculations here
+		//     prewarp the cutoff- these are bilinear-transform filters
+		double wd = kTwoPi*fc;
+		double T = 1.0 / sampleRate;
+		double wa = (2.0 / T)*tan(wd*T / 2.0);
+		double g = wa*T / 2.0;
+
+
+			// --- note R is the traditional analog damping factor zeta
+			double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
+			alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
+			alpha = g;
+			rho = 2.0*R + g;
+
+			// --- sigma for analog matching version
+			double f_o = (sampleRate / 2.0) / fc;
+			analogMatchSigma = 1.0 / (alpha*f_o*f_o);
+
 	}
 private:
+	juce::ValueTree tree;
 	enum class vaFilterAlgorithm {
 		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
 	};
@@ -289,16 +383,17 @@ private:
 	double rho =0.0;
 	double beta = 0.0;
 	double analogMatchSigma = 0.0;
+	double kTwoPi = juce::MathConstants<double>::twoPi;
 	struct ZVAFilterParameters
 	{
 		vaFilterAlgorithm filterAlgorithm = vaFilterAlgorithm::kSVF_LP;	///< va filter algorithm
 		double fc = 1000.0;						///< va filter fc
 		double Q = 0.707;						///< va filter Q
 		double filterOutputGain_dB = 0.0;		///< va filter gain (normally unused)
-		bool enableGainComp = false;			///< enable gain compensation (see book)
-		bool matchAnalogNyquistLPF = false;		///< match analog gain at Nyquist
-		bool selfOscillate = false;				///< enable selfOscillation
-		bool enableNLP = false;
+		bool enableGainComp = true;			///< enable gain compensation (see book)
+		bool matchAnalogNyquistLPF = true;		///< match analog gain at Nyquist
+		bool selfOscillate = true;				///< enable selfOscillation
+		bool enableNLP = true;
 	};
 	ZVAFilterParameters vaFilterParameters;
 

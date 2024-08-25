@@ -119,9 +119,10 @@ public:
 
 		for (auto i = 0; i < numChannelsToProcess; i++)
 		{
-			Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
-			TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());
-			TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
+			//commented for test purposes
+			// Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
+			// TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());
+			// TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
 		}
 
 		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
@@ -162,7 +163,7 @@ public:
 			osc2[i].resetOsc();
 			TPTFilter[i].resetAll();
 			Lfo1[i].reset();
-			SVF[i].reset();
+			vaSVF[i].reset(getSampleRate());
 		}
 		level.reset();
 		envelope.reset();
@@ -191,7 +192,7 @@ private:
 	juce::dsp::Gain<float> level;
 	bool isPrepared{false};
 	std::array<Filter,numChannelsToProcess> TPTFilter;
-	std::array<StateVariableFilter, numChannelsToProcess> SVF;
+	std::array<ZVAFilter, numChannelsToProcess> vaSVF;
 	std::array<LFO, numChannelsToProcess> Lfo1;
 	std::array<LFO, numChannelsToProcess> Lfo2;
 	juce::AudioBuffer<float> synthBuffer;

@@ -25,3 +25,12 @@ inline double dB2Raw(double dB)
 {
     return pow(10.0, (dB / 20.0));
 }
+inline double sgn(double xn)
+{
+    return (xn > 0) - (xn < 0);
+}
+inline double softClipWaveShaper(double xn, double saturation)
+{
+    // --- un-normalized soft clipper from Reiss book
+    return sgn(xn)*(1.0 - exp(-fabs(saturation*xn)));
+}

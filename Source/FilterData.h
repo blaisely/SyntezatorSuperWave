@@ -251,3 +251,55 @@ private:
     float m0, m1, m2;        // mix coefficients
     float ic1eq, ic2eq;      // internal state
 };
+class ZVAFilter
+{
+public:
+   ZVAFilter()=default;
+	~ZVAFilter()=default;
+
+	bool reset (double sampleRate)
+	{
+		this->sampleRate = sampleRate;
+		integrator_z[0] = 0.0;
+		integrator_z[1] = 0.0;
+		return true;
+	}
+	double processAudioSample(double xn)
+	{
+		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
+		bool matchAnalogNyquist = vaFilterParameters.matchAnalogNyquistLPF;
+		if (vaFilterParameters.enableGainComp)
+		{
+			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
+			if (peak_dB > 0.0)
+			{
+				double halfPeak_dBGain = dB2Raw(-peak_dB / 2.0);
+				xn *= halfPeak_dBGain;
+			}
+		}
+	}
+private:
+	enum class vaFilterAlgorithm {
+		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
+	};
+	double sampleRate = 48000.0;
+	double integrator_z[2];
+	double alpha0=0.0;
+	double alpha = 0.0;
+	double rho =0.0;
+	double beta = 0.0;
+	double analogMatchSigma = 0.0;
+	struct ZVAFilterParameters
+	{
+		vaFilterAlgorithm filterAlgorithm = vaFilterAlgorithm::kSVF_LP;	///< va filter algorithm
+		double fc = 1000.0;						///< va filter fc
+		double Q = 0.707;						///< va filter Q
+		double filterOutputGain_dB = 0.0;		///< va filter gain (normally unused)
+		bool enableGainComp = false;			///< enable gain compensation (see book)
+		bool matchAnalogNyquistLPF = false;		///< match analog gain at Nyquist
+		bool selfOscillate = false;				///< enable selfOscillation
+		bool enableNLP = false;
+	};
+	ZVAFilterParameters vaFilterParameters;
+
+};

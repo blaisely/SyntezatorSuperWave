@@ -24,7 +24,7 @@ public:
 	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
 	TPTFilter{Filter(v),Filter(v)},
-	vaSVF{ZVAFilter(v),ZVAFilter(v)}
+	vaSVF(v)
 	{
 		state.addListener(this);
 	}
@@ -118,24 +118,21 @@ public:
 		}
 		oscillatorSW.add(oscillatorVA);
 
-		for(auto i=0;i<numChannelsToProcess;++i)
-		{
-			vaSVF[i].reset(getSampleRate());
-			vaSVF[i].setParameters();
-		}
-		for (auto i = 0; i < numChannelsToProcess; i++)
-		{
-			auto input = synthBuffer.getReadPointer(i);
-			auto output = synthBuffer.getWritePointer(i);
+			vaSVF.setParameters();
+
+			auto inputLeft = synthBuffer.getReadPointer(0);
+			auto outputLeft = synthBuffer.getWritePointer(0);
+			auto outputRight = synthBuffer.getWritePointer(1);
 			for(auto sample =0;sample<numSamples;++sample)
 			{
-				output[sample] = vaSVF[i].processAudioSample(input[sample]);
+				auto y = vaSVF.processAudioSample(inputLeft[sample]);
+				outputLeft[sample] = outputRight[sample] = y;
 			}
 			//commented for test purposes
 			// Lfo1[i].renderNextBlock(synthBuffer,startSample,numSamples);
 			// TPTFilter[i].setClampedCutOff(Lfo1[i].getModValueLfo1());
 			// TPTFilter[i].processNextBlock(synthBuffer, 0, numSamples);
-		}
+
 
 		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
 		level.process(context);
@@ -175,7 +172,7 @@ public:
 			osc2[i].resetOsc();
 			TPTFilter[i].resetAll();
 			Lfo1[i].reset();
-			vaSVF[i].reset(getSampleRate());
+			vaSVF.reset(getSampleRate());
 		}
 		level.reset();
 		envelope.reset();
@@ -204,7 +201,7 @@ private:
 	juce::dsp::Gain<float> level;
 	bool isPrepared{false};
 	std::array<Filter,numChannelsToProcess> TPTFilter;
-	std::array<ZVAFilter, numChannelsToProcess> vaSVF;
+	ZVAFilter vaSVF;
 	std::array<LFO, numChannelsToProcess> Lfo1;
 	std::array<LFO, numChannelsToProcess> Lfo2;
 	juce::AudioBuffer<float> synthBuffer;

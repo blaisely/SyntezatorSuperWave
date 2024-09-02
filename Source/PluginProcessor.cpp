@@ -213,7 +213,8 @@ bool SimpleSynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleSynthAudioProcessor::createEditor()
 {
-    return new SimpleSynthAudioProcessorEditor (*this);
+    //return new SimpleSynthAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -267,7 +268,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     juce::NormalisableRange<float> releaseRange{0.01f,7.0f,0.01f,0.5};
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20000.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes", 0.707f, 10.0f, 0.707f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
+        juce::NormalisableRange<float>(0.000,20.00,0.01,0.4),0.707));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "Gain_osc1", 0.0f, 1.0f, 0.2f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "Gain_osc2", 0.0f, 1.0f, 0.0f));

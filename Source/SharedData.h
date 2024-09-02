@@ -55,6 +55,8 @@ namespace IDs{
     ID SWFrequency("SWFreq");
     ID VAFrequency("VAFreq");
     ID MidiNote("MidiNote");
+    ID SVFEnabled("SVF Enabled");
+    ID FilterDrive("Filter Drive");
 
 
 };

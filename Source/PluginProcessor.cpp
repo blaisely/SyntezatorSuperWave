@@ -271,6 +271,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
         juce::NormalisableRange<float>(0.000,20.00,0.01,0.4),0.707));
 
+    layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "Gain_osc1", 0.0f, 1.0f, 0.2f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "Gain_osc2", 0.0f, 1.0f, 0.0f));
 
@@ -324,6 +325,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
 
     settings.cutoff = apvts.getRawParameterValue("filterCutoff")->load();
     settings.resonance = apvts.getRawParameterValue("filterRes")->load();
+    settings.filterDrive = apvts.getRawParameterValue("filterDrive")->load();
     settings.oscType_osc1 = apvts.getRawParameterValue("oscType_osc1")->load();
     settings.oscType_osc2 = apvts.getRawParameterValue("oscType_osc2")->load();
     settings.filterType = apvts.getRawParameterValue("filterType")->load();
@@ -427,5 +429,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::VAdetune, s.coarseosc2, nullptr);
     tree.setProperty(IDs::SWoctave, s.octaveosc1, nullptr);
     tree.setProperty(IDs::VAoctave, s.octaveosc2, nullptr);
+    tree.setProperty(IDs::SVFEnabled,s.filterOn,nullptr);
+    tree.setProperty(IDs::FilterDrive,s.filterDrive,nullptr);
 
 }

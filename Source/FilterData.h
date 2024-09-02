@@ -13,6 +13,7 @@
 #include <cmath>
 #include <JuceHeader.h>
 #include "helpers.h"
+#include "SharedData.h"
 
 
 class Filter: public juce::dsp::StateVariableTPTFilter<float>,public juce::ValueTree::Listener
@@ -99,8 +100,6 @@ public:
 	    
 	    
     }
-
-
 private:
 	float cutOffMod{ 0.0f };
 	float cutOff{ 0.0f };
@@ -127,10 +126,12 @@ public:
 	void setParameters()
 	{
 		if(vaFilterParameters.fc!=static_cast<float>(tree[IDs::Cutoff])||
-			vaFilterParameters.Q!=static_cast<float>(tree[IDs::Resonance]))
+			vaFilterParameters.Q!=static_cast<float>(tree[IDs::Resonance]) ||
+			vaFilterParameters.filterDrive!=static_cast<double>(tree[IDs::FilterDrive]))
 		{
 			vaFilterParameters.fc=tree[IDs::Cutoff];
 			vaFilterParameters.Q=tree[IDs::Resonance];
+			vaFilterParameters.filterDrive = static_cast<double>(tree[IDs::FilterDrive]);
 			int filterType = static_cast<int>(tree[IDs::FilterT]);
 			switch(filterType)
 			{
@@ -154,6 +155,7 @@ public:
 	{
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
+		double filterDrive = juce::jlimit(1.0,2.0,vaFilterParameters.filterDrive);
 		if (vaFilterParameters.enableGainComp)
 		{
 			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
@@ -168,7 +170,7 @@ public:
 		// --- BPF Out
 		double bpf = alpha*hpf + integrator_z[0];
 		if (vaFilterParameters.enableNLP)
-			bpf = softClipWaveShaper(bpf, 1.0);
+			bpf = softClipWaveShaper(bpf, filterDrive);
 
 		// --- LPF Out
 		double lpf = alpha*bpf + integrator_z[1];
@@ -250,7 +252,54 @@ private:
 		bool matchAnalogNyquistLPF = true;		///< match analog gain at Nyquist
 		bool selfOscillate = true;				///< enable selfOscillation
 		bool enableNLP = true;
+		double filterDrive =1.0;
 	};
 	ZVAFilterParameters vaFilterParameters;
 
+};
+
+class MOOGFilter: public juce::dsp::LadderFilter<float>
+{
+public:
+	explicit MOOGFilter(juce::ValueTree& v):tree(v)
+	{
+	setEnabled(true);
+	}
+	~MOOGFilter()=default;
+	void setParameters()
+	{
+		cutOffFrequency = tree[IDs::Cutoff];
+		resonance = juce::jlimit(0.0f,2.0f,static_cast<float>(tree[IDs::Resonance]));
+		driveAmount = tree[IDs::FilterDrive];
+		setCutoffFrequencyHz(cutOffFrequency);
+		setResonance(resonance);
+		setDrive(driveAmount);
+		type = static_cast<int>(tree[IDs::FilterT]);
+		switch(type)
+		{
+		case 0:
+			setMode(Mode::LPF24);
+			break;
+		case 1:
+			setMode(Mode::HPF24);
+			break;
+		case 2:
+			setMode(Mode::BPF24);
+			break;
+		default:
+				setMode(Mode::LPF24);
+			break;
+		}
+	}
+	float processAudioSample(const float& x,const int& channel)
+	{
+		updateSmoothers();
+		return processSample(x,channel);
+	}
+private:
+	float cutOffFrequency;
+	float resonance;
+	int type;
+	float driveAmount;
+	juce::ValueTree tree;
 };

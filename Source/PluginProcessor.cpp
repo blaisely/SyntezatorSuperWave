@@ -295,7 +295,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("release_osc2", "Release_osc2", 0.1f, 10.f, 0.5f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LFDepth",
-        juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.1f,0.3f}, 0.0f));
+        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.3f}, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfofreq", "LFOFreq",
         juce::NormalisableRange<float>{ 0.0f, 30.0f, 0.1f,0.3f},0.0f));
 

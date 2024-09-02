@@ -25,7 +25,8 @@ public:
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
 	TPTFilter{Filter(v),Filter(v)},
 	vaSVF(v),
-	ladder(v)
+	ladder(v),
+	lfoGenerator(v)
 	{
 		state.addListener(this);
 	}
@@ -36,14 +37,17 @@ public:
 		return dynamic_cast<SynthSound*>(sound) != nullptr;
 	}
 
-	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
-	               int currentPitchWheelPosition) override {
-		const auto midiNote = midiNoteNumber;
-		osc1[0].setFrequency(frequencyFirstOsc, midiNote);
-		osc1[1].setFrequency(frequencyFirstOsc, midiNote);
-		osc2[0].setFrequency(frequencyFirstOsc, midiNote);
-		osc2[1].setFrequency(frequencyFirstOsc, midiNote);
+	void setOscillatorsFrequency(const int midiNote)
+	{
+		for(auto i=0;i<2;++i)
+		{
+			osc1[i].setFrequency(frequencyFirstOsc, midiNote);
+			osc2[i].setFrequency(frequencyFirstOsc, midiNote);
+		}
+	}
 
+	void setRandomPhase()
+	{
 		phase = osc1[0].randomPhase();
 		for(float & phase : phases)
 		{
@@ -54,6 +58,13 @@ public:
 			osc1[i].setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
 			osc2[i].setRandomPhase(phase);
 		}
+	}
+
+	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
+	               int currentPitchWheelPosition) override {
+		const auto midiNote = midiNoteNumber;
+		setOscillatorsFrequency(midiNote);
+		setRandomPhase();
 		envelope.noteOn();
 	}
 
@@ -66,7 +77,7 @@ public:
 			clearCurrentNote();
 			osc1[0].resetOsc();
 			osc2[1].resetOsc();
-
+			reset();
 		}
 	}
 	void pitchWheelMoved(int newPitchWheelValue) override
@@ -89,12 +100,12 @@ public:
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
 		level.setGainLinear(1.0f);
+		lfoGenerator.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			TPTFilter[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-			Lfo1[i].prepareToPlay(sampleRate, outputChannels, samplesPerBlock);
 		}
 		isPrepared = true;
 	}
@@ -160,6 +171,14 @@ public:
 		}
 		oscillatorSW.add(oscillatorVA);
 
+		lfoGenerator.setParameters();
+		float lfoMod = lfoGenerator.render(outputBuffer,startSample,numSamples);
+		filterZip += 0.005f * (lfoMod - filterZip);
+		float currentCutoff = state[IDs::Cutoff];
+		float modulatedCutoff = currentCutoff * filterZip;
+		modulatedCutoff = std::clamp(modulatedCutoff, 20.0f, 20000.0f);
+		state.setProperty(IDs::Cutoff,modulatedCutoff,nullptr);
+
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 		processFilter(numSamples);
 
@@ -194,9 +213,9 @@ public:
 			osc1[i].resetOsc();
 			osc2[i].resetOsc();
 			TPTFilter[i].resetAll();
-			Lfo1[i].reset();
 			vaSVF.reset(getSampleRate());
 		}
+		lfoGenerator.reset();
 		level.reset();
 		envelope.reset();
 		keyTrack.reset();
@@ -225,6 +244,7 @@ private:
 	double frequencyFirstOsc{};
 	double frequencySecondOsc{ 0.0f };
 	float type{};
+	float filterZip{0.0f};
 	bool SVFEnabled;
 	float oldFrequency{ 0.0f };
 	std::array<Osc, numChannelsToProcess> osc1;
@@ -234,7 +254,7 @@ private:
 	std::array<Filter,numChannelsToProcess> TPTFilter;
 	ZVAFilter vaSVF;
 	MOOGFilter ladder;
-	std::array<LFO, numChannelsToProcess> Lfo1;
+	LFO lfoGenerator;
 	juce::AudioBuffer<float> synthBuffer1;
 	juce::AudioBuffer<float> synthesisBuffer;
 	juce::AudioBuffer<float> synthBuffer2;

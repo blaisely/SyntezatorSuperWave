@@ -124,6 +124,7 @@ public:
 
 	void processFilter(int numSamples)
 	{
+		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 		if(SVFEnabled)
 		{
 			vaSVF.setParameters();
@@ -151,6 +152,18 @@ public:
 		}
 	}
 
+	void processLFO(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)
+	{
+		lfoGenerator.setParameters();
+		float lfoMod = lfoGenerator.render(outputBuffer,startSample,numSamples);
+		float currentCutoff = state[IDs::Cutoff];
+		filterZip += 0.005f * (lfoMod - filterZip);
+		float modulatedCutoff = currentCutoff * filterZip;
+		modulatedCutoff+=currentCutoff;
+		modulatedCutoff = std::clamp(modulatedCutoff, 20.0f, 20000.0f);
+		state.setProperty(IDs::Cutoff,modulatedCutoff,nullptr);
+	}
+
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
 	{
 		jassert(isPrepared);
@@ -171,15 +184,8 @@ public:
 		}
 		oscillatorSW.add(oscillatorVA);
 
-		lfoGenerator.setParameters();
-		float lfoMod = lfoGenerator.render(outputBuffer,startSample,numSamples);
-		filterZip += 0.005f * (lfoMod - filterZip);
-		float currentCutoff = state[IDs::Cutoff];
-		float modulatedCutoff = currentCutoff * filterZip;
-		modulatedCutoff = std::clamp(modulatedCutoff, 20.0f, 20000.0f);
-		state.setProperty(IDs::Cutoff,modulatedCutoff,nullptr);
+		processLFO(outputBuffer, startSample, numSamples);
 
-		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 		processFilter(numSamples);
 
 		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);

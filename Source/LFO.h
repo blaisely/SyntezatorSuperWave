@@ -40,10 +40,9 @@ public:
             if(updateCounter==0)
             {
                 updateCounter = updateRate;
-                return parameters.modValue = lfo.processSample(0.0) * parameters.depth;
+                return lfo.processSample(0.0) * parameters.depth;
             }
         }
-        return 0.0f;
     }
     void reset()
     {

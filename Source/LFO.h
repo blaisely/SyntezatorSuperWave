@@ -20,29 +20,27 @@ public:
     ~LFO()=default;
     void prepareToPlay(double sampleRate, unsigned int numChannels, unsigned int blockSize)
     {
-        this->sampleRate = sampleRate;
-        this->numChannels = numChannels;
-        this->blockSize = blockSize;
         auto spec = juce::dsp::ProcessSpec{ sampleRate/updateRate,blockSize,numChannels };
         lfo.prepare(spec);
         reset();
         lfo.initialise([](float x) { return std::sin(x); });
 	        
     }
-    float render(juce::AudioBuffer<float>& outputBuffer, int startSample,int numSamples)
+    float render(int startSample,int numSamples)
     {
        
         for(size_t pos =0;pos<(size_t)numSamples;)
         {
-            auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
+            const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
             pos += max;
             updateCounter -= max;
             if(updateCounter==0)
             {
                 updateCounter = updateRate;
-                return lfo.processSample(0.0) * parameters.depth;
+                return lfo.processSample(0.0) * parameters.depth * 2.5f;
             }
         }
+        return 0.0f;
     }
     void reset()
     {
@@ -96,10 +94,7 @@ private:
     };
     LFOParameters parameters;
     juce::ValueTree tree;
-    int sampleRate{ 0 };
-    int numChannels{ 0 };
     int modDest{ 0 };
     int updateRate{ 100 };
     int updateCounter{ updateRate };
-    int blockSize{ 0 };
 };

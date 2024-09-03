@@ -57,6 +57,8 @@ namespace IDs{
     ID MidiNote("MidiNote");
     ID SVFEnabled("SVF Enabled");
     ID FilterDrive("Filter Drive");
+    ID LFOReset("LFO Reset");
+    ID CommonEnvelope("Common Envelope");
 
 
 };

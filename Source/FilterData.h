@@ -297,9 +297,9 @@ public:
 		return processSample(x,channel);
 	}
 private:
-	float cutOffFrequency;
-	float resonance;
-	int type;
-	float driveAmount;
+	float cutOffFrequency{};
+	float resonance{};
+	int type{};
+	float driveAmount{};
 	juce::ValueTree tree;
 };

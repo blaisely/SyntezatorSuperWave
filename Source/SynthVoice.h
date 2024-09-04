@@ -66,7 +66,7 @@ public:
 		setOscillatorsFrequency(midiNote);
 		setRandomPhase();
 		ampEnvelope.noteOn();
-		modEnvelope.noteOn();
+		amp2Envelope.noteOn();
 	}
 
 	void resetLFO()
@@ -81,7 +81,7 @@ public:
 	void stopNote(float velocity, bool allowTailOff) override
 	{
 		ampEnvelope.noteOff();
-		modEnvelope.noteOff();
+		amp2Envelope.noteOff();
 		allowTailOff = true;
 		resetLFO();
 		if (ampEnvelope.isActive() == false)
@@ -105,7 +105,7 @@ public:
 		synthBuffer.clear();
 		const juce::dsp::ProcessSpec spec{sampleRate,static_cast<uint32_t>(samplesPerBlock),static_cast<uint32_t>(outputChannels)};
 		ampEnvelope.setSampleRate(getSampleRate());
-		modEnvelope.setSampleRate(getSampleRate());
+		amp2Envelope.setSampleRate(getSampleRate());
 		level.prepare(spec);
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
@@ -132,6 +132,13 @@ public:
 		}
 	}
 
+	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
+	{
+		envelopeMod = modEnvelope.getNextSample()*filterEnvelopeAmount;
+		cutOffMod = envelopeMod + lfoGenerator[channel].render(sample,numSamples);
+		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
+	}
+
 	void processFilter(const int& numSamples,const int& startSample)
 	{
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
@@ -143,8 +150,9 @@ public:
 			auto outputRight = swBuffer.getWritePointer(1);
 			for(auto sample =0;sample<numSamples;++sample)
 			{
-				//vaSVF.calculateFilterCoeffs();
-				vaSVF.setCutOffMod(lfoGenerator[0].render(sample,numSamples));
+
+				calculateModAmount(numSamples, sample,0);
+				vaSVF.setCutOffMod(cutOffMod);
 				float y = vaSVF.processAudioSample(inputLeft[sample]);
 				outputLeft[sample] = outputRight[sample] = y;
 			}
@@ -158,7 +166,8 @@ public:
 				auto output = swBuffer.getWritePointer(channel);
 				for(auto sample=0;sample<numSamples;++sample)
 				{
-					ladder.setCutOffMod(lfoGenerator[channel].render(sample,numSamples));
+					calculateModAmount(numSamples,sample,channel);
+					ladder.setCutOffMod(cutOffMod);
 					output[sample] = ladder.processAudioSample(input[sample],channel);
 				}
 			}
@@ -186,7 +195,7 @@ public:
 		else
 		{
 			ampEnvelope.applyEnvelopeToBuffer(swBuffer, 0, numSamples);
-			modEnvelope.applyEnvelopeToBuffer(vaBuffer,0,numSamples);
+			amp2Envelope.applyEnvelopeToBuffer(vaBuffer,0,numSamples);
 			oscillatorSW.add(oscillatorVA);
 		}
 	}
@@ -199,9 +208,10 @@ public:
 			return;
 		}
 		lfoReset = state[IDs::LFOReset];
+		envelopeMod = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.0f;
 		getEnvelopeParameters();
 		ampEnvelope.setParameters(ampEnvelopeParameters);
-		modEnvelope.setParameters(modEnvelopeParameters);
+		amp2Envelope.setParameters(amp2EnvelopeParameters);
 		setUpFirstOscBuffer(outputBuffer, numSamples);
 		setUpSecondOscBuffer(outputBuffer, numSamples);
 		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
@@ -255,7 +265,7 @@ public:
 
 		level.reset();
 		ampEnvelope.reset();
-		modEnvelope.reset();
+		amp2Envelope.reset();
 		keyTrack.reset();
 		ladder.reset();
 	}
@@ -271,22 +281,24 @@ public:
 		ampEnvelopeParameters.sustain = state[IDs::ADSR1Sustain];
 		ampEnvelopeParameters.release = state[IDs::ADSR1Release];
 
-		modEnvelopeParameters.attack = state[IDs::ADSR2Attack];
-		modEnvelopeParameters.decay = state[IDs::ADSR2Decay];
-		modEnvelopeParameters.sustain = state[IDs::ADSR2Sustain];
-		modEnvelopeParameters.release = state[IDs::ADSR2Release];
+		amp2EnvelopeParameters.attack =modEnvelopeParameters.attack = state[IDs::ADSR2Attack];
+		amp2EnvelopeParameters.decay =modEnvelopeParameters.decay= state[IDs::ADSR2Decay];
+		amp2EnvelopeParameters.sustain=modEnvelopeParameters.sustain = state[IDs::ADSR2Sustain];
+		amp2EnvelopeParameters.release=modEnvelopeParameters.release = state[IDs::ADSR2Release];
 	}
 
 	static constexpr int numChannelsToProcess{2};
 
 private:
+	float cutOffMod{0.0f};
+	float filterEnvelopeAmount{0.0f};
+	float envelopeMod{0.0f};
 	float oldMod{0.0f};
 	bool isPrepared{false};
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
 	double frequency{};
 	float type{};
-	float filterZip{0.0f};
 	bool SVFEnabled;
 	bool commonEnvelope;
 	bool lfoReset;
@@ -304,8 +316,10 @@ private:
 	juce::AudioBuffer<float> synthBuffer;
 	juce::AudioBuffer<float> vaBuffer;
 	juce::ADSR ampEnvelope;
+	juce::ADSR amp2Envelope;
 	juce::ADSR modEnvelope;
 	juce::ADSR::Parameters ampEnvelopeParameters;
+	juce::ADSR::Parameters amp2EnvelopeParameters;
 	juce::ADSR::Parameters modEnvelopeParameters;
 	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
 	juce::ValueTree state;

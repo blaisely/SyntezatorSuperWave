@@ -59,6 +59,7 @@ namespace IDs{
     ID FilterDrive("Filter Drive");
     ID LFOReset("LFO Reset");
     ID CommonEnvelope("Common Envelope");
+    ID FilterEnvelopeAmount("Filter Envelope Amount");
 
 
 };

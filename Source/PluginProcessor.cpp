@@ -271,16 +271,17 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
         juce::NormalisableRange<float>(0.000,20.00,0.01,0.4),0.707));
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "Gain_osc1", 0.0f, 1.0f, 0.2f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "Gain_osc2", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.2f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", 0.0f, 100.0f, 0.0f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave_osc1",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "OctaveOsc1",
         juce::NormalisableRange<float>{-3,3,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "Octave_osc2",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "OctaveOsc2",
         juce::NormalisableRange<float>{-3,3,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarse_osc1",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarseOsc1",
         juce::NormalisableRange<float>{-12,12,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse_osc2",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarseOsc2",
         juce::NormalisableRange<float>{-12,12,1},0));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.01f));
@@ -288,10 +289,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain",sustainRange , 1.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("release", "Release",releaseRange,0.5f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("attackOsc2", "AttackOsc2",attackRange,0.01f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("decayOsc2", "DecayOsc2",decayRange,0.1f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("sustainOsc2", "SustainOsc2",sustainRange , 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc2", "ReleaseOsc2",releaseRange,0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attackOsc2", "AttackEnv2(Osc2)",attackRange,0.01f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decayOsc2", "DecayEnv2(Osc2)",decayRange,0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("sustainOsc2", "SustainEnv2(Osc2)",sustainRange , 1.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc2", "ReleaseEnv2(Osc2)",releaseRange,0.5f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LFDepth",
         juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.3f}, 0.0f));
@@ -318,9 +319,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterChoice>("oscType_osc2", "OSC2 Type", juce::StringArray{ "Sine", "Saw", "Square", "Triangle" }
         , 0, attributesOsc2Menu));
 
-    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "FilterButton", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "lfoReset", 0));
-    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "CommonEnvelope", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope", 0));
 
     return layout;
 }
@@ -346,6 +347,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.releaseEnv2 = apvts.getRawParameterValue("releaseOsc2")->load();
 
     settings.commonEnvelope = apvts.getRawParameterValue("commonEnvelope")->load();
+    settings.envelopeAmount = apvts.getRawParameterValue("filterEnvelope")->load();
 
     settings.gain_osc1 = apvts.getRawParameterValue("gain_osc1")->load();
     settings.gain_osc2 = apvts.getRawParameterValue("gain_osc2")->load();
@@ -452,5 +454,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::FilterDrive,s.filterDrive,nullptr);
     tree.setProperty(IDs::LFOReset,s.lfoReset,nullptr);
     tree.setProperty(IDs::CommonEnvelope,s.commonEnvelope,nullptr);
+    tree.setProperty(IDs::FilterEnvelopeAmount,s.envelopeAmount,nullptr);
+
 
 }

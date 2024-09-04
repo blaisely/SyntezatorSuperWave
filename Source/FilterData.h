@@ -151,6 +151,16 @@ public:
 			calculateFilterCoeffs();
 		}
 	}
+	void setCutOffMod(const float& modCutOff)
+	{
+
+		if(!juce::approximatelyEqual(modCutOff,static_cast<float>(vaFilterParameters.fc)))
+		{
+			vaFilterParameters.fc = modCutOff;
+			calculateFilterCoeffs();
+		}
+
+	}
 	double processAudioSample(double xn)
 	{
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
@@ -170,7 +180,7 @@ public:
 		// --- BPF Out
 		double bpf = alpha*hpf + integrator_z[0];
 		if (vaFilterParameters.enableNLP)
-			bpf = softClipWaveShaper(bpf, filterDrive);
+			bpf = softClipWaveShaper(bpf, 1.0);
 
 		// --- LPF Out
 		double lpf = alpha*bpf + integrator_z[1];
@@ -290,6 +300,11 @@ public:
 				setMode(Mode::LPF24);
 			break;
 		}
+	}
+	void setCutOffMod(const float& modCutOff)
+	{
+		if(!juce::approximatelyEqual(modCutOff,cutOffFrequency))
+		setCutoffFrequencyHz(modCutOff);
 	}
 	float processAudioSample(const float& x,const int& channel)
 	{

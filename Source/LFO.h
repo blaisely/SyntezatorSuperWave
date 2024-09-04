@@ -20,9 +20,9 @@ public:
     ~LFO()=default;
     void prepareToPlay(double sampleRate, unsigned int numChannels, unsigned int blockSize)
     {
+        reset();
         auto spec = juce::dsp::ProcessSpec{ sampleRate/updateRate,blockSize,numChannels };
         lfo.prepare(spec);
-        reset();
         lfo.initialise([](float x) { return std::sin(x); });
 	        
     }
@@ -37,10 +37,17 @@ public:
             if(updateCounter==0)
             {
                 updateCounter = updateRate;
-                return lfo.processSample(0.0) * parameters.depth * 2.5f;
+                float lfoMod = lfo.processSample(0.0) * parameters.depth;
+                float currentCutoff = tree[IDs::Cutoff];
+                filterZip += 0.005f * (lfoMod - filterZip);
+                float modulatedCutoff = currentCutoff * filterZip;
+                modulatedCutoff+=currentCutoff;
+                modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);
+                return modulatedCutoff;
             }
         }
         return 0.0f;
+
     }
     void reset()
     {
@@ -49,7 +56,7 @@ public:
     void setParameters()
     {
         parameters.depth=static_cast<float>(tree[IDs::LFODepth])/100.f;
-        parameters.frequency = tree[IDs::LFOFreq];
+        parameters.frequency = static_cast<float>(tree[IDs::LFOFreq])/static_cast<float>(updateRate);
         parameters.type = static_cast<int>(tree[IDs::LFOType]);
         setLFOType();
         lfo.setFrequency(parameters.frequency);
@@ -92,6 +99,7 @@ private:
         float modValue{ 0.0f };
         
     };
+    float filterZip{0.0f};
     LFOParameters parameters;
     juce::ValueTree tree;
     int modDest{ 0 };

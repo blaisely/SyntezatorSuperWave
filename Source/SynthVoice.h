@@ -25,7 +25,7 @@ public:
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
 	vaSVF(v),
 	ladder(v),
-	lfoGenerator(v)
+	lfoGenerator{LFO(v),LFO(v)}
 	{
 		state.addListener(this);
 	}
@@ -62,12 +62,20 @@ public:
 	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
 	               int currentPitchWheelPosition) override {
 		const auto midiNote = midiNoteNumber;
+		resetLFO();
 		setOscillatorsFrequency(midiNote);
 		setRandomPhase();
 		ampEnvelope.noteOn();
 		modEnvelope.noteOn();
+	}
+
+	void resetLFO()
+	{
 		if(lfoReset)
-			lfoGenerator.reset();
+		{
+			lfoGenerator[0].reset();
+			lfoGenerator[1].reset();
+		}
 	}
 
 	void stopNote(float velocity, bool allowTailOff) override
@@ -75,14 +83,13 @@ public:
 		ampEnvelope.noteOff();
 		modEnvelope.noteOff();
 		allowTailOff = true;
+		resetLFO();
 		if (ampEnvelope.isActive() == false)
 		{
 			clearCurrentNote();
 			osc1[0].resetOsc();
 			osc2[1].resetOsc();
 			reset();
-			if(lfoReset)
-				lfoGenerator.reset();
 		}
 	}
 	void pitchWheelMoved(int newPitchWheelValue) override
@@ -103,9 +110,10 @@ public:
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
 		level.setGainLinear(1.0f);
-		lfoGenerator.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
+
 		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{
+			lfoGenerator[i].prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
@@ -135,6 +143,8 @@ public:
 			auto outputRight = swBuffer.getWritePointer(1);
 			for(auto sample =0;sample<numSamples;++sample)
 			{
+				//vaSVF.calculateFilterCoeffs();
+				vaSVF.setCutOffMod(lfoGenerator[0].render(sample,numSamples));
 				float y = vaSVF.processAudioSample(inputLeft[sample]);
 				outputLeft[sample] = outputRight[sample] = y;
 			}
@@ -148,24 +158,11 @@ public:
 				auto output = swBuffer.getWritePointer(channel);
 				for(auto sample=0;sample<numSamples;++sample)
 				{
+					ladder.setCutOffMod(lfoGenerator[channel].render(sample,numSamples));
 					output[sample] = ladder.processAudioSample(input[sample],channel);
 				}
 			}
 		}
-	}
-
-	void processLFO( int startSample,const int& numSamples)
-	{
-
-		float lfoMod = lfoGenerator.render(startSample,numSamples);
-
-			float currentCutoff = state[IDs::Cutoff];
-			filterZip += 0.005f * (lfoMod - filterZip);
-			float modulatedCutoff = currentCutoff * filterZip;
-			modulatedCutoff+=currentCutoff;
-			modulatedCutoff = std::clamp(modulatedCutoff, 20.0f, 20000.0f);
-			state.setProperty(IDs::Cutoff,modulatedCutoff,nullptr);
-
 	}
 
 	void processOsc(juce::dsp::AudioBlock<float>& oscillatorSW, juce::dsp::AudioBlock<float>& oscillatorVA)
@@ -214,9 +211,8 @@ public:
 
 		processEnvelope(numSamples, oscillatorSW, oscillatorVA);
 
-		lfoGenerator.setParameters();
-		processLFO(startSample, numSamples);
-
+		lfoGenerator[0].setParameters();
+		lfoGenerator[1].setParameters();
 
 		processFilter(numSamples,startSample);
 
@@ -251,7 +247,12 @@ public:
 			osc2[i].resetOsc();
 			vaSVF.reset(getSampleRate());
 		}
-		lfoGenerator.reset();
+		if(lfoReset)
+		{
+			lfoGenerator[0].reset();
+			lfoGenerator[1].reset();
+		}
+
 		level.reset();
 		ampEnvelope.reset();
 		modEnvelope.reset();
@@ -298,7 +299,7 @@ private:
 	softClipper clip;
 	ZVAFilter vaSVF;
 	MOOGFilter ladder;
-	LFO lfoGenerator;
+	std::array<LFO,2> lfoGenerator;
 	juce::AudioBuffer<float> swBuffer;
 	juce::AudioBuffer<float> synthBuffer;
 	juce::AudioBuffer<float> vaBuffer;

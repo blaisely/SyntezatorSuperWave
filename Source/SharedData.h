@@ -60,6 +60,7 @@ namespace IDs{
     ID LFOReset("LFO Reset");
     ID CommonEnvelope("Common Envelope");
     ID FilterEnvelopeAmount("Filter Envelope Amount");
+    ID ReversedEnvelope("Reversed Mod Envelope");
 
 
 };

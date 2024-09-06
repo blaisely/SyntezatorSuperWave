@@ -319,9 +319,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterChoice>("oscType_osc2", "OSC2 Type", juce::StringArray{ "Sine", "Saw", "Square", "Triangle" }
         , 0, attributesOsc2Menu));
 
-    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "lfoReset", 0));
-    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope", 1));
+    layout.add(std::make_unique<juce::AudioParameterBool>("reverseEnvelope", "Reverse Filter Envelope", 0));
 
     return layout;
 }
@@ -455,6 +456,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::LFOReset,s.lfoReset,nullptr);
     tree.setProperty(IDs::CommonEnvelope,s.commonEnvelope,nullptr);
     tree.setProperty(IDs::FilterEnvelopeAmount,s.envelopeAmount,nullptr);
+    tree.setProperty(IDs::ReversedEnvelope,s.reversedEnvelope,nullptr);
 
 
 }

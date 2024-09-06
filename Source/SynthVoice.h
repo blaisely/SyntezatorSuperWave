@@ -67,6 +67,7 @@ public:
 		setRandomPhase();
 		ampEnvelope.noteOn();
 		amp2Envelope.noteOn();
+		modEnvelope.noteOn();
 	}
 
 	void resetLFO()
@@ -82,6 +83,7 @@ public:
 	{
 		ampEnvelope.noteOff();
 		amp2Envelope.noteOff();
+		modEnvelope.noteOff();
 		allowTailOff = true;
 		resetLFO();
 		if (ampEnvelope.isActive() == false)
@@ -106,6 +108,7 @@ public:
 		const juce::dsp::ProcessSpec spec{sampleRate,static_cast<uint32_t>(samplesPerBlock),static_cast<uint32_t>(outputChannels)};
 		ampEnvelope.setSampleRate(getSampleRate());
 		amp2Envelope.setSampleRate(getSampleRate());
+		modEnvelope.setSampleRate(getSampleRate());
 		level.prepare(spec);
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
@@ -119,8 +122,86 @@ public:
 		}
 		isPrepared = true;
 	}
+	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
+	{
+		jassert(isPrepared);
+		if (!isVoiceActive())
+		{
+			return;
+		}
+		lfoReset = state[IDs::LFOReset];
 
-	void processSoftClip(int numSamples)
+		getEnvelopeParameters();
+		setEnvelopeParameters();
+		setUpFirstOscBuffer(outputBuffer, numSamples);
+		setUpSecondOscBuffer(outputBuffer, numSamples);
+		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
+		juce::dsp::AudioBlock<float> oscillatorVA{vaBuffer};
+
+		processOsc(oscillatorSW, oscillatorVA);
+
+		processEnvelope(numSamples, oscillatorSW, oscillatorVA);
+
+		setLFOParameters();
+
+		processFilter(numSamples,startSample);
+
+		processGain(oscillatorSW);
+
+		processSoftClip(numSamples);
+
+		for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
+		{
+			outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
+		}
+		if (!ampEnvelope.isActive())
+			clearCurrentNote();
+	}
+
+	void setUpFirstOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
+	{
+		swBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
+		swBuffer.clear();
+	}
+
+	void setUpSecondOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
+	{
+		vaBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
+		vaBuffer.clear();
+	}
+	void getEnvelopeParameters()
+	{
+		ampEnvelopeParameters.attack = state[IDs::ADSR1Attack];
+		ampEnvelopeParameters.decay = state[IDs::ADSR1Decay];
+		ampEnvelopeParameters.sustain = state[IDs::ADSR1Sustain];
+		ampEnvelopeParameters.release = state[IDs::ADSR1Release];
+
+		amp2EnvelopeParameters.attack = modEnvelopeParameters.attack = state[IDs::ADSR2Attack];
+		amp2EnvelopeParameters.decay = modEnvelopeParameters.decay= state[IDs::ADSR2Decay];
+		amp2EnvelopeParameters.sustain = modEnvelopeParameters.sustain = state[IDs::ADSR2Sustain];
+		amp2EnvelopeParameters.release = modEnvelopeParameters.release = state[IDs::ADSR2Release];
+		reversedEnvelope = state[IDs::ReversedEnvelope];
+		filterEnvelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])*200.0f;
+	}
+	void setEnvelopeParameters()
+	{
+		ampEnvelope.setParameters(ampEnvelopeParameters);
+		amp2Envelope.setParameters(amp2EnvelopeParameters);
+		modEnvelope.setParameters(modEnvelopeParameters);
+	}
+
+	void setLFOParameters()
+	{
+		lfoGenerator[0].setParameters();
+		lfoGenerator[1].setParameters();
+	}
+
+	void processGain(juce::dsp::AudioBlock<float> oscillatorSW)
+	{
+		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
+		level.process(context);
+	}
+	void processSoftClip(const int& numSamples)
 	{
 		for(auto channel =0; channel<numChannelsToProcess; ++channel)
 		{
@@ -132,12 +213,7 @@ public:
 		}
 	}
 
-	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
-	{
-		envelopeMod = modEnvelope.getNextSample()*filterEnvelopeAmount;
-		cutOffMod = envelopeMod + lfoGenerator[channel].render(sample,numSamples);
-		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
-	}
+
 
 	void processFilter(const int& numSamples,const int& startSample)
 	{
@@ -150,7 +226,6 @@ public:
 			auto outputRight = swBuffer.getWritePointer(1);
 			for(auto sample =0;sample<numSamples;++sample)
 			{
-
 				calculateModAmount(numSamples, sample,0);
 				vaSVF.setCutOffMod(cutOffMod);
 				float y = vaSVF.processAudioSample(inputLeft[sample]);
@@ -172,6 +247,15 @@ public:
 				}
 			}
 		}
+	}
+	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
+	{
+		envelopeMod = modEnvelope.getNextSample()*filterEnvelopeAmount;
+		if(reversedEnvelope)
+			cutOffMod = -envelopeMod + lfoGenerator[channel].render(sample,numSamples);
+		else
+			cutOffMod = envelopeMod + lfoGenerator[channel].render(sample,numSamples);
+		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
 	}
 
 	void processOsc(juce::dsp::AudioBlock<float>& oscillatorSW, juce::dsp::AudioBlock<float>& oscillatorVA)
@@ -199,57 +283,6 @@ public:
 			oscillatorSW.add(oscillatorVA);
 		}
 	}
-
-	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
-	{
-		jassert(isPrepared);
-		if (!isVoiceActive())
-		{
-			return;
-		}
-		lfoReset = state[IDs::LFOReset];
-		envelopeMod = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.0f;
-		getEnvelopeParameters();
-		ampEnvelope.setParameters(ampEnvelopeParameters);
-		amp2Envelope.setParameters(amp2EnvelopeParameters);
-		setUpFirstOscBuffer(outputBuffer, numSamples);
-		setUpSecondOscBuffer(outputBuffer, numSamples);
-		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
-		juce::dsp::AudioBlock<float> oscillatorVA{vaBuffer};
-
-		processOsc(oscillatorSW, oscillatorVA);
-
-		processEnvelope(numSamples, oscillatorSW, oscillatorVA);
-
-		lfoGenerator[0].setParameters();
-		lfoGenerator[1].setParameters();
-
-		processFilter(numSamples,startSample);
-
-		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
-		level.process(context);
-
-		processSoftClip(numSamples);
-
-		for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
-		{
-			outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
-		}
-		if (!ampEnvelope.isActive())
-			clearCurrentNote();
-	}
-
-	void setUpFirstOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
-	{
-		swBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
-		swBuffer.clear();
-	}
-
-	void setUpSecondOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
-	{
-		vaBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
-		vaBuffer.clear();
-	}
 	void reset()
 	{
 		for (int i = 0; i < numChannelsToProcess; i++) {
@@ -266,6 +299,7 @@ public:
 		level.reset();
 		ampEnvelope.reset();
 		amp2Envelope.reset();
+		modEnvelope.reset();
 		keyTrack.reset();
 		ladder.reset();
 	}
@@ -274,22 +308,12 @@ public:
 
 	}
 
-	void getEnvelopeParameters()
-	{
-		ampEnvelopeParameters.attack = state[IDs::ADSR1Attack];
-		ampEnvelopeParameters.decay = state[IDs::ADSR1Decay];
-		ampEnvelopeParameters.sustain = state[IDs::ADSR1Sustain];
-		ampEnvelopeParameters.release = state[IDs::ADSR1Release];
 
-		amp2EnvelopeParameters.attack =modEnvelopeParameters.attack = state[IDs::ADSR2Attack];
-		amp2EnvelopeParameters.decay =modEnvelopeParameters.decay= state[IDs::ADSR2Decay];
-		amp2EnvelopeParameters.sustain=modEnvelopeParameters.sustain = state[IDs::ADSR2Sustain];
-		amp2EnvelopeParameters.release=modEnvelopeParameters.release = state[IDs::ADSR2Release];
-	}
 
 	static constexpr int numChannelsToProcess{2};
 
 private:
+	bool reversedEnvelope;
 	float cutOffMod{0.0f};
 	float filterEnvelopeAmount{0.0f};
 	float envelopeMod{0.0f};

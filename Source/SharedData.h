@@ -61,6 +61,8 @@ namespace IDs{
     ID CommonEnvelope("Common Envelope");
     ID FilterEnvelopeAmount("Filter Envelope Amount");
     ID ReversedEnvelope("Reversed Mod Envelope");
+    ID PanOsc1("Pan OSC1");
+    ID PanOsc2("Pan OSC2");
 
 
 };

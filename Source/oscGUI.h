@@ -26,7 +26,10 @@ public:
     ~oscGUI() override;
 
     void paint (juce::Graphics&) override;
+    void setUpLabels(juce::FlexBox& labelsTop,juce::Label& firstLabel,juce::Label& secondLabel);
+    void setUpKnobs(juce::FlexBox& flex,juce::Slider& firstSlider,juce::Slider& secondSlider);
     void resized() override;
+    void setUpFlex(juce::FlexBox& flex);
     void comboBoxChanged(juce::ComboBox*) override;
     void sliderValueChanged(juce::Slider* slider) override;
     void makeSlider(juce::Slider& slider, juce::String ID, juce::Label& label);
@@ -36,6 +39,8 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> osc2Selection;
 
     juce::Label Gain_osc1_label{ "Gain OSC1","Gain OSC1" };
+    juce::Label panOsc1Label{ "Pan","Pan" };
+    juce::Label panOsc2Label{ "Pan","Pan" };
     juce::Label Gain_osc2_label{ "Gain OSC2","Gain OSC2" };
 
     juce::Label detuneLabel{ "DETUNE","DETUNE" };
@@ -54,7 +59,11 @@ private:
     juce::Slider octave_osc2;
     juce::Slider coarse_osc1;
     juce::Slider coarse_osc2;
+    juce::Slider panOsc1;
+    juce::Slider panOsc2;
     std::unique_ptr<SliderAttachment> Gain_osc1Attach;
+    std::unique_ptr<SliderAttachment> panOsc1Attach;
+    std::unique_ptr<SliderAttachment> panOsc2Attach;
     std::unique_ptr<SliderAttachment> Gain_osc2Attach;
     std::unique_ptr<SliderAttachment> detuneAttach;
     std::unique_ptr<SliderAttachment> volumeAttach;
@@ -64,5 +73,6 @@ private:
     std::unique_ptr<SliderAttachment> coarse_osc2Attach;
     juce::ValueTree tree;
     SimpleSynthAudioProcessor& audioProcessor;
+    void setUpRightOsc(const int& width);
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (oscGUI)
 };

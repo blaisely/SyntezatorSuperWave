@@ -212,8 +212,8 @@ bool SimpleSynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleSynthAudioProcessor::createEditor()
 {
-    //return new SimpleSynthAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor(*this);
+    return new SimpleSynthAudioProcessorEditor (*this);
+    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -272,16 +272,18 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.2f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -50.0f, 50.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -50.0f, 50.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", 0.0f, 100.0f, 0.0f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "OctaveOsc1",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave Osc1",
         juce::NormalisableRange<float>{-3,3,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "OctaveOsc2",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "Octave Osc2",
         juce::NormalisableRange<float>{-3,3,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarseOsc1",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarse Osc1",
         juce::NormalisableRange<float>{-12,12,1},0));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarseOsc2",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse Osc2",
         juce::NormalisableRange<float>{-12,12,1},0));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.01f));
@@ -300,6 +302,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
         juce::NormalisableRange<float>{ 0.0f, 30.0f, 0.1f,0.3f},0.0f));
     auto attributesLFOType = juce::AudioParameterChoiceAttributes().withLabel("LFO TYpe");
     layout.add(std::make_unique<juce::AudioParameterChoice>("lfoType", "LFO Type", juce::StringArray{ "Sine", "Square", "Saw"},
+    0, attributesLFOType));
+    auto attributesLFODestination = juce::AudioParameterChoiceAttributes().withLabel("LFO Destination");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("lfoDestination", "LFO Destination",
+        juce::StringArray{ "Filter CutOff","Filter Resonance", "Gain OSC1", "Gain OSC2","Pan OSC1","Pan OSC2","Detune Volume","Detune Amount",
+            "Drive Amount", "AMP Attack","AMP Decay","AMP Sustain","AMP Release","Env2 Attack","Env2 Decay","Env2 Sustain","Env2 Release"},
     0, attributesLFOType));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "DetuneAmount",
@@ -366,7 +373,9 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.coarseosc2 = apvts.getRawParameterValue("coarse_osc2")->load();
     settings.octaveosc2 = apvts.getRawParameterValue("octave_osc2")->load();
     settings.octaveosc1 = apvts.getRawParameterValue("octave_osc1")->load();
-   
+
+    settings.panOsc1 = apvts.getRawParameterValue("panOsc1")->load();
+    settings.panOsc2 = apvts.getRawParameterValue("panOsc2")->load();
 
     return settings;
 }
@@ -457,6 +466,8 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::CommonEnvelope,s.commonEnvelope,nullptr);
     tree.setProperty(IDs::FilterEnvelopeAmount,s.envelopeAmount,nullptr);
     tree.setProperty(IDs::ReversedEnvelope,s.reversedEnvelope,nullptr);
+    tree.setProperty(IDs::PanOsc1,s.panOsc1,nullptr);
+    tree.setProperty(IDs::PanOsc2,s.panOsc2,nullptr);
 
 
 }

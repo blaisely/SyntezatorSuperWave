@@ -69,14 +69,13 @@ public:
             lfo.initialise([](float x) { return std::sin(x); });
             break;
 	    case 1:
-		    // Square wave
+
 		    lfo.initialise([](float x) -> float
 		    {
 			    return (x < 0) ? -1.0f : 1.0f;
 		    });
             break;
 	    case 2:
-            // Saw wave
             lfo.initialise([](float x) -> float {
                 return 2.0f * (x / (2.0f * juce::MathConstants<float>::pi) - floor(0.5f + x / (2.0f * juce::MathConstants<float>::pi)));
                 });

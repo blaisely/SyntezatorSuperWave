@@ -313,6 +313,8 @@ public:
 	static constexpr int numChannelsToProcess{2};
 
 private:
+	float panOSC1{0.0f};
+	float panOSC2{0.0f};
 	bool reversedEnvelope;
 	float cutOffMod{0.0f};
 	float filterEnvelopeAmount{0.0f};

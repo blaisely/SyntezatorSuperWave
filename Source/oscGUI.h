@@ -51,6 +51,7 @@ private:
     juce::Label coarse_osc2_label{ "COARSE","COARSE" };
     juce::ComboBox oscMenu_osc1;
     juce::ComboBox oscMenu_osc2;
+    juce::ComboBox preset;
     juce::Slider Gain_osc1;
     juce::Slider Gain_osc2;
     juce::Slider detune;
@@ -61,6 +62,7 @@ private:
     juce::Slider coarse_osc2;
     juce::Slider panOsc1;
     juce::Slider panOsc2;
+    juce::Slider crush;
     std::unique_ptr<SliderAttachment> Gain_osc1Attach;
     std::unique_ptr<SliderAttachment> panOsc1Attach;
     std::unique_ptr<SliderAttachment> panOsc2Attach;

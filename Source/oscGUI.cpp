@@ -41,6 +41,9 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     oscMenu_osc2.setJustificationType(juce::Justification::centred);
 
+    addAndMakeVisible(preset);
+    preset.addItem("1",1);
+    preset.setJustificationType(juce::Justification::centred);
 
     Gain_osc1.setSliderStyle(juce::Slider::SliderStyle::Rotary);
     Gain_osc1.setRange(0.0f, 1.0f, 0.1f);
@@ -119,6 +122,10 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     panOsc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc1",panOsc1);
     makeSlider(panOsc2,"panOsc2",panOsc2Label);
     panOsc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc2",panOsc2);
+
+    addAndMakeVisible(crush);
+    crush.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+    crush.setRange(0.0,100.0,1);
     setSize(550, 350);
 
 }
@@ -133,34 +140,40 @@ void oscGUI::paint (juce::Graphics& g)
     g.fillRoundedRectangle(getLocalBounds().toFloat(),6);
 }
 
-void oscGUI::setUpLabels(juce::FlexBox& labelsTop,juce::Label& firstLabel,juce::Label& secondLabel)
-{
-    labelsTop.flexDirection = juce::FlexBox::Direction::row;
-    labelsTop.alignItems = juce::FlexBox::AlignItems::center;
-    labelsTop.items.add(juce::FlexItem(firstLabel).withWidth(125).withHeight(15).withMargin(5));
-    labelsTop.items.add(juce::FlexItem(secondLabel).withWidth(125).withHeight(15).withMargin(5));
-}
-
-void oscGUI::setUpKnobs(juce::FlexBox& flex,juce::Slider& firstSlider,juce::Slider& secondSlider)
-{
-
-    flex.flexDirection = juce::FlexBox::Direction::row;
-    flex.alignItems = juce::FlexBox::AlignItems::center;
-    flex.items.add(juce::FlexItem(firstSlider).withWidth(125).withHeight(125).withMargin(5));
-    flex.items.add(juce::FlexItem(secondSlider).withWidth(125).withHeight(125).withMargin(5));
-}
-void oscGUI::setUpFlex(juce::FlexBox& flex)
-{
-    flex.flexDirection = juce::FlexBox::Direction::row;
-    flex.alignItems = juce::FlexBox::AlignItems::center;
-}
-
-
 void oscGUI::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
-    juce::Rectangle<int> totalArea = area.removeFromRight(300).removeFromTop(300).reduced(10);
-    juce::Rectangle<int> leftArea = area.removeFromLeft(200);
+    juce::Rectangle<int> totalArea = area.removeFromRight(325).removeFromTop(350).reduced(10);
+
+    juce::Rectangle<int> leftArea = area.removeFromLeft(175).reduced(10);
+    juce::FlexBox leftFlexBox;
+    leftFlexBox.flexDirection = juce::FlexBox::Direction::column;
+    leftFlexBox.alignItems = juce::FlexBox::AlignItems::stretch;
+    leftFlexBox.justifyContent = juce::FlexBox::JustifyContent::flexStart;
+    juce::FlexBox sliderFlexBox;
+    sliderFlexBox.flexDirection = juce::FlexBox::Direction::row;
+    // Preset ComboBox
+    leftFlexBox.items.add(juce::FlexItem(preset).withHeight(40.0f).withMargin(juce::FlexItem::Margin(5)));
+
+    // First row (detune slider with label)
+    juce::FlexBox detuneBox;
+    detuneBox.flexDirection = juce::FlexBox::Direction::column;
+    detuneBox.items.add(juce::FlexItem(detune).withMinHeight(75.0f).withFlex(1.0f));
+    detuneBox.items.add(juce::FlexItem(detuneLabel).withMinHeight(20.0f).withFlex(0.1f)); // Label under slider
+
+    // Second row (volume slider with label)
+    juce::FlexBox volumeBox;
+    volumeBox.flexDirection = juce::FlexBox::Direction::column;
+    volumeBox.items.add(juce::FlexItem(volume).withMinHeight(75.0f).withFlex(1.0f));
+    volumeBox.items.add(juce::FlexItem(volumeLabel).withMinHeight(20.0f).withFlex(0.1f)); // Label under slider
+
+    // Add the slider boxes to the leftFlexBox
+    sliderFlexBox.items.add(juce::FlexItem(detuneBox).withMinWidth(75).withMargin(juce::FlexItem::Margin(5)));
+    sliderFlexBox.items.add(juce::FlexItem(volumeBox).withMinWidth(75).withMargin(juce::FlexItem::Margin(5)));
+
+    leftFlexBox.items.add(juce::FlexItem().withMinHeight(20));
+    leftFlexBox.items.add(juce::FlexItem(sliderFlexBox).withMargin(5).withMinHeight(200));
+    leftFlexBox.performLayout(leftArea);
 
     juce::FlexBox mainFlexBox;
     mainFlexBox.flexDirection = juce::FlexBox::Direction::column;
@@ -169,12 +182,14 @@ void oscGUI::resized()
 
     juce::FlexBox waveformFlexBox;
     waveformFlexBox.flexDirection = juce::FlexBox::Direction::row;
-    waveformFlexBox.items.add(juce::FlexItem(oscMenu_osc1).withMinWidth(125.0f).withFlex(1.0f).withMargin(5));
-    waveformFlexBox.items.add(juce::FlexItem(oscMenu_osc2).withMinWidth(125.0f).withFlex(1.0f).withMargin(5));
+    waveformFlexBox.justifyContent = juce::FlexBox::JustifyContent::spaceAround;
+    waveformFlexBox.items.add(juce::FlexItem(oscMenu_osc1).withMinWidth(70.0f).withFlex(1.0f).withMargin(5));
+    waveformFlexBox.items.add(juce::FlexItem().withWidth(15.0f));
+    waveformFlexBox.items.add(juce::FlexItem(oscMenu_osc2).withMinWidth(70.0f).withFlex(1.0f).withMargin(5));
 
-    waveformFlexBox.items.add(juce::FlexItem().withWidth(10.0f));
 
-    mainFlexBox.items.add(juce::FlexItem(waveformFlexBox).withHeight(50.0f).withMargin(juce::FlexItem::Margin(5)));
+
+    mainFlexBox.items.add(juce::FlexItem(waveformFlexBox).withHeight(50.0f).withMargin(juce::FlexItem::Margin(1)));
 
 
     juce::FlexBox osc1SliderBox;
@@ -261,13 +276,32 @@ void oscGUI::resized()
     juce::FlexBox oscSliderFlexBox;
     oscSliderFlexBox.flexDirection = juce::FlexBox::Direction::row;
 
-    oscSliderFlexBox.items.add(juce::FlexItem(osc1SliderBox).withFlex(1.0f).withMargin(juce::FlexItem::Margin(10)));
-    oscSliderFlexBox.items.add(juce::FlexItem(osc2SliderBox).withFlex(1.0f).withMargin(juce::FlexItem::Margin(10)));
+    oscSliderFlexBox.items.add(juce::FlexItem(osc1SliderBox).withFlex(1.0f).withMargin(juce::FlexItem::Margin(5)));
+    oscSliderFlexBox.items.add(juce::FlexItem().withWidth(20.f));
+    oscSliderFlexBox.items.add(juce::FlexItem(osc2SliderBox).withFlex(1.0f).withMargin(juce::FlexItem::Margin(5)));
 
     mainFlexBox.items.add(juce::FlexItem(oscSliderFlexBox).withFlex(1.0f));
 
+    juce::FlexBox crushBox;
+    crushBox.flexDirection = juce::FlexBox::Direction::column;
+    crushBox.items.add(juce::FlexItem(crush).withHeight(50.0f).withMargin(juce::FlexItem::Margin(5)));
+
+    mainFlexBox.items.add(juce::FlexItem(crushBox).withHeight(50.0f));
 
     mainFlexBox.performLayout(totalArea);
+
+    juce::FlexBox leftSection;
+    juce::FlexBox presetRow;
+    juce::FlexBox detuneRow;
+    juce::FlexBox volumeRow;
+    leftSection.flexDirection = juce::FlexBox::Direction::column;
+    detuneRow.flexDirection = juce::FlexBox::Direction::column;
+    volumeRow.flexDirection = juce::FlexBox::Direction::column;
+
+    presetRow.items.add(juce::FlexItem(preset).withMinWidth(75));
+    detuneRow.items.add(juce::FlexItem(detune).withMinWidth(75).withHeight(75).withMargin(5));
+
+
 }
 
 

@@ -272,9 +272,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.2f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -50.0f, 50.0f, 0.f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -50.0f, 50.0f, 0.f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", 0.0f, 100.0f, 0.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave Osc1",

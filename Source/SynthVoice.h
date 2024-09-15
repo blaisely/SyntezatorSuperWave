@@ -84,9 +84,8 @@ public:
 		ampEnvelope.noteOff();
 		amp2Envelope.noteOff();
 		modEnvelope.noteOff();
-		allowTailOff = true;
+		allowTailOff = false;
 		resetLFO();
-		//vaSVF.reset(getSampleRate());
 		if (ampEnvelope.isActive() == false)
 		{
 			clearCurrentNote();
@@ -113,7 +112,7 @@ public:
 		level.prepare(spec);
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
-		level.setGainLinear(0.25f);
+		level.setGainLinear(0.5f);
 
 		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{
@@ -132,6 +131,13 @@ public:
 		ladder.setParameters();
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 		lfoReset = state[IDs::LFOReset];
+		osc1[0].setParameters();
+		osc1[1].setParameters();
+		osc2[0].setParameters();
+		osc2[1].setParameters();
+		panOSC1 = state[IDs::PanOsc1];
+		panOSC2 = state[IDs::PanOsc2];
+		updatePan();
 
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
@@ -157,10 +163,10 @@ public:
 			auto nextAmpSample = ampEnvelope.getNextSample();
 			auto nextAmp2Sample = amp2Envelope.getNextSample();
 
-			channelLeft+=osc1[0].getNextSample()*nextAmpSample; //times Panning
-			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample;
-			channelRight+=osc1[1].getNextSample()*nextAmpSample;
-			channelRight+=osc2[1].getNextSample()*nextAmp2Sample;
+			channelLeft+=osc1[0].getNextSample()*nextAmpSample*panLeft1;
+			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample*panLeft2;
+			channelRight+=osc1[1].getNextSample()*nextAmpSample*panRight1;
+			channelRight+=osc2[1].getNextSample()*nextAmp2Sample*panRight2;
 
 
 			if(SVFEnabled)
@@ -174,6 +180,7 @@ public:
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}
+
 			channelLeft = level.processSample(channelLeft);
 			channelRight = level.processSample(channelRight);
 
@@ -198,11 +205,6 @@ public:
 		swBuffer.clear();
 	}
 
-	void setUpSecondOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
-	{
-		vaBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
-		vaBuffer.clear();
-	}
 	void getEnvelopeParameters()
 	{
 		ampEnvelopeParameters.attack = state[IDs::ADSR1Attack];
@@ -224,65 +226,19 @@ public:
 		modEnvelope.setParameters(modEnvelopeParameters);
 	}
 
+	void updatePan()
+	{
+		panLeft1 = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
+		panLeft2 = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
+		panRight1 = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
+		panRight2 = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
+	}
 	void setLFOParameters()
 	{
 		lfoGenerator[0].setParameters();
 		lfoGenerator[1].setParameters();
 	}
 
-	void processGain(juce::dsp::AudioBlock<float> oscillatorSW)
-	{
-		const auto context = juce::dsp::ProcessContextReplacing<float>(oscillatorSW);
-		level.process(context);
-	}
-	void processSoftClip(const int& numSamples)
-	{
-		for(auto channel =0; channel<numChannelsToProcess; ++channel)
-		{
-			auto input = swBuffer.getReadPointer(channel);
-			auto output = swBuffer.getWritePointer(channel);
-
-			for(auto sample =0;sample<numSamples;++sample)
-				output[sample]=clip.process(input[sample]);
-		}
-	}
-
-
-
-
-	/*void processFilter(const int& numSamples,const int& startSample)
-	{
-		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
-		if(SVFEnabled)
-		{
-			vaSVF.setParameters();
-			auto inputLeft = swBuffer.getReadPointer(0);
-			auto outputLeft = swBuffer.getWritePointer(0);
-			auto outputRight = swBuffer.getWritePointer(1);
-			for(auto sample =0;sample<numSamples;++sample)
-			{
-				calculateModAmount(numSamples, sample,0);
-				vaSVF.setCutOffMod(cutOffMod);
-				float y = vaSVF.processAudioSample(inputLeft[sample]);
-				outputLeft[sample] = outputRight[sample] = y;
-			}
-		}
-		else
-		{
-			ladder.setParameters();
-			for(auto channel=0;channel<numChannelsToProcess;++channel)
-			{
-				auto input = swBuffer.getReadPointer(channel);
-				auto output = swBuffer.getWritePointer(channel);
-				for(auto sample=0;sample<numSamples;++sample)
-				{
-					calculateModAmount(numSamples,sample,channel);
-					ladder.setCutOffMod(cutOffMod);
-					output[sample] = ladder.processAudioSample(input[sample],channel);
-				}
-			}
-		}
-	}*/
 	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
 	{
 		envelopeMod = modEnvelope.getNextSample()*filterEnvelopeAmount;
@@ -293,31 +249,6 @@ public:
 		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
 	}
 
-	void processOsc(juce::dsp::AudioBlock<float>& oscillatorSW, juce::dsp::AudioBlock<float>& oscillatorVA)
-	{
-		for (auto i = 0; i < numChannelsToProcess; i++)
-		{
-			osc1[i].getNextBlock(oscillatorSW, i);
-			osc2[i].getNextBlock(oscillatorVA, i);
-		}
-	}
-
-	void processEnvelope(const int& numSamples, juce::dsp::AudioBlock<float>& oscillatorSW,
-		juce::dsp::AudioBlock<float>& oscillatorVA)
-	{
-		commonEnvelope = state[IDs::CommonEnvelope];
-		if(commonEnvelope)
-		{
-			oscillatorSW.add(oscillatorVA);
-			ampEnvelope.applyEnvelopeToBuffer(swBuffer, 0, numSamples);
-		}
-		else
-		{
-			ampEnvelope.applyEnvelopeToBuffer(swBuffer, 0, numSamples);
-			amp2Envelope.applyEnvelopeToBuffer(vaBuffer,0,numSamples);
-			oscillatorSW.add(oscillatorVA);
-		}
-	}
 	void reset()
 	{
 		for (int i = 0; i < numChannelsToProcess; i++) {
@@ -330,7 +261,6 @@ public:
 			lfoGenerator[0].reset();
 			lfoGenerator[1].reset();
 		}
-
 		level.reset();
 		ampEnvelope.reset();
 		amp2Envelope.reset();
@@ -343,13 +273,15 @@ public:
 
 	}
 
-
-
 	static constexpr int numChannelsToProcess{2};
 
 private:
 	float panOSC1{0.0f};
 	float panOSC2{0.0f};
+	float panLeft1{0.f};
+	float panLeft2{0.f};
+	float panRight1{0.f};
+	float panRight2{0.f};
 	bool reversedEnvelope;
 	float cutOffMod{0.0f};
 	float filterEnvelopeAmount{0.0f};

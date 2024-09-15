@@ -170,7 +170,8 @@ public:
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
 		double filterDrive = vaFilterParameters.filterDrive;
-		filterDrive = juce::jmap(filterDrive,1.0,10.0);
+
+		filterDrive = juce::jmap(filterDrive,0.0,5.0);
 		if (vaFilterParameters.enableGainComp)
 		{
 			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
@@ -185,7 +186,6 @@ public:
 		double bpf = alpha*hpf + integrator_z[0];
 		if (vaFilterParameters.enableNLP)
 			bpf = softClipWaveShaper(bpf, 1.0);
-		// Pre-scaling the signal to avoid excessive saturation
 
 		double lpf = alpha*bpf + integrator_z[1];
 		double bsf = hpf + lpf;
@@ -199,15 +199,29 @@ public:
 		{
 			if (matchAnalogNyquistLPF)
 				lpf += analogMatchSigma*(sn);
+			if(juce::approximatelyEqual(filterDrive,0.0))
+				return filterOutputGain*lpf;
+			else
 			return hyperbolicTangent(filterOutputGain*lpf,filterDrive) ;
 		}
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_HP)
+			if(juce::approximatelyEqual(filterDrive,0.0))
+				return filterOutputGain*hpf;
+			else
 			return hyperbolicTangent(filterOutputGain*hpf,filterDrive);
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BP)
+			if(juce::approximatelyEqual(filterDrive,0.0))
+				return filterOutputGain*bpf;
+			else
 			return hyperbolicTangent(filterOutputGain*bpf,filterDrive);
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BS)
+			if(juce::approximatelyEqual(filterDrive,0.0))
+				return filterOutputGain*bsf;
+			else
 			return hyperbolicTangent(filterOutputGain*bsf,filterDrive);
-
+		if(juce::approximatelyEqual(filterDrive,0.0))
+			return filterOutputGain*lpf;
+		else
 		return hyperbolicTangent(filterOutputGain*lpf,filterDrive);
 	}
 	void calculateFilterCoeffs()

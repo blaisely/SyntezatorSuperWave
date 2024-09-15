@@ -31,6 +31,20 @@ inline double sgn(double xn)
 }
 inline double softClipWaveShaper(double xn, double saturation)
 {
-    // --- un-normalized soft clipper from Reiss book
     return sgn(xn)*(1.0 - exp(-fabs(saturation*xn)));
+}
+inline double hyperbolicTangent(double xn, double saturation)
+{
+    return std::tanh(saturation*xn)/std::tanh(saturation);
+}
+inline double arctangentSaturation(double x, double drive)
+{
+    return atan(pow(drive, 1.2) * x) / atan(drive);
+}
+double softClip(double x, double threshold)
+{
+    if (fabs(x) < threshold)
+        return x;  // Linear within threshold
+    else
+        return threshold * (x > 0.0 ? 1.0 : -1.0);  // Soft clip beyond threshold
 }

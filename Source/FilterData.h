@@ -119,8 +119,10 @@ public:
 	bool reset (double sampleRate)
 	{
 		this->sampleRate = sampleRate;
-		integrator_z[0] = 0.0;
-		integrator_z[1] = 0.0;
+		integrator_zLeft[0] = 0.0;
+		integrator_zLeft[1] = 0.0;
+		integrator_zRight[0] = 0.0;
+		integrator_zRight[1] = 0.0;
 		return true;
 	}
 	void setParameters()
@@ -161,11 +163,14 @@ public:
 		}
 
 	}
-	double processAudioSample(double xn)
+	double processAudioSample(double xn,int channel)
 	{
+		double* integrator_z = (channel == 0) ? integrator_zLeft : integrator_zRight;
+
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
-		double filterDrive = juce::jlimit(1.0,2.0,vaFilterParameters.filterDrive);
+		double filterDrive = vaFilterParameters.filterDrive;
+		filterDrive = juce::jmap(filterDrive,1.0,10.0);
 		if (vaFilterParameters.enableGainComp)
 		{
 			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
@@ -177,42 +182,33 @@ public:
 		}
 		double hpf = alpha0*(xn - rho*integrator_z[0] - integrator_z[1]);
 
-		// --- BPF Out
 		double bpf = alpha*hpf + integrator_z[0];
 		if (vaFilterParameters.enableNLP)
 			bpf = softClipWaveShaper(bpf, 1.0);
+		// Pre-scaling the signal to avoid excessive saturation
 
-		// --- LPF Out
 		double lpf = alpha*bpf + integrator_z[1];
-
-		// --- BSF Out
 		double bsf = hpf + lpf;
-
-		// --- finite gain at Nyquist; slight error at VHF
 		double sn = integrator_z[0];
-
-		// update memory
 		integrator_z[0] = alpha*hpf + bpf;
 		integrator_z[1] = alpha*bpf + lpf;
 
 		double filterOutputGain = pow(10.0, vaFilterParameters.filterOutputGain_dB / 20.0);
 
-		// return our selected type
 		if (filterAlgorithm == vaFilterAlgorithm::kSVF_LP)
 		{
 			if (matchAnalogNyquistLPF)
 				lpf += analogMatchSigma*(sn);
-			return filterOutputGain*lpf;
+			return hyperbolicTangent(filterOutputGain*lpf,filterDrive) ;
 		}
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_HP)
-			return filterOutputGain*hpf;
+			return hyperbolicTangent(filterOutputGain*hpf,filterDrive);
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BP)
-			return filterOutputGain*bpf;
+			return hyperbolicTangent(filterOutputGain*bpf,filterDrive);
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BS)
-			return filterOutputGain*bsf;
+			return hyperbolicTangent(filterOutputGain*bsf,filterDrive);
 
-		// --- unknown filter
-		return filterOutputGain*lpf;
+		return hyperbolicTangent(filterOutputGain*lpf,filterDrive);
 	}
 	void calculateFilterCoeffs()
 	{
@@ -227,16 +223,13 @@ public:
 		double wa = (2.0 / T)*tan(wd*T / 2.0);
 		double g = wa*T / 2.0;
 
-
-			// --- note R is the traditional analog damping factor zeta
-			double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
-			alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
-			alpha = g;
-			rho = 2.0*R + g;
-
-			// --- sigma for analog matching version
-			double f_o = (sampleRate / 2.0) / fc;
-			analogMatchSigma = 1.0 / (alpha*f_o*f_o);
+		double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
+		alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
+		alpha = g;
+		rho = 2.0*R + g;
+		// --- sigma for analog matching version
+		double f_o = (sampleRate / 2.0) / fc;
+		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
 
 	}
 private:
@@ -245,7 +238,8 @@ private:
 		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
 	};
 	double sampleRate = 48000.0;
-	double integrator_z[2];
+	double integrator_zLeft[2];
+	double integrator_zRight[2];
 	double alpha0=0.0;
 	double alpha = 0.0;
 	double rho =0.0;

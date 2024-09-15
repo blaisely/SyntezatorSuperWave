@@ -96,7 +96,7 @@ public:
         const float t = phase / juce::MathConstants<float>::twoPi;
         float value = 0.0f;
 
-        switch (static_cast<int>(state[IDs::VAtype])) {
+        switch (type) {
         case 0:
             value = sine(phase);
             break;
@@ -138,7 +138,7 @@ public:
     void setFrequency(const float& frequency,const int midiNote)
     {
         midiPitch = juce::MidiMessage::getMidiNoteInHertz(midiNote);
-       updatePitch();
+        updatePitch();
     }
     void updatePitch()
     {
@@ -147,33 +147,22 @@ public:
         this->oscFrequency = freq;
         phaseIncrement = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
     }
+    void setParameters()
+    {
+        type = state[IDs::VAtype];
+        octave = static_cast<float>(state[IDs::VAoctave])*12;
+        detuneSemi = state[IDs::VAdetune];
+        updatePitch();
+        gain.setGainLinear(state[IDs::VAgain]);
+
+    }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
-	    if(v==state)
-	    {
-               if(id==IDs::VAFrequency)
-               {
-               }
-                if(id==IDs::VAtype)
-                {
-                    type = state[IDs::VAtype];
-                }
-                if(id==IDs::VAoctave || id==IDs::VAdetune)
-                {
-                    octave = static_cast<float>(state[IDs::VAoctave])*12;
-                    detuneSemi = state[IDs::VAdetune];
-                    updatePitch();
-                }
-                if(id==IDs::VAgain)
-                {
-                    gain.setGainLinear(state[IDs::VAgain]);
-                }
 
-	    }
     }
 private:
     juce::ValueTree state;
-    float type{ 0.0f };
+    int type{ 0 };
     juce::dsp::Gain<float> gain;
     float lastOutput{};
     float phaseIncrement;

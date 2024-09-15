@@ -126,6 +126,7 @@ public:
             params.phaseIncrements[i] = 0.0f;
         }
     }
+
     static float randomPhase()
     {
         std::random_device rd;
@@ -149,7 +150,7 @@ public:
         const float t = phase / juce::MathConstants<float>::twoPi;
         float value = 0.0f;
 
-        switch (static_cast<int>(state[IDs::SWtype])) {
+        switch (type) {
         case 0:
             value = sine(phase);
             break;
@@ -253,34 +254,17 @@ public:
         }
         return result;
     }
+    void setParameters()
+    {
+        setSideOsc(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
+        octave = static_cast<float>(state[IDs::SWoctave])*12;
+        detuneSemi = static_cast<float>(state[IDs::SWdetune])/12;
+        updatePitch();
+        type = state.getProperty(IDs::SWtype);
+        gain.setGainLinear(state[IDs::SWgain]);
+    }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
-        if (v == state)
-        {
-                if (id == IDs::SWdetuneS || id == IDs::SWvolumeS) {
-                    setSideOsc(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
-                }
-                if (id == IDs::SWoctave) {
-                    octave = static_cast<float>(state[IDs::SWoctave])*12;
-                    updatePitch();
-                }
-                if (id == IDs::SWdetune) {
-                    detuneSemi = static_cast<float>(state[IDs::SWdetune])/12;
-                    updatePitch();
-                }
-                if (id == IDs::SWtype) {
-                    type = state.getProperty(IDs::SWtype);
-                }
-                if (id == IDs::SWgain) {
-                    gain.setGainLinear(state[IDs::SWgain]);
-                }
-                if (id == IDs::SWFrequency)
-                {
-                    setFrequency(state[IDs::SWFrequency], state[IDs::MidiNote]);
-                }
-
-
-        }
     }
 private:
     juce::ValueTree state;
@@ -294,7 +278,7 @@ private:
         std::array<float, 7> lastOutputs{ 0.0f };
     };
     synthParams params;
-    float type{ 0.0f };
+    int type{ 0 };
     juce::dsp::Gain<float> gain;
     float octave{0};
     float detuneSemi{0};

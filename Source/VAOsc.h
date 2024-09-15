@@ -69,6 +69,16 @@ public:
 
         }
     }
+    float getNextSample()
+    {
+        float y=0;
+        y = nextSampleUniversal(phase,phaseIncrement,
+               lastOutput);
+
+        y = gain.processSample(y);
+        y = y*0.5f;
+        return y;
+    }
 
     void resetOsc() {
         gain.reset();

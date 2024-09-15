@@ -93,6 +93,29 @@ public:
 
         }
     }
+    float getNextSample()
+    {
+        float y=0;
+        y = nextSampleUniversal(params.phases[0], params.phaseIncrements[0],
+               params.lastOutputs[0]) * params.volumeMain;
+        y += nextSampleUniversal(params.phases[1], params.phaseIncrements[1],
+            params.lastOutputs[1]) * params.volumeSides;
+        y += nextSampleUniversal(params.phases[2], params.phaseIncrements[2],
+            params.lastOutputs[2]) * params.volumeSides;
+        y += nextSampleUniversal(params.phases[3], params.phaseIncrements[3],
+            params.lastOutputs[3]) * params.volumeSides;
+        y += nextSampleUniversal(params.phases[4], params.phaseIncrements[4],
+            params.lastOutputs[4]) * params.volumeSides;
+        y += nextSampleUniversal(params.phases[5], params.phaseIncrements[5],
+            params.lastOutputs[5]) * params.volumeSides;
+        y += nextSampleUniversal(params.phases[6], params.phaseIncrements[6],
+            params.lastOutputs[6]) * params.volumeSides;
+
+        y = gain.processSample(y);
+        y = y*0.5f;
+
+        return y;
+    }
 
     void resetOsc() {
         gain.reset();

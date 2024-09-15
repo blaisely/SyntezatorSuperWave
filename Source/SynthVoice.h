@@ -86,6 +86,7 @@ public:
 		modEnvelope.noteOff();
 		allowTailOff = true;
 		resetLFO();
+		//vaSVF.reset(getSampleRate());
 		if (ampEnvelope.isActive() == false)
 		{
 			clearCurrentNote();
@@ -112,7 +113,7 @@ public:
 		level.prepare(spec);
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
-		level.setGainLinear(1.0f);
+		level.setGainLinear(0.25f);
 
 		for (auto i = 0; i < numChannelsToProcess; ++i)
 		{
@@ -122,6 +123,17 @@ public:
 		}
 		isPrepared = true;
 	}
+	void update()
+	{
+		setLFOParameters();
+		getEnvelopeParameters();
+		setEnvelopeParameters();
+		vaSVF.setParameters();
+		ladder.setParameters();
+		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
+		lfoReset = state[IDs::LFOReset];
+
+	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
 	{
 		jassert(isPrepared);
@@ -129,26 +141,48 @@ public:
 		{
 			return;
 		}
-		lfoReset = state[IDs::LFOReset];
 
-		getEnvelopeParameters();
-		setEnvelopeParameters();
 		setUpFirstOscBuffer(outputBuffer, numSamples);
-		setUpSecondOscBuffer(outputBuffer, numSamples);
 		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
-		juce::dsp::AudioBlock<float> oscillatorVA{vaBuffer};
 
-		processOsc(oscillatorSW, oscillatorVA);
+		for(auto samples=0;samples<numSamples;++samples)
+		{
+			auto inputLeft = swBuffer.getReadPointer(0);
+			auto inputRight = swBuffer.getReadPointer(1);
+			auto outputLeft = swBuffer.getWritePointer(0);
+			auto outputRight = swBuffer.getWritePointer(1);
+			float channelLeft =0;
+			float channelRight =0;
 
-		processEnvelope(numSamples, oscillatorSW, oscillatorVA);
+			auto nextAmpSample = ampEnvelope.getNextSample();
+			auto nextAmp2Sample = amp2Envelope.getNextSample();
 
-		setLFOParameters();
+			channelLeft+=osc1[0].getNextSample()*nextAmpSample; //times Panning
+			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample;
+			channelRight+=osc1[1].getNextSample()*nextAmpSample;
+			channelRight+=osc2[1].getNextSample()*nextAmp2Sample;
 
-		processFilter(numSamples,startSample);
 
-		processGain(oscillatorSW);
+			if(SVFEnabled)
+			{
+				channelLeft= vaSVF.processAudioSample(channelLeft,0);
+				channelRight= vaSVF.processAudioSample(channelRight,1);
+			}
 
-		processSoftClip(numSamples);
+			else
+			{
+				channelLeft= ladder.processAudioSample(channelLeft,0);
+				channelRight= ladder.processAudioSample(channelRight,1);
+			}
+			channelLeft = level.processSample(channelLeft);
+			channelRight = level.processSample(channelRight);
+
+			channelLeft = clip.process(channelLeft);
+			channelRight = clip.process(channelRight);
+
+			outputLeft[samples] = channelLeft+inputLeft[samples];
+			outputRight[samples] = channelRight+inputRight[samples];
+		}
 
 		for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
 		{
@@ -215,7 +249,8 @@ public:
 
 
 
-	void processFilter(const int& numSamples,const int& startSample)
+
+	/*void processFilter(const int& numSamples,const int& startSample)
 	{
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 		if(SVFEnabled)
@@ -247,7 +282,7 @@ public:
 				}
 			}
 		}
-	}
+	}*/
 	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
 	{
 		envelopeMod = modEnvelope.getNextSample()*filterEnvelopeAmount;

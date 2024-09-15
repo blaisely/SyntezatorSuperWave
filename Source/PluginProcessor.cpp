@@ -190,7 +190,7 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
 
         if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
-
+                myVoice->update();
         }
     }
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {

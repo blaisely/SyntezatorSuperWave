@@ -26,7 +26,6 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     sustain.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
     release.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
 
-
     attack.addListener(this);
     decay.addListener(this);
     sustain.addListener(this);

@@ -66,3 +66,4 @@ set_target_properties(SuperSawSynth PROPERTIES
         CXX_STANDARD_REQUIRED YES
         CXX_EXTENSIONS NO
 )
+

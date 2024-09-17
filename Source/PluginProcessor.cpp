@@ -261,10 +261,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     auto logRange = makeLogarithmicRange(20.0f, 20000.0f);
-    juce::NormalisableRange<float> attackRange{0.01f,5.0f,0.01f,0.5};
-    juce::NormalisableRange<float> decayRange{0.01f,5.0f,0.01f,0.5};
+    juce::NormalisableRange<float> attackRange{0.1f,150.0f,1.f,0.5};
+    juce::NormalisableRange<float> decayRange{0.1f,150.0f,1.f,0.5};
     juce::NormalisableRange<float> sustainRange{0.0f,1.0f,0.01f};
-    juce::NormalisableRange<float> releaseRange{0.01f,7.0f,0.01f,0.5};
+    juce::NormalisableRange<float> releaseRange{0.1f,150.f,1.f,0.5};
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20000.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",

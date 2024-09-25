@@ -27,7 +27,8 @@ public:
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
 	vaSVF(v),
 	ladder(v),
-	lfoGenerator{LFO(v),LFO(v)}
+	lfoGenerator{LFO(v),LFO(v)},
+	modMatrix(v)
 	{
 		state.addListener(this);
 	}
@@ -109,7 +110,6 @@ public:
 	{
 		setLFOParameters();
 		getEnvelopeParameters();
-
 		vaSVF.setParameters();
 		ladder.setParameters();
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
@@ -187,9 +187,14 @@ public:
 			float channelLeft =0;
 			float channelRight =0;
 
+			envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
+			lfoMod = lfoGenerator[0].render(samples,numSamples);
+			modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
+			modMatrix.render();
 			auto nextAmpSample = ampEnv.nextValue();
 			auto nextAmp2Sample = amp2Env.nextValue();
 
+			update();
 			channelLeft+=osc1[0].getNextSample()*nextAmpSample*panLeft1;
 			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample*panLeft2;
 			channelRight+=osc1[1].getNextSample()*nextAmpSample*panRight1;
@@ -197,16 +202,12 @@ public:
 
 			if(SVFEnabled)
 			{
-				calculateModAmount(numSamples, samples,0);
-				vaSVF.setCutOffMod(cutOffMod);
 				channelLeft= vaSVF.processAudioSample(channelLeft,0);
 				channelRight= vaSVF.processAudioSample(channelRight,1);
 			}
 
 			else
 			{
-				calculateModAmount(numSamples,samples,0);
-				ladder.setCutOffMod(cutOffMod);
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}
@@ -284,6 +285,7 @@ public:
 	static constexpr int numChannelsToProcess{2};
 
 private:
+	float lfoMod;
 	float panOSC1{0.0f};
 	float panOSC2{0.0f};
 	float panLeft1{0.f};

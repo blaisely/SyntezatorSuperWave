@@ -45,9 +45,7 @@ public:
         numDest
     };
     ModMatrix(juce::ValueTree& v);
-    void addDestinations(int id,juce::Identifier destination);
-    void addSource(int id,float* source);
-    void setRouting(enum modSource s,enum modDestination d,float intensity);
+    void setRouting(enum modSource s,enum modDestination d,float intensity,float* sourceValue,juce::Identifier dstID);
     void render();
 private:
 
@@ -59,8 +57,6 @@ private:
         juce::Identifier output;
         float intensity;
     };
-    std::array<juce::Identifier,numDest> modDestination  {nullptr};
-    std::array<float*,numSrc> modSource  {nullptr};
     std::vector<modulation> modulations;
     juce::ValueTree tree;
 };

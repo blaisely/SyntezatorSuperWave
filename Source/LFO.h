@@ -40,10 +40,8 @@ public:
                 float lfoMod = lfo.processSample(0.0) * parameters.depth;
                 float currentCutoff = tree[IDs::Cutoff];
                 filterZip += 0.005f * (lfoMod - filterZip);
-                float modulatedCutoff = currentCutoff * filterZip;
-                modulatedCutoff+=currentCutoff;
-                modulatedCutoff = std::clamp(modulatedCutoff, 30.0f, 20000.0f);
-                return modulatedCutoff;
+
+                return filterZip;
             }
         }
         return 0.0f;

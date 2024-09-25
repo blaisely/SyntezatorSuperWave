@@ -4,18 +4,12 @@
 
 #include "ModMatrix.h"
 
+#include <utility>
+
 ModMatrix::ModMatrix(juce::ValueTree& v):tree(v)
 {
 }
-void ModMatrix::addSource(const int id, float* source)
-{
-    modSource[id]=source;
-}
 
-void ModMatrix::addDestinations(const int id, juce::Identifier destination)
-{
-  modDestination[id]=destination;
-}
 void ModMatrix::render()
 {
     for(auto& m : modulations)
@@ -26,10 +20,10 @@ void ModMatrix::render()
     }
 
 }
-void ModMatrix::setRouting(enum modSource s, enum modDestination d, const float intensity)
+void ModMatrix::setRouting(enum modSource s, enum modDestination d, const float intensity,float* sourceValue,juce::Identifier dstID)
 {
 
-    modulations.push_back({s,d,modSource[s],modDestination[d],intensity});
+    modulations.push_back({s,d,sourceValue,dstID,intensity});
 }
 
 

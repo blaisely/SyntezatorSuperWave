@@ -16,6 +16,7 @@
 #include "VAOsc.h"
 #include "Osc.h"
 #include "clipper.h"
+#include "ModMatrix.h"
 #include "SharedData.h"
 class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener
 {
@@ -307,6 +308,7 @@ private:
 	int updateCounter{updateRate};
 	std::array<Osc, numChannelsToProcess> osc1;
 	std::array<VAOsc, numChannelsToProcess> osc2;
+	ModMatrix modMatrix;
 	juce::dsp::Gain<float> level;
 	softClipper clip;
 	ZVAFilter vaSVF;
@@ -320,4 +322,5 @@ private:
 	analogEG ampEnv;
 	analogEG amp2Env;
 	analogEG modEnv;
+
 };

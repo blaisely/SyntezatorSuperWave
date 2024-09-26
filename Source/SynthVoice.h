@@ -104,6 +104,7 @@ public:
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
+		modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
 		isPrepared = true;
 	}
 	void update()
@@ -188,13 +189,12 @@ public:
 			float channelRight =0;
 
 			envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
-			lfoMod = lfoGenerator[0].render(samples,numSamples);
-			modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
-			modMatrix.render();
+
+			cutOffMod = lfoGenerator[0].render(startSample,numSamples);
 			auto nextAmpSample = ampEnv.nextValue();
 			auto nextAmp2Sample = amp2Env.nextValue();
 
-			update();
+
 			channelLeft+=osc1[0].getNextSample()*nextAmpSample*panLeft1;
 			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample*panLeft2;
 			channelRight+=osc1[1].getNextSample()*nextAmpSample*panRight1;
@@ -202,12 +202,14 @@ public:
 
 			if(SVFEnabled)
 			{
+				vaSVF.setCutOffMod(cutOffMod);
 				channelLeft= vaSVF.processAudioSample(channelLeft,0);
 				channelRight= vaSVF.processAudioSample(channelRight,1);
 			}
 
 			else
 			{
+				ladder.setCutOffMod(cutOffMod);
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}
@@ -306,8 +308,6 @@ private:
 	bool commonEnvelope;
 	bool lfoReset;
 	float oldFrequency{ 0.0f };
-	int updateRate{100};
-	int updateCounter{updateRate};
 	std::array<Osc, numChannelsToProcess> osc1;
 	std::array<VAOsc, numChannelsToProcess> osc2;
 	ModMatrix modMatrix;
@@ -324,5 +324,7 @@ private:
 	analogEG ampEnv;
 	analogEG amp2Env;
 	analogEG modEnv;
+	int updateRate{ 100 };
+	int updateCounter{ updateRate };
 
 };

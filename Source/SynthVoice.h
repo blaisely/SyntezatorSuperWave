@@ -104,6 +104,7 @@ public:
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
+		modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
 		isPrepared = true;
 	}
 	void update()
@@ -188,13 +189,25 @@ public:
 			float channelRight =0;
 
 			envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
-			lfoMod = lfoGenerator[0].render(samples,numSamples);
-			modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
-			modMatrix.render();
+
+			for(size_t pos =0;pos<(size_t)numSamples;)
+			{
+				const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
+				pos += max;
+				updateCounter -= max;
+				if(updateCounter==0)
+				{
+					lfoMod = lfoGenerator[0].render();
+					modMatrix.render();
+					vaSVF.setParameters();
+				}
+			}
+
+
 			auto nextAmpSample = ampEnv.nextValue();
 			auto nextAmp2Sample = amp2Env.nextValue();
 
-			update();
+
 			channelLeft+=osc1[0].getNextSample()*nextAmpSample*panLeft1;
 			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample*panLeft2;
 			channelRight+=osc1[1].getNextSample()*nextAmpSample*panRight1;
@@ -306,8 +319,6 @@ private:
 	bool commonEnvelope;
 	bool lfoReset;
 	float oldFrequency{ 0.0f };
-	int updateRate{100};
-	int updateCounter{updateRate};
 	std::array<Osc, numChannelsToProcess> osc1;
 	std::array<VAOsc, numChannelsToProcess> osc2;
 	ModMatrix modMatrix;
@@ -324,5 +335,7 @@ private:
 	analogEG ampEnv;
 	analogEG amp2Env;
 	analogEG modEnv;
+	int updateRate{ 100 };
+	int updateCounter{ updateRate };
 
 };

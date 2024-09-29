@@ -199,30 +199,25 @@ public:
 		{
 			if (matchAnalogNyquistLPF)
 				lpf += analogMatchSigma*(sn);
-			if(juce::approximatelyEqual(filterDrive,0.0))
+
 				return filterOutputGain*lpf;
-			else
-			return hyperbolicTangent(filterOutputGain*lpf,filterDrive) ;
+
 		}
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_HP)
-			if(juce::approximatelyEqual(filterDrive,0.0))
+
 				return filterOutputGain*hpf;
-			else
-			return hyperbolicTangent(filterOutputGain*hpf,filterDrive);
+
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BP)
-			if(juce::approximatelyEqual(filterDrive,0.0))
+
 				return filterOutputGain*bpf;
-			else
-			return hyperbolicTangent(filterOutputGain*bpf,filterDrive);
+
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BS)
-			if(juce::approximatelyEqual(filterDrive,0.0))
+
 				return filterOutputGain*bsf;
-			else
-			return hyperbolicTangent(filterOutputGain*bsf,filterDrive);
-		if(juce::approximatelyEqual(filterDrive,0.0))
+
+
 			return filterOutputGain*lpf;
-		else
-		return hyperbolicTangent(filterOutputGain*lpf,filterDrive);
+
 	}
 	void calculateFilterCoeffs()
 	{

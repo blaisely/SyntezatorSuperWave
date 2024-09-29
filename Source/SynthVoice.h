@@ -187,21 +187,8 @@ public:
 			auto outputRight = swBuffer.getWritePointer(1);
 			float channelLeft =0;
 			float channelRight =0;
-
-			envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
-
-			for(size_t pos =0;pos<(size_t)numSamples;)
-			{
-				const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
-				pos += max;
-				updateCounter -= max;
-				if(updateCounter==0)
-				{
-					lfoMod = lfoGenerator[0].render();
-					modMatrix.render();
-					vaSVF.setParameters();
-				}
-			}
+			//modUpdate(numSamples,samples);
+			calculateModAmount(numSamples,samples,0);
 
 
 			auto nextAmpSample = ampEnv.nextValue();
@@ -215,12 +202,14 @@ public:
 
 			if(SVFEnabled)
 			{
+				vaSVF.setCutOffMod(cutOffMod);
 				channelLeft= vaSVF.processAudioSample(channelLeft,0);
 				channelRight= vaSVF.processAudioSample(channelRight,1);
 			}
 
 			else
 			{
+				ladder.setCutOffMod(cutOffMod);
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}
@@ -256,9 +245,9 @@ public:
 	{
 		envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
 		if(reversedEnvelope)
-			cutOffMod = -envelopeMod + lfoGenerator[channel].render(sample,numSamples);
+			cutOffMod = lfoGenerator[channel].render(sample,numSamples);
 		else
-			cutOffMod = envelopeMod + lfoGenerator[channel].render(sample,numSamples);
+			cutOffMod = lfoGenerator[channel].render(sample,numSamples);
 		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
 	}
 
@@ -293,6 +282,15 @@ public:
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
 	{
 
+	}
+	void modUpdate(int numSamples,int samples)
+	{
+		if(updateCounter==juce::jmin(updateRate,numSamples-samples))
+		{
+			updateCounter=0;
+			update();
+		}
+		updateCounter++;
 	}
 
 	static constexpr int numChannelsToProcess{2};

@@ -16,6 +16,8 @@ void ModMatrix::render()
     {
         float dest = tree[m.output];
         dest += *m.inputValue * m.intensity;
+        juce::Logger::outputDebugString("Source Value: "+std::to_string(*m.inputValue));
+        juce::Logger::outputDebugString("Destination Value: "+std::to_string(dest));
         tree.setProperty(m.output,dest,nullptr);
     }
 

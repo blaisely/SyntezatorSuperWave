@@ -190,7 +190,20 @@ public:
 
 			envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
 
-			cutOffMod = lfoGenerator[0].render(startSample,numSamples);
+			for(size_t pos =0;pos<(size_t)numSamples;)
+			{
+				const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
+				pos += max;
+				updateCounter -= max;
+				if(updateCounter==0)
+				{
+					lfoMod = lfoGenerator[0].render();
+					modMatrix.render();
+					vaSVF.setParameters();
+				}
+			}
+
+
 			auto nextAmpSample = ampEnv.nextValue();
 			auto nextAmp2Sample = amp2Env.nextValue();
 
@@ -202,14 +215,12 @@ public:
 
 			if(SVFEnabled)
 			{
-				vaSVF.setCutOffMod(cutOffMod);
 				channelLeft= vaSVF.processAudioSample(channelLeft,0);
 				channelRight= vaSVF.processAudioSample(channelRight,1);
 			}
 
 			else
 			{
-				ladder.setCutOffMod(cutOffMod);
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}

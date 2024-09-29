@@ -26,25 +26,12 @@ public:
         lfo.initialise([](float x) { return std::sin(x); });
 	        
     }
-    float render(int startSample,int numSamples)
+    float render()
     {
-       
-        for(size_t pos =0;pos<(size_t)numSamples;)
-        {
-            const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
-            pos += max;
-            updateCounter -= max;
-            if(updateCounter==0)
-            {
-                updateCounter = updateRate;
-                float lfoMod = lfo.processSample(0.0) * parameters.depth;
-                float currentCutoff = tree[IDs::Cutoff];
-                filterZip += 0.005f * (lfoMod - filterZip);
-
-                return filterZip;
-            }
-        }
-        return 0.0f;
+        float lfoMod = lfo.processSample(0.0) * parameters.depth;
+        float currentCutoff = tree[IDs::Cutoff];
+        filterZip += 0.005f * (lfoMod - filterZip);
+        return filterZip;
 
     }
     void reset()

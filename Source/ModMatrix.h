@@ -11,6 +11,16 @@
 
 class ModMatrix {
 public:
+    struct ModDest
+    {
+        float* value;
+        float intensity;
+        bool isEnabled;
+    };
+    struct ModSource
+    {
+        float* value;
+    };
     enum modSource
     {
         kLFO,
@@ -19,46 +29,23 @@ public:
         kMOD_EG,
         NOTE,
         VELOCITY,
-        numSrc
+        kNumSrc
     };
     enum modDestination
     {
         kFILTER_CUTOFF,
         kRESONANCE,
-        kOSC1_GAIN,
-        kDETUNE,
-        kVOLUME,
         kGAIN_OSC1,
-        kGAIN_OSC2,
-        kAMP_ATT,
-        kAMP_DEC,
-        kAMP_SUS,
-        kAMP_REL,
-        kDEST_INTENSITY,
-        kLFO_FREQUENCY,
-        kEG_ATT,
-        kEG_DEC,
-        kEG_SUS,
-        kEG_REL,
-        kLFO2_FREQUENCY,
-        kFILTER_DRIVE,
-        numDest
+        kNumDest
     };
-    ModMatrix(juce::ValueTree& v);
-    void setRouting(enum modSource s,enum modDestination d,float intensity,float* sourceValue,juce::Identifier dstID);
+    ModMatrix();
+    void addDestination(int destination,float* value );
+    void addSource(int source, float* value);
+    void addRouting(int source, int destination,float intensity);
     void render();
 private:
-
-    struct modulation
-    {
-        modSource sourceID;
-        modDestination destinationID;
-        float* inputValue;
-        juce::Identifier output;
-        float intensity;
-    };
-    std::vector<modulation> modulations;
-    juce::ValueTree tree;
+    std::array<ModDest,kNumDest> destinations;
+    std::array<ModSource,kNumSrc> sources;
 };
 
 

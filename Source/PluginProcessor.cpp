@@ -126,7 +126,6 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     DCOffset.reset();
     lowPassFilter.prepare(spec);
     DCOffset.prepare(spec);
-    //TPTFfilter.setType(filterType);
     lastSampleRate = sampleRate;
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 

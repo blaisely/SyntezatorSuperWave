@@ -241,6 +241,20 @@ public:
 		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
 
 	}
+	float* getModValue()
+	{
+		return &fcMod;
+	}
+	void updateModulation()
+	{
+		float currentCutOff = vaFilterParameters.fc;
+		float modulatedCutOff = juce::jmap(fcMod,-1.0f,1.0f,std::log(20.0f),std::log(20480.0f));
+		modulatedCutOff = std::exp(modulatedCutOff);
+		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
+		currentCutOff=currentCutOff + modulatedCutOff;
+		vaFilterParameters.fc=currentCutOff;
+		calculateFilterCoeffs();
+	}
 private:
 	juce::ValueTree tree;
 	enum class vaFilterAlgorithm {
@@ -255,6 +269,8 @@ private:
 	double beta = 0.0;
 	double analogMatchSigma = 0.0;
 	double kTwoPi = juce::MathConstants<double>::twoPi;
+	float  fcMod =0;
+
 	struct ZVAFilterParameters
 	{
 		vaFilterAlgorithm filterAlgorithm = vaFilterAlgorithm::kSVF_LP;	///< va filter algorithm
@@ -314,10 +330,24 @@ public:
 		updateSmoothers();
 		return processSample(x,channel);
 	}
+	float* getModValue()
+	{
+		return &fcMod;
+	}
+	void updateModulation()
+	{
+
+		float modulatedCutOff = juce::jmap(fcMod,-1.0f,1.0f,std::log(20.0f),std::log(20480.0f));
+		modulatedCutOff = std::exp(modulatedCutOff);
+		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
+		cutOffFrequency += modulatedCutOff;
+		setCutoffFrequencyHz(cutOffFrequency);
+	}
 private:
 	float cutOffFrequency{};
 	float resonance{};
 	int type{};
 	float driveAmount{};
+	float fcMod{};
 	juce::ValueTree tree;
 };

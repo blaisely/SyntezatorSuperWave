@@ -27,8 +27,7 @@ public:
 	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
 	vaSVF(v),
 	ladder(v),
-	lfoGenerator{LFO(v),LFO(v)},
-	modMatrix(v)
+	lfoGenerator{LFO(v),LFO(v)}
 	{
 		state.addListener(this);
 	}
@@ -104,7 +103,11 @@ public:
 			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
-		modMatrix.setRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.0,&lfoMod,IDs::Cutoff);
+
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFF,vaSVF.getModValue());
+		modMatrix.addSource(ModMatrix::modSource::kLFO,&cutOffMod);
+		modMatrix.addRouting(ModMatrix::modDestination::kFILTER_CUTOFF,ModMatrix::modSource::kLFO,0.7f);
+
 		isPrepared = true;
 	}
 	void update()
@@ -187,9 +190,22 @@ public:
 			auto outputRight = swBuffer.getWritePointer(1);
 			float channelLeft =0;
 			float channelRight =0;
-			//modUpdate(numSamples,samples);
-			calculateModAmount(numSamples,samples,0);
 
+			for(size_t pos =0;pos<(size_t)numSamples;)
+			{
+				const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
+				pos += max;
+				updateCounter -= max;
+				if(updateCounter==0)
+				{
+					updateCounter = updateRate;
+					cutOffMod = lfoGenerator[0].render();
+					modMatrix.render();
+					//TODO scale parameters
+					/*vaSVF.setCutOffMod(cutOffMod);
+					ladder.setCutOffMod(cutOffMod);*/
+				}
+			}
 
 			auto nextAmpSample = ampEnv.nextValue();
 			auto nextAmp2Sample = amp2Env.nextValue();
@@ -202,14 +218,14 @@ public:
 
 			if(SVFEnabled)
 			{
-				vaSVF.setCutOffMod(cutOffMod);
+
 				channelLeft= vaSVF.processAudioSample(channelLeft,0);
 				channelRight= vaSVF.processAudioSample(channelRight,1);
 			}
 
 			else
 			{
-				ladder.setCutOffMod(cutOffMod);
+
 				channelLeft= ladder.processAudioSample(channelLeft,0);
 				channelRight= ladder.processAudioSample(channelRight,1);
 			}
@@ -233,22 +249,17 @@ public:
 			clearCurrentNote();
 			resetOscillators();
 		}
-
+	}
+	void updateModulations()
+	{
+		vaSVF.updateModulation();
+		ladder.updateModulation();
 	}
 
 	void setUpFirstOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
 	{
 		swBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
 		swBuffer.clear();
-	}
-	void calculateModAmount(const int& numSamples,const int& sample,const int& channel)
-	{
-		envelopeMod = modEnv.nextValue()*filterEnvelopeAmount;
-		if(reversedEnvelope)
-			cutOffMod = lfoGenerator[channel].render(sample,numSamples);
-		else
-			cutOffMod = lfoGenerator[channel].render(sample,numSamples);
-		cutOffMod = std::clamp(cutOffMod,20.0f,20000.0f);
 	}
 
 	void reset()

@@ -6,25 +6,47 @@
 
 #include <utility>
 
-ModMatrix::ModMatrix(juce::ValueTree& v):tree(v)
+ModMatrix::ModMatrix()
 {
 }
 
+void ModMatrix::addDestination(int destination, float* value)
+{
+    destinations[destination].value = value;
+}
+
+void ModMatrix::addSource(int source, float* value)
+{
+    sources[source].value = value;
+}
+
+void ModMatrix::addRouting(int source, int destination, float intensity)
+{
+    destinations[destination].intensity = intensity;
+    destinations[destination].isEnabled = true;
+}
 void ModMatrix::render()
 {
-    for(auto& m : modulations)
+    float modDestinationValue=0.0f;
+    for(auto column=0;column<kNumDest;column++)
     {
-        float dest = tree[m.output];
-        dest += *m.inputValue * m.intensity;
-        tree.setProperty(m.output,dest,nullptr);
+        for(auto row=0;row<kNumSrc;row++)
+        {
+            if(!destinations[row].isEnabled)
+                continue;
+
+            float modSourceValue = *sources[row].value;
+
+            modDestinationValue+=destinations[row].intensity * modSourceValue;
+        }
+        if(destinations[column].isEnabled)
+            *destinations[column].value=modDestinationValue;
     }
-
 }
-void ModMatrix::setRouting(enum modSource s, enum modDestination d, const float intensity,float* sourceValue,juce::Identifier dstID)
-{
 
-    modulations.push_back({s,d,sourceValue,dstID,intensity});
-}
+
+
+
 
 
 

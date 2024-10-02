@@ -87,8 +87,8 @@ public:
 	{
 	}
 
-	void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels){
-
+	void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
+	{
 		reset();
 		synthBuffer.setSize(2, samplesPerBlock, true, true, true);
 		synthBuffer.clear();
@@ -104,27 +104,36 @@ public:
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
 
-		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFF,vaSVF.getModValue());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFF,ladder.getModValue());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&cutOffMod);
-		modMatrix.addRouting(ModMatrix::modDestination::kFILTER_CUTOFF,ModMatrix::modSource::kLFO,0.7f);
+		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
+		modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
+		modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
 
 		isPrepared = true;
 	}
+
 	void update()
 	{
 		setLFOParameters();
 		getEnvelopeParameters();
+		setFilterParameters();
+		setOscParameters();
+		setPanParameters();
+		updatePan();
+	}
+	void setFilterParameters()
+	{
 		vaSVF.setParameters();
 		ladder.setParameters();
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
-		lfoReset = state[IDs::LFOReset];
+	}
+	void setOscParameters()
+	{
 		osc1[0].setParameters();
 		osc1[1].setParameters();
 		osc2[0].setParameters();
 		osc2[1].setParameters();
-		panOSC1 = state[IDs::PanOsc1];
-		panOSC2 = state[IDs::PanOsc2];
-		updatePan();
 	}
 	void getEnvelopeParameters()
 	{
@@ -150,113 +159,131 @@ public:
 		amp2Env.sustainLevel=modEnv.sustainLevel = static_cast<float>(state[IDs::ADSR2Sustain]);
 		float env2Release = state[IDs::ADSR2Release];
 		if (env2Release < 1.0f) {
-			amp2Env.releaseMultiplier = modEnv.releaseMultiplier = 0.75f;  // extra fast release
+			amp2Env.releaseMultiplier = modEnv.releaseMultiplier = 0.75f;
 		} else {
 			amp2Env.releaseMultiplier=modEnv.releaseMultiplier =
 				std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * env2Release));
 		}
 
-		reversedEnvelope = state[IDs::ReversedEnvelope];
-		filterEnvelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])*200.0f;
+		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
+		commonEnvelope = state[IDs::CommonEnvelope];
+	}
+	void setPanParameters()
+	{
+		panOSC1 = state[IDs::PanOsc1];
+		panOSC2 = state[IDs::PanOsc2];
 	}
 	void updatePan()
 	{
-		panLeft1 = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
-		panLeft2 = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
-		panRight1 = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
-		panRight2 = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
+		panLeft[0] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
+		panLeft[1] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
+		panRight[0] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
+		panRight[1] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
 	}
 	void setLFOParameters()
 	{
 		lfoGenerator[0].setParameters();
 		lfoGenerator[1].setParameters();
+		lfoReset = state[IDs::LFOReset];
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
-	{
-		jassert(isPrepared);
-		if (!isVoiceActive())
-		{
-			return;
-		}
+{
+    jassert(isPrepared);
+    if (!isVoiceActive())
+        return;
 
-		setUpFirstOscBuffer(outputBuffer, numSamples);
-		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
+    setUpBuffer(outputBuffer, numSamples);
+    juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
 
-		for(auto samples=0;samples<numSamples;++samples)
-		{
-			auto inputLeft = swBuffer.getReadPointer(0);
-			auto inputRight = swBuffer.getReadPointer(1);
-			auto outputLeft = swBuffer.getWritePointer(0);
-			auto outputRight = swBuffer.getWritePointer(1);
-			float channelLeft =0;
-			float channelRight =0;
+    auto inputLeft = swBuffer.getReadPointer(0);
+    auto inputRight = swBuffer.getReadPointer(1);
+    auto outputLeft = swBuffer.getWritePointer(0);
+    auto outputRight = swBuffer.getWritePointer(1);
 
-			for(size_t pos =0;pos<(size_t)numSamples;)
+    int remainingSamples = numSamples;
+    int samplePos = 0;
+
+    while (remainingSamples > 0)
+    {
+        const int numToProcess = juce::jmin(remainingSamples, updateCounter);
+
+        for (int sample = 0; sample < numToProcess; ++sample)
+        {
+            float channelLeft = 0.0f;
+            float channelRight = 0.0f;
+
+            auto nextAmpSample = ampEnv.nextValue();
+            auto nextAmp2Sample = amp2Env.nextValue();
+        	envelopeMod = modEnv.nextValue()*envelopeAmount;
+
+			if(commonEnvelope)
 			{
-				const auto max = juce::jmin((size_t)(numSamples) - pos, (size_t)updateCounter);
-				pos += max;
-				updateCounter -= max;
-				if(updateCounter==0)
-				{
-					updateCounter = updateRate;
-					cutOffMod = lfoGenerator[0].render();
-					modMatrix.render();
-					//TODO scale parameters
-					/*vaSVF.setCutOffMod(cutOffMod);
-					ladder.setCutOffMod(cutOffMod);*/
-				}
+				channelLeft += osc2[0].getNextSample() * nextAmpSample * panLeft[1];
+				channelRight += osc2[1].getNextSample() * nextAmpSample * panRight[1];
 			}
+        	else
+        	{
+        		channelLeft += osc2[0].getNextSample() * nextAmp2Sample * panLeft[1];
+        		channelRight += osc2[1].getNextSample() * nextAmp2Sample * panRight[1];
+        	}
+            channelLeft += osc1[0].getNextSample() * nextAmpSample * panLeft[0];
+            channelRight += osc1[1].getNextSample() * nextAmpSample * panRight[0];
 
-			auto nextAmpSample = ampEnv.nextValue();
-			auto nextAmp2Sample = amp2Env.nextValue();
 
+            if (SVFEnabled)
+            {
+                channelLeft = vaSVF.processAudioSample(channelLeft, 0);
+                channelRight = vaSVF.processAudioSample(channelRight, 1);
+            }
+            else
+            {
+                channelLeft = ladder.processAudioSample(channelLeft, 0);
+                channelRight = ladder.processAudioSample(channelRight, 1);
+            }
 
-			channelLeft+=osc1[0].getNextSample()*nextAmpSample*panLeft1;
-			channelLeft+=osc2[0].getNextSample()*nextAmp2Sample*panLeft2;
-			channelRight+=osc1[1].getNextSample()*nextAmpSample*panRight1;
-			channelRight+=osc2[1].getNextSample()*nextAmp2Sample*panRight2;
+            channelLeft = level.processSample(channelLeft);
+            channelRight = level.processSample(channelRight);
 
-			if(SVFEnabled)
-			{
+            channelLeft = softClip(channelLeft);
+            channelRight = softClip(channelRight);
 
-				channelLeft= vaSVF.processAudioSample(channelLeft,0);
-				channelRight= vaSVF.processAudioSample(channelRight,1);
-			}
+            outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
+            outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
+        }
 
-			else
-			{
+        remainingSamples -= numToProcess;
+        samplePos += numToProcess;
+        updateCounter -= numToProcess;
 
-				channelLeft= ladder.processAudioSample(channelLeft,0);
-				channelRight= ladder.processAudioSample(channelRight,1);
-			}
+        if (updateCounter <= 0)
+        {
+            updateCounter = updateRate;
+            cutOffMod = lfoGenerator[0].render();
+            modMatrix.render();
+            vaSVF.updateModulation();
+            ladder.updateModulation();
+        }
+    }
 
-			channelLeft = level.processSample(channelLeft);
-			channelRight = level.processSample(channelRight);
+    for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
+    {
+        outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
+    }
 
-			channelLeft = clip.process(channelLeft);
-			channelRight = clip.process(channelRight);
+    if (!ampEnv.isActive())
+    {
+        clearCurrentNote();
+        resetOscillators();
+    }
+}
 
-			outputLeft[samples] = channelLeft+inputLeft[samples];
-			outputRight[samples] = channelRight+inputRight[samples];
-		}
-
-		for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
-		{
-			outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
-		}
-		if (!ampEnv.isActive())
-		{
-			clearCurrentNote();
-			resetOscillators();
-		}
-	}
 	void updateModulations()
 	{
 		vaSVF.updateModulation();
 		ladder.updateModulation();
 	}
 
-	void setUpFirstOscBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
+	void setUpBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
 	{
 		swBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
 		swBuffer.clear();
@@ -291,39 +318,22 @@ public:
 			osc.resetOsc();
 	}
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
-	{
-
-	}
-	void modUpdate(int numSamples,int samples)
-	{
-		if(updateCounter==juce::jmin(updateRate,numSamples-samples))
-		{
-			updateCounter=0;
-			update();
-		}
-		updateCounter++;
-	}
+	{}
 
 	static constexpr int numChannelsToProcess{2};
 
 private:
-	float lfoMod;
 	float panOSC1{0.0f};
 	float panOSC2{0.0f};
-	float panLeft1{0.f};
-	float panLeft2{0.f};
-	float panRight1{0.f};
-	float panRight2{0.f};
-	bool reversedEnvelope;
+	float panLeft[2]{0.f};
+	float panRight[2]{0.f};
 	float cutOffMod{0.0f};
-	float filterEnvelopeAmount{0.0f};
+	float envelopeAmount{0.0f};
 	float envelopeMod{0.0f};
-	float oldMod{0.0f};
 	bool isPrepared{false};
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
 	double frequency{};
-	float type{};
 	bool SVFEnabled;
 	bool commonEnvelope;
 	bool lfoReset;
@@ -332,19 +342,17 @@ private:
 	std::array<VAOsc, numChannelsToProcess> osc2;
 	ModMatrix modMatrix;
 	juce::dsp::Gain<float> level;
-	softClipper clip;
 	ZVAFilter vaSVF;
 	MOOGFilter ladder;
 	std::array<LFO,2> lfoGenerator;
 	juce::AudioBuffer<float> swBuffer;
 	juce::AudioBuffer<float> synthBuffer;
-	juce::AudioBuffer<float> vaBuffer;
 	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
 	juce::ValueTree state;
 	analogEG ampEnv;
 	analogEG amp2Env;
 	analogEG modEnv;
-	int updateRate{ 100 };
+	int updateRate{ 32 };
 	int updateCounter{ updateRate };
 
 };

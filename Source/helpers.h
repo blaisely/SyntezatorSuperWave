@@ -6,14 +6,13 @@
 #include <memory>
 #include <algorithm>
 #include <math.h>
-
+#define MOD 1000000007
 inline double raw2dB(double raw)
 {
     return 20.0*log10(raw);
 }
 inline double peakGainFor_Q(double Q)
 {
-    // --- no resonance at or below unity
     if (Q <= 0.707) return 1.0;
     return (Q*Q) / (pow((Q*Q - 0.25), 0.5));
 }
@@ -41,10 +40,26 @@ inline double arctangentSaturation(double x, double drive)
 {
     return atan(pow(drive, 1.2) * x) / atan(drive);
 }
-double softClip(double x, double threshold)
+inline float softClip (const float x)
 {
-    if (fabs(x) < threshold)
-        return x;  // Linear within threshold
-    else
-        return threshold * (x > 0.0 ? 1.0 : -1.0);  // Soft clip beyond threshold
+    float y=0;
+    if(x<-1)
+        y = -(2.f/3.f);
+    if(x>=-1 && x<=1)
+        y = x -static_cast<float> ((std::pow(x,3)/3.f));
+    if(x>=1)
+        y = (2.f/3.f);
+    return y;
+}
+static float fast_power(float base, int power) {
+    float result = 1.0f;
+    while (power > 0) {
+
+        if (power % 2 == 1) {
+            result = std::fmod((result * base), MOD);
+        }
+        base = std::fmod((base * base), MOD);
+        power = power / 2;
+    }
+    return result;
 }

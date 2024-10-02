@@ -20,9 +20,9 @@ void ModMatrix::addSource(int source, float* value)
     sources[source].value = value;
 }
 
-void ModMatrix::addRouting(int source, int destination, float intensity)
+void ModMatrix::addRouting(int source, int destination, float modIntensity)
 {
-    destinations[destination].intensity = intensity;
+    intensity[source] = modIntensity;
     destinations[destination].isEnabled = true;
 }
 void ModMatrix::render()
@@ -32,12 +32,12 @@ void ModMatrix::render()
     {
         for(auto row=0;row<kNumSrc;row++)
         {
-            if(!destinations[row].isEnabled)
+            if(!destinations[column].isEnabled || intensity[row]==0.0f)
                 continue;
 
             float modSourceValue = *sources[row].value;
 
-            modDestinationValue+=destinations[row].intensity * modSourceValue;
+            modDestinationValue+=intensity[row] * modSourceValue;
         }
         if(destinations[column].isEnabled)
             *destinations[column].value=modDestinationValue;

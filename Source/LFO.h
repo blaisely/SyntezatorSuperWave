@@ -15,7 +15,6 @@ class LFO {
 public:
     explicit LFO(juce::ValueTree& v):tree(v)
     {
-
     }
     ~LFO()=default;
     void prepareToPlay(double sampleRate, unsigned int numChannels, unsigned int blockSize)
@@ -28,7 +27,7 @@ public:
     }
     float render()
     {
-                return lfo.processSample(0.0) * parameters.depth;
+        return lfo.processSample(0.0) * parameters.depth;
     }
     void reset()
     {
@@ -37,14 +36,14 @@ public:
     void setParameters()
     {
         parameters.depth=static_cast<float>(tree[IDs::LFODepth])/100.f;
-        parameters.frequency = static_cast<float>(tree[IDs::LFOFreq])/static_cast<float>(updateRate);
+        parameters.frequency = static_cast<float>(tree[IDs::LFOFreq]);
         parameters.type = static_cast<int>(tree[IDs::LFOType]);
         setLFOType();
         lfo.setFrequency(parameters.frequency);
     }
     void setLFOType()
     {
-	    switch (static_cast<int>(parameters.type))
+	    switch ((parameters.type))
 	    {
 	    case 0:
             lfo.initialise([](float x) { return std::sin(x); });
@@ -70,7 +69,6 @@ public:
 
 private:
     juce::dsp::Oscillator<float> lfo;
-
     struct LFOParameters
     {
         float frequency{ 0.0f };
@@ -78,12 +76,10 @@ private:
         float delay{ 0.0f };
         int type{ 0 };
         float modValue{ 0.0f };
-
     };
-    float filterZip{0.0f};
     LFOParameters parameters;
     juce::ValueTree tree;
     int modDest{ 0 };
-    int updateRate{ 100 };
+    int updateRate{ 32 };
     int updateCounter{ updateRate };
 };

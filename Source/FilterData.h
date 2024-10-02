@@ -15,98 +15,6 @@
 #include "helpers.h"
 #include "SharedData.h"
 
-
-class Filter: public juce::dsp::StateVariableTPTFilter<float>,public juce::ValueTree::Listener
-{
-public:
-    Filter(juce::ValueTree v):tree(v)
-    {
-        tree.addListener(this);
-    }
-    ~Filter()
-    {
-        tree.removeListener(this);
-    }
-	void setFilterParam(float cutOffFreq, float res, float type)
-	{
-		cutOff = cutOffFreq;
-        resonance = res;
-		f_type = type;
-	}
-
-	void setFType()
-	{
-		switch(static_cast<int>(f_type))
-		{
-		case 0:
-			setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-			break;
-		case 1:
-			setType(juce::dsp::StateVariableTPTFilterType::highpass);
-			break;
-		case 2:
-			setType(juce::dsp::StateVariableTPTFilterType::bandpass);
-			break;
-		default:
-			setType(juce::dsp::StateVariableTPTFilterType::lowpass);
-			break;
-		}
-	}
-	void setClampedCutOff(float lfoMod)
-	{
-        float minCutoff = 20.0f; 
-        float maxCutoff = 20000.0f; 
-        float logMin = std::log10(minCutoff);
-        float logMax = std::log10(maxCutoff);
-        float logCutoff = juce::jmap(lfoMod, -1.0f, 1.0f, 20.0f, 20000.0f);
-        float cutoffFrequency = std::pow(10.0f, logCutoff);
-		setCutoffFrequency(cutOff);
-		setResonance(resonance);
-		setFType();
-	}
-
-	void prepareToPlay(const double sampleRate,const int samplesPerBlock,const int outputChannels)
-	{
-		resetAll();
-		juce::dsp::ProcessSpec spec;
-		spec.maximumBlockSize = samplesPerBlock;
-		spec.sampleRate = sampleRate;
-		spec.numChannels = outputChannels;
-		prepare(spec);
-		//lfo.prepare(spec);*/
-	}
-	void resetAll()
-	{
-		reset();
-		//lfo.reset();
-	}
-	void processNextBlock(juce::AudioBuffer<float>& buffer, int startSample, int numSamples)
-	{	
-		juce::dsp::AudioBlock<float> block {buffer};
-		process(juce::dsp::ProcessContextReplacing<float>(block));
-		
-	}
-	void processNextAudioSample(const float input,const int channel)
-	{
-		processSample(channel, input);
-	}
-    void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override
-    {
-        
-        if(treeWhosePropertyHasChanged==tree)
-        {
-            setFilterParam(tree[IDs::Cutoff], tree[IDs::Resonance], tree[IDs::FilterT]);
-        }
-	    
-	    
-    }
-private:
-	float cutOffMod{ 0.0f };
-	float cutOff{ 0.0f };
-	float resonance{ 0.1f };
-	float f_type{ 0.0f };
-    juce::ValueTree tree;
-};
 class ZVAFilter
 {
 public:
@@ -134,7 +42,7 @@ public:
 			vaFilterParameters.fc=tree[IDs::Cutoff];
 			vaFilterParameters.Q=tree[IDs::Resonance];
 			vaFilterParameters.filterDrive = static_cast<double>(tree[IDs::FilterDrive]);
-			int filterType = static_cast<int>(tree[IDs::FilterT]);
+			int filterType = (tree[IDs::FilterT]);
 			switch(filterType)
 			{
 				case 0:
@@ -152,16 +60,6 @@ public:
 			}
 			calculateFilterCoeffs();
 		}
-	}
-	void setCutOffMod(const float& modCutOff)
-	{
-
-		if(!juce::approximatelyEqual(modCutOff,static_cast<float>(vaFilterParameters.fc)))
-		{
-			vaFilterParameters.fc = modCutOff;
-			calculateFilterCoeffs();
-		}
-
 	}
 	double processAudioSample(double xn,int channel)
 	{
@@ -199,24 +97,18 @@ public:
 		{
 			if (matchAnalogNyquistLPF)
 				lpf += analogMatchSigma*(sn);
-
 				return filterOutputGain*lpf;
 
 		}
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_HP)
-
-				return filterOutputGain*hpf;
+			return filterOutputGain*hpf;
 
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BP)
-
-				return filterOutputGain*bpf;
+			return filterOutputGain*bpf;
 
 		else if (filterAlgorithm == vaFilterAlgorithm::kSVF_BS)
-
-				return filterOutputGain*bsf;
-
-
-			return filterOutputGain*lpf;
+			return filterOutputGain*bsf;
+		return filterOutputGain*lpf;
 
 	}
 	void calculateFilterCoeffs()
@@ -225,8 +117,6 @@ public:
 		double Q = vaFilterParameters.Q;
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 
-		// --- normal Zavalishin SVF calculations here
-		//     prewarp the cutoff- these are bilinear-transform filters
 		double wd = kTwoPi*fc;
 		double T = 1.0 / sampleRate;
 		double wa = (2.0 / T)*tan(wd*T / 2.0);
@@ -236,7 +126,7 @@ public:
 		alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
 		alpha = g;
 		rho = 2.0*R + g;
-		// --- sigma for analog matching version
+
 		double f_o = (sampleRate / 2.0) / fc;
 		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
 
@@ -248,18 +138,20 @@ public:
 	void updateModulation()
 	{
 		float currentCutOff = vaFilterParameters.fc;
-		float modulatedCutOff = juce::jmap(fcMod,-1.0f,1.0f,std::log(20.0f),std::log(20480.0f));
-		modulatedCutOff = std::exp(modulatedCutOff);
+		float modulatedCutOff = fcMod * fcMod * 2.5f;
+		modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
 		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
-		currentCutOff=currentCutOff + modulatedCutOff;
+		currentCutOff=modulatedCutOff;
 		vaFilterParameters.fc=currentCutOff;
 		calculateFilterCoeffs();
 	}
+
 private:
 	juce::ValueTree tree;
 	enum class vaFilterAlgorithm {
 		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
 	};
+	float  fcMod =0;
 	double sampleRate = 48000.0;
 	double integrator_zLeft[2];
 	double integrator_zRight[2];
@@ -269,7 +161,7 @@ private:
 	double beta = 0.0;
 	double analogMatchSigma = 0.0;
 	double kTwoPi = juce::MathConstants<double>::twoPi;
-	float  fcMod =0;
+
 
 	struct ZVAFilterParameters
 	{
@@ -320,11 +212,6 @@ public:
 			break;
 		}
 	}
-	void setCutOffMod(const float& modCutOff)
-	{
-		if(!juce::approximatelyEqual(modCutOff,cutOffFrequency))
-		setCutoffFrequencyHz(modCutOff);
-	}
 	float processAudioSample(const float& x,const int& channel)
 	{
 		updateSmoothers();
@@ -336,18 +223,19 @@ public:
 	}
 	void updateModulation()
 	{
-
-		float modulatedCutOff = juce::jmap(fcMod,-1.0f,1.0f,std::log(20.0f),std::log(20480.0f));
-		modulatedCutOff = std::exp(modulatedCutOff);
-		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
-		cutOffFrequency += modulatedCutOff;
-		setCutoffFrequencyHz(cutOffFrequency);
+		float baseCutOff = cutOffFrequency;
+		float targetModulatedCutOff = fcMod*2.5f;
+		targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
+		targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
+		setCutoffFrequencyHz(targetModulatedCutOff);
 	}
+
 private:
+	float fcMod{};
 	float cutOffFrequency{};
 	float resonance{};
 	int type{};
 	float driveAmount{};
-	float fcMod{};
+
 	juce::ValueTree tree;
 };

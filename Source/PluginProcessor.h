@@ -55,12 +55,6 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    void IIRfilter(float frequency, float sampleRate, float* samples, float numSamples);
-
-    float cutOff;
-    float resonance;
-    
-
     juce::AudioProcessorValueTreeState state;
     static juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     struct chainSettings {
@@ -72,8 +66,6 @@ public:
         lfoReset{0},lfoType{0},reversedEnvelope{0};
     };
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
-
-    
     static juce::ValueTree createValueTree();
     static void syncStates(juce::ValueTree& tree,chainSettings& s);
 private:
@@ -82,16 +74,8 @@ private:
     SynthVoice* myVoice;
     float lastSampleRate;
     void reset() override;
-
-   
-     float s1;
-     float s2;
-     float Q = 1.0f;
-
-     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  lowPassFilter;
      juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
 
-     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSynthAudioProcessor)
 };

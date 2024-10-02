@@ -35,7 +35,11 @@ SimpleSynthAudioProcessor::SimpleSynthAudioProcessor()
                       #endif
                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)
                      #endif
-                       ), s1(0), s2(0),state(*this,nullptr, juce::Identifier("VTS"), createParameterLayout()), lowPassFilter(juce::dsp::IIR::Coefficients<float>::makeLowPass(48000,20000.0f, 0.1f)),DCOffset(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000,5.0)),tree(createValueTree())
+                       ),
+                        state(*this,nullptr, juce::Identifier("VTS"),
+                        createParameterLayout()),
+                        DCOffset(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000,5.0)),
+                        tree(createValueTree())
 #endif
 {
     mySynth.clearVoices();
@@ -123,9 +127,9 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
     spec.numChannels = getTotalNumOutputChannels();
-    lowPassFilter.reset();
+
     DCOffset.reset();
-    lowPassFilter.prepare(spec);
+
     DCOffset.prepare(spec);
     lastSampleRate = sampleRate;
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
@@ -141,8 +145,12 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
 void SimpleSynthAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    for (int i = 0; i < mySynth.getNumVoices(); i++) {
+
+        if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
+            myVoice->update();
+        }
+    }
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -174,7 +182,6 @@ void SimpleSynthAudioProcessor::updateFilter() {
     auto chainSettings = getChainSettings(state);
     float freq = chainSettings.cutoff;
     float res = chainSettings.resonance;
-    *lowPassFilter.state = *juce::dsp::IIR::Coefficients<float>::makeLowPass(getSampleRate(), freq, res);
     *DCOffset.state = *juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(), 20.0f);
 }
 void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -234,72 +241,58 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 void SimpleSynthAudioProcessor::reset() {
 
-    
+    for (int i = 0; i < mySynth.getNumVoices(); i++) {
 
-}
-
-void SimpleSynthAudioProcessor::IIRfilter(float frequency, float sampleRate, float* samples,float numSamples) {
-
-    const float g = tanf(juce::float_Pi * frequency / sampleRate);
-    const float h = 1.f / (1 + g / Q + g * g);
-
-    for (int i = 0; i < numSamples; i++) {
-        const float in = samples[i];
-        const float yH = h * (in - (1.f / Q + g) * s1 - s2);
-        const float yB = g * yH + s1;
-        s1 = g * yH + yB;
-        const float yL = g * yB + s2;
-        s2 = g * yB + yL;
-        samples[i] = yL;
-
+        if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
+            myVoice->reset();
+        }
     }
-
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::createParameterLayout() {
 
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
-    auto logRange = makeLogarithmicRange(20.0f, 20000.0f);
+    auto logRange = makeLogarithmicRange(20.0f, 20480.0f);
     juce::NormalisableRange<float> attackRange{0.1f,150.0f,1.f,0.5};
     juce::NormalisableRange<float> decayRange{0.1f,150.0f,1.f,0.5};
     juce::NormalisableRange<float> sustainRange{0.0f,1.0f,0.01f};
     juce::NormalisableRange<float> releaseRange{0.1f,150.f,1.f,0.5};
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20000.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20480.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
         juce::NormalisableRange<float>(0.000,100.00,0.01,0.4),0.707));
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.2f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.7f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -1.0f, 1.0f, 0.f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", 0.0f, 100.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", -100.0f, 100.0f, 0.0f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave Osc1",
         juce::NormalisableRange<float>{-3,3,1},0));
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "Octave Osc2",
-        juce::NormalisableRange<float>{-3,3,1},0));
+        juce::NormalisableRange<float>{-3,3,1},-2));
     layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc1", "coarse Osc1",
         juce::NormalisableRange<float>{-12,12,1},0));
     layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse Osc2",
         juce::NormalisableRange<float>{-12,12,1},0));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.01f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",decayRange,0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.40f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",decayRange,1.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("sustain", "Sustain",sustainRange , 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("release", "Release",releaseRange,0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("release", "Release",releaseRange,1.f));
 
-    layout.add(std::make_unique<juce::AudioParameterFloat>("attackOsc2", "AttackEnv2(Osc2)",attackRange,0.01f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("decayOsc2", "DecayEnv2(Osc2)",decayRange,0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attackOsc2", "AttackEnv2(Osc2)",attackRange,0.4f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decayOsc2", "DecayEnv2(Osc2)",decayRange,1.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("sustainOsc2", "SustainEnv2(Osc2)",sustainRange , 1.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc2", "ReleaseEnv2(Osc2)",releaseRange,0.5f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc2", "ReleaseEnv2(Osc2)",releaseRange,1.f));
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LFDepth",
-        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.3f}, 0.0f));
+        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.2f}, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfofreq", "LFOFreq",
-        juce::NormalisableRange<float>{ 0.0f, 30.0f, 0.1f,0.3f},0.0f));
+        juce::NormalisableRange<float>{ 0.01f, 20.0f, 0.01f,0.3f},0.1f));
     auto attributesLFOType = juce::AudioParameterChoiceAttributes().withLabel("LFO TYpe");
     layout.add(std::make_unique<juce::AudioParameterChoice>("lfoType", "LFO Type", juce::StringArray{ "Sine", "Square", "Saw"},
     0, attributesLFOType));
@@ -329,7 +322,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "lfoReset", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope", 1));
-    layout.add(std::make_unique<juce::AudioParameterBool>("reverseEnvelope", "Reverse Filter Envelope", 0));
 
     return layout;
 }
@@ -468,6 +460,4 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::ReversedEnvelope,s.reversedEnvelope,nullptr);
     tree.setProperty(IDs::PanOsc1,s.panOsc1,nullptr);
     tree.setProperty(IDs::PanOsc2,s.panOsc2,nullptr);
-
-
 }

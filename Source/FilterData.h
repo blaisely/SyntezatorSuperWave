@@ -298,7 +298,7 @@ public:
 	void setParameters()
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
-		resonance = juce::jlimit(0.0f,2.0f,static_cast<float>(tree[IDs::Resonance]));
+		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,2.0f);
 		driveAmount = tree[IDs::FilterDrive];
 		setCutoffFrequencyHz(cutOffFrequency);
 		setResonance(resonance);

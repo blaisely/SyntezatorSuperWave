@@ -40,12 +40,13 @@ SimpleSynthAudioProcessor::SimpleSynthAudioProcessor()
 {
     mySynth.clearVoices();
 
-    for (int i = 0; i < 4; ++i) {
+    for (int i = 0; i < 6; ++i) {
         mySynth.addVoice(new SynthVoice(tree));
     }
 
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
+    mySynth.setNoteStealingEnabled(true);
 }
 
 SimpleSynthAudioProcessor::~SimpleSynthAudioProcessor()
@@ -267,7 +268,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20000.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
-        juce::NormalisableRange<float>(0.000,20.00,0.01,0.4),0.707));
+        juce::NormalisableRange<float>(0.000,100.00,0.01,0.4),0.707));
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.2f));

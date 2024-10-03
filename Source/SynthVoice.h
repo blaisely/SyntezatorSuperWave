@@ -15,7 +15,6 @@
 #include "LFO.h"
 #include "VAOsc.h"
 #include "Osc.h"
-#include "clipper.h"
 #include "ModMatrix.h"
 #include "SharedData.h"
 class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener

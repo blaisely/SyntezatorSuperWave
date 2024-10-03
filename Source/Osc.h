@@ -193,9 +193,10 @@ public:
     }
     void setSideOsc(const float detune,const float volume)
     {
-        params.detune = polyFit(detune);
-        params.volumeSides = sideVolume(volume);
-        params.volumeMain = mainVolume(volume);
+        //TODO properly scale value
+        params.detune = polyFit(detune+modValue[kDETUNE]);
+        params.volumeSides = sideVolume(volume+modValue[kVOLUME]);
+        params.volumeMain = mainVolume(volume+modValue[kVOLUME]);
     }
     void setSidePhase()
     {
@@ -247,6 +248,19 @@ public:
             params.phaseIncrements[i] = 0.0f;
         }
     }
+    float* getModDetune()
+    {
+        return &modValue[kDETUNE];
+    }
+    float* getModVolume()
+    {
+        return &modValue[kVOLUME];
+    }
+    void setModValue(const float mod,int number)
+    {
+        modValue[number]=mod;
+    }
+    enum oscDest {kDETUNE,kVOLUME,kNumDest};
 
 private:
     juce::ValueTree state;
@@ -259,6 +273,8 @@ private:
         std::array<float, 7> phases{};
         std::array<float, 7> lastOutputs{ 0.0f };
     };
+
+    std::array<float,kNumDest> modValue{0.0f};
     synthParams params;
     int type{ 0 };
     juce::dsp::Gain<float> gain;

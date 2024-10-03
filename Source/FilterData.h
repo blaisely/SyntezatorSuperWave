@@ -116,7 +116,6 @@ public:
 		double fc = vaFilterParameters.fc;
 		double Q = vaFilterParameters.Q;
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
-
 		double wd = kTwoPi*fc;
 		double T = 1.0 / sampleRate;
 		double wa = (2.0 / T)*tan(wd*T / 2.0);
@@ -129,21 +128,36 @@ public:
 
 		double f_o = (sampleRate / 2.0) / fc;
 		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
-
 	}
-	float* getModValue()
+	void calculateModulatedFilterCoeffs(const double& modCutoff)
 	{
-		return &fcMod;
+		double fc = modCutoff;
+		double Q = vaFilterParameters.Q;
+		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
+		double wd = kTwoPi*fc;
+		double T = 1.0 / sampleRate;
+		double wa = (2.0 / T)*tan(wd*T / 2.0);
+		double g = wa*T / 2.0;
+
+		double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
+		alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
+		alpha = g;
+		rho = 2.0*R + g;
+
+		double f_o = (sampleRate / 2.0) / fc;
+		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
+	}
+	float* getModCutOff()
+	{
+		return &modValue[kCUTOFF];
 	}
 	void updateModulation()
 	{
 		float currentCutOff = vaFilterParameters.fc;
-		float modulatedCutOff = fcMod * fcMod * 2.5f;
+		float modulatedCutOff = modValue[kCUTOFF]* 2.5f;
 		modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
 		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
-		currentCutOff=modulatedCutOff;
-		vaFilterParameters.fc=currentCutOff;
-		calculateFilterCoeffs();
+		calculateModulatedFilterCoeffs(modulatedCutOff);
 	}
 
 private:
@@ -151,7 +165,8 @@ private:
 	enum class vaFilterAlgorithm {
 		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
 	};
-	float  fcMod =0;
+	enum{kCUTOFF,kRESONANCE,kNumDest};
+	std::array<float,kNumDest> modValue;
 	double sampleRate = 48000.0;
 	double integrator_zLeft[2];
 	double integrator_zRight[2];
@@ -217,21 +232,21 @@ public:
 		updateSmoothers();
 		return processSample(x,channel);
 	}
-	float* getModValue()
+	float* getModCutOff()
 	{
-		return &fcMod;
+		return &modValue[kCUTOFF];
 	}
 	void updateModulation()
 	{
-		float baseCutOff = cutOffFrequency;
-		float targetModulatedCutOff = fcMod*2.5f;
+		float targetModulatedCutOff = modValue[kCUTOFF]*2.5f;
 		targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
 		targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
 		setCutoffFrequencyHz(targetModulatedCutOff);
 	}
 
 private:
-	float fcMod{};
+	enum{kCUTOFF,kRESONANCE,kNumDest};
+	std::array<float,kNumDest> modValue;
 	float cutOffFrequency{};
 	float resonance{};
 	int type{};

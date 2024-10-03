@@ -103,11 +103,16 @@ public:
 			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		}
 
-		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFF,ladder.getModValue());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFLDDR,ladder.getModCutOff());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC_DETUNE,osc1[0].getModDetune());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&cutOffMod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
-		modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
-		modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
+		/*modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
+		modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);
+		modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
+		modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);*/
+		modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kOSC_DETUNE,1.f);
 
 		isPrepared = true;
 	}
@@ -243,8 +248,8 @@ public:
             channelLeft = level.processSample(channelLeft);
             channelRight = level.processSample(channelRight);
 
-            channelLeft = softClip(channelLeft);
-            channelRight = softClip(channelRight);
+            //channelLeft = softClip(channelLeft);
+            //channelRight = softClip(channelRight);
 
             outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
             outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
@@ -259,8 +264,9 @@ public:
             updateCounter = updateRate;
             cutOffMod = lfoGenerator[0].render();
             modMatrix.render();
-            vaSVF.updateModulation();
-            ladder.updateModulation();
+        	osc1[1].setModValue(*osc1[0].getModDetune(),0);
+            //vaSVF.updateModulation();
+            //ladder.updateModulation();
         }
     }
 

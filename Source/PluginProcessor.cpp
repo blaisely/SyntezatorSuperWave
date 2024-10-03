@@ -127,11 +127,11 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;
     spec.numChannels = getTotalNumOutputChannels();
-
     DCOffset.reset();
-
     DCOffset.prepare(spec);
+    pluginGain.prepare(spec);
     lastSampleRate = sampleRate;
+    updateFilter();
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 
     for (int i = 0; i < mySynth.getNumVoices(); i++)
@@ -145,12 +145,7 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
 
 void SimpleSynthAudioProcessor::releaseResources()
 {
-    for (int i = 0; i < mySynth.getNumVoices(); i++) {
-
-        if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
-            myVoice->update();
-        }
-    }
+   reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -179,9 +174,6 @@ bool SimpleSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
 }
 #endif
 void SimpleSynthAudioProcessor::updateFilter() {
-    auto chainSettings = getChainSettings(state);
-    float freq = chainSettings.cutoff;
-    float res = chainSettings.resonance;
     *DCOffset.state = *juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(), 20.0f);
 }
 void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
@@ -207,8 +199,11 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
     auto audioBlock = juce::dsp::AudioBlock<float>(buffer);
     auto context = juce::dsp::ProcessContextReplacing<float>(audioBlock);
-    updateFilter();
+
     DCOffset.process(context);
+    float gain = tree[IDs::GainOvr];
+    pluginGain.setGainLinear(gain);
+    pluginGain.process(context);
 }
 
 //==============================================================================
@@ -247,6 +242,8 @@ void SimpleSynthAudioProcessor::reset() {
             myVoice->reset();
         }
     }
+    pluginGain.reset();
+    DCOffset.reset();
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::createParameterLayout() {
@@ -258,7 +255,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     juce::NormalisableRange<float> decayRange{0.1f,150.0f,1.f,0.5};
     juce::NormalisableRange<float> sustainRange{0.0f,1.0f,0.01f};
     juce::NormalisableRange<float> releaseRange{0.1f,150.f,1.f,0.5};
-
+    layout.add(std::make_unique<juce::AudioParameterFloat>("gainOVR","Gain",0.f,1.f,0.1f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20480.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
         juce::NormalisableRange<float>(0.000,100.00,0.01,0.4),0.707));
@@ -368,6 +365,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
 
     settings.panOsc1 = apvts.getRawParameterValue("panOsc1")->load();
     settings.panOsc2 = apvts.getRawParameterValue("panOsc2")->load();
+    settings.gainOVR = apvts.getRawParameterValue("gainOVR")->load();
 
     return settings;
 }
@@ -460,4 +458,5 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::ReversedEnvelope,s.reversedEnvelope,nullptr);
     tree.setProperty(IDs::PanOsc1,s.panOsc1,nullptr);
     tree.setProperty(IDs::PanOsc2,s.panOsc2,nullptr);
+    tree.setProperty(IDs::GainOvr,s.gainOVR,nullptr);
 }

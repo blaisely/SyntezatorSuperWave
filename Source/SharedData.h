@@ -50,8 +50,7 @@ namespace IDs{
     ID ADSR1("ADSR1");
     ID ADSR2("ADSR2");
     ID SampleRate("SmpRate");
-    ID SWGainOvr("SWGainOvr");
-    ID VAGainOvr("VAGainOvr");
+    ID GainOvr("GainOvr");
     ID SWFrequency("SWFreq");
     ID VAFrequency("VAFreq");
     ID MidiNote("MidiNote");

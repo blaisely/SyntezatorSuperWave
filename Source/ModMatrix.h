@@ -11,15 +11,6 @@
 
 class ModMatrix {
 public:
-    struct ModDest
-    {
-        float* value=nullptr;
-        bool isEnabled;
-    };
-    struct ModSource
-    {
-        float* value=nullptr;
-    };
     enum modSource
     {
         kLFO,
@@ -28,8 +19,21 @@ public:
     };
     enum modDestination
     {
-        kFILTER_CUTOFF,
+        kFILTER_CUTOFFSVF,
+        kFILTER_CUTOFFLDDR,
+        kOSC_DETUNE,
+        kOSC_VOLUME,
         kNumDest
+    };
+    struct ModDest
+    {
+        float* value=nullptr;
+        std::array<float,kNumSrc> intensity={0.0f};
+        bool isEnabled = false;
+    };
+    struct ModSource
+    {
+        float* value=nullptr;
     };
     ModMatrix();
     void addDestination(int destination,float* value );
@@ -39,7 +43,6 @@ public:
 private:
     std::array<ModDest,kNumDest> destinations;
     std::array<ModSource,kNumSrc> sources;
-    std::array<float,kNumSrc> intensity{0.0f};
 };
 
 

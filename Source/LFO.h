@@ -33,11 +33,11 @@ public:
     {
         lfo.reset();
     }
-    void setParameters()
+    void setParameters(const float depth, const float freq, const int type)
     {
-        parameters.depth=static_cast<float>(tree[IDs::LFODepth])/100.f;
-        parameters.frequency = static_cast<float>(tree[IDs::LFOFreq]);
-        parameters.type = static_cast<int>(tree[IDs::LFOType]);
+        parameters.depth= depth;
+        parameters.frequency = freq;
+        parameters.type = type;
         setLFOType();
         lfo.setFrequency(parameters.frequency);
     }

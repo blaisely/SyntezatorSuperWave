@@ -153,11 +153,15 @@ public:
 	}
 	void updateModulation()
 	{
-		float currentCutOff = vaFilterParameters.fc;
-		float modulatedCutOff = modValue[kCUTOFF]* 2.5f;
-		modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
-		modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
-		calculateModulatedFilterCoeffs(modulatedCutOff);
+		if(modValue[kCUTOFF]>0.0f)
+		{
+
+			float currentCutOff = vaFilterParameters.fc;
+			float modulatedCutOff = modValue[kCUTOFF]* 2.5f;
+			modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
+			modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
+			calculateModulatedFilterCoeffs(modulatedCutOff);
+		}
 	}
 
 private:
@@ -238,10 +242,13 @@ public:
 	}
 	void updateModulation()
 	{
-		float targetModulatedCutOff = modValue[kCUTOFF]*2.5f;
-		targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
-		targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
-		setCutoffFrequencyHz(targetModulatedCutOff);
+		if(modValue[kCUTOFF]>0.0f)
+		{
+			float targetModulatedCutOff = modValue[kCUTOFF]*2.5f;
+			targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
+			targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
+			setCutoffFrequencyHz(targetModulatedCutOff);
+		}
 	}
 
 private:

@@ -469,5 +469,4 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::GainOvr,s.gainOVR,nullptr);
     tree.setProperty(IDs::SWCoarse,s.detuneosc1,nullptr);
     tree.setProperty(IDs::VACoarse,s.detuneosc2,nullptr);
-
 }

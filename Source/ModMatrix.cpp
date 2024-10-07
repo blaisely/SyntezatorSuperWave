@@ -32,7 +32,7 @@ void ModMatrix::render()
     {
         for(auto row=0;row<kNumSrc;row++)
         {
-            if(!destinations[column].isEnabled || destinations[column].intensity[row]==0.0f)
+            if(!destinations[column].isEnabled || destinations[column].intensity[row]==0.0f || sources[row].value==nullptr)
                 continue;
 
             float modSourceValue = *sources[row].value;

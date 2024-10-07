@@ -264,7 +264,9 @@ public:
             updateCounter = updateRate;
             cutOffMod = lfoGenerator[0].render();
             modMatrix.render();
+        	osc1[0].setParameters();
         	osc1[1].setModValue(*osc1[0].getModDetune(),0);
+        	osc1[1].setParameters();
             //vaSVF.updateModulation();
             //ladder.updateModulation();
         }

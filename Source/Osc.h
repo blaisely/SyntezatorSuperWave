@@ -193,10 +193,11 @@ public:
     }
     void setSideOsc(const float detune,const float volume)
     {
-        //TODO properly scale value
-        params.detune = polyFit(detune+modValue[kDETUNE]);
-        params.volumeSides = sideVolume(volume+modValue[kVOLUME]);
-        params.volumeMain = mainVolume(volume+modValue[kVOLUME]);
+        float modDetune = std::clamp(detune+modValue[kDETUNE],0.f,1.f);
+        float volumeDetune = std::clamp(volume+modValue[kVOLUME],0.f,1.f);
+        params.detune = polyFit(modDetune);
+        params.volumeSides = sideVolume(volumeDetune);
+        params.volumeMain = mainVolume(volumeDetune);
     }
     void setSidePhase()
     {

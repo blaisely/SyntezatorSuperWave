@@ -275,6 +275,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
         juce::NormalisableRange<float>{-12,12,1},0));
     layout.add(std::make_unique<juce::AudioParameterFloat>("coarse_osc2", "coarse Osc2",
         juce::NormalisableRange<float>{-12,12,1},0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("detune_osc1", "Fine Detune Osc1",
+        juce::NormalisableRange<float>{-100,100,1},0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("detune_osc2", "Fine Detune Osc2",
+        juce::NormalisableRange<float>{-100,100,1},0));
+
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,0.40f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",decayRange,1.f));
@@ -362,6 +367,9 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.coarseosc2 = apvts.getRawParameterValue("coarse_osc2")->load();
     settings.octaveosc2 = apvts.getRawParameterValue("octave_osc2")->load();
     settings.octaveosc1 = apvts.getRawParameterValue("octave_osc1")->load();
+    settings.detuneosc1 = apvts.getRawParameterValue("detune_osc1")->load();
+    settings.detuneosc2 = apvts.getRawParameterValue("detune_osc2")->load();
+
 
     settings.panOsc1 = apvts.getRawParameterValue("panOsc1")->load();
     settings.panOsc2 = apvts.getRawParameterValue("panOsc2")->load();
@@ -459,4 +467,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::PanOsc1,s.panOsc1,nullptr);
     tree.setProperty(IDs::PanOsc2,s.panOsc2,nullptr);
     tree.setProperty(IDs::GainOvr,s.gainOVR,nullptr);
+    tree.setProperty(IDs::SWCoarse,s.detuneosc1,nullptr);
+    tree.setProperty(IDs::VACoarse,s.detuneosc2,nullptr);
+
 }

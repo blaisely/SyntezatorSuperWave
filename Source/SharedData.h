@@ -62,6 +62,8 @@ namespace IDs{
     ID ReversedEnvelope("Reversed Mod Envelope");
     ID PanOsc1("Pan OSC1");
     ID PanOsc2("Pan OSC2");
+    ID SWCoarse("Coarse SW");
+    ID VACoarse("Coarse VA");
 
 
 };

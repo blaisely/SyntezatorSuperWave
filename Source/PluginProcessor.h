@@ -63,7 +63,7 @@ public:
         attackEnv2{0.0f},decayEnv2{0.0f},sustainEnv2{0.0f},releaseEnv2{0.0f},envelopeAmount{0.0f},panOsc1{0.0f},panOsc2{0.0f},gainOVR{0.0f};
         
         int octaveosc1{ 0 }, octaveosc2{ 0 }, coarseosc1{0}, coarseosc2{ 0},filterOn{0},filterDrive{0},commonEnvelope{0},
-        lfoReset{0},lfoType{0},reversedEnvelope{0};
+        lfoReset{0},lfoType{0},reversedEnvelope{0},detuneosc1{0},detuneosc2{0};
     };
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();

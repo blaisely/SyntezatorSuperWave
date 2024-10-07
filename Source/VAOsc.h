@@ -142,7 +142,7 @@ public:
     }
     void updatePitch()
     {
-        const float modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
+        const float modPitch = std::pow(2.0f,(octave + detuneSemi+detuneFine)/12.f);
         const float freq = midiPitch * modPitch;
         this->oscFrequency = freq;
         phaseIncrement = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
@@ -152,6 +152,7 @@ public:
         type = state[IDs::VAtype];
         octave = static_cast<float>(state[IDs::VAoctave])*12;
         detuneSemi = state[IDs::VAdetune];
+        detuneFine = static_cast<float>(state[IDs::VACoarse])/100.f;
         updatePitch();
         gain.setGainLinear(state[IDs::VAgain]);
 
@@ -172,6 +173,7 @@ private:
     float oscFrequency{ 0.0f };
     float octave{0};
     float detuneSemi{0};
+    float detuneFine{0};
     float midiPitch{0.f};
 };
 

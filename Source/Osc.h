@@ -166,7 +166,7 @@ public:
     }
     void updatePitch()
     {
-        const float modPitch = std::pow(2.0f,(octave + detuneSemi)/12.f);
+        const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune)/12.f);
         const float freq = midiPitch * modPitch;
         this->oscFrequency = freq;
         params.phaseIncrements[0] = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
@@ -209,6 +209,7 @@ public:
     }
     static float polyFit(float x)
     {
+        //sets side oscillator's detune
         float y =0.0f;
         if(x>0 && x<5.4f)
             y=0.2f*x;
@@ -220,12 +221,14 @@ public:
     }
     static float sideVolume(float x)
     {
+        //sets volume of the side oscillators
         float y{ 0.0f };
         y = -0.73764f * fast_power(x, 2) + 1.2841f * x + 0.044372f;
         return y;
     }
     static float mainVolume(float x)
     {
+        //sets volume of the main oscillator
         float y{ 0.0f };
         y = -0.55366f * x + 0.99785f;
         return y;
@@ -234,7 +237,8 @@ public:
     {
         setSideOsc(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
         octave = static_cast<float>(state[IDs::SWoctave])*12;
-        detuneSemi = static_cast<float>(state[IDs::SWdetune])/12;
+        coarse = static_cast<float>(state[IDs::SWdetune]);
+        fineDetune = static_cast<float>(state[IDs::SWCoarse])/100.f;
         updatePitch();
         type = state.getProperty(IDs::SWtype);
         gain.setGainLinear(state[IDs::SWgain]);
@@ -279,7 +283,8 @@ private:
     int type{ 0 };
     juce::dsp::Gain<float> gain;
     float octave{0};
-    float detuneSemi{0};
+    float fineDetune{0};
+    float coarse{0};
     float midiPitch{0.f};
     float lastSampleRate{0.0f};
     float oscFrequency{ 0.0f };

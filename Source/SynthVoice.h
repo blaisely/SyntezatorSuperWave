@@ -107,10 +107,6 @@ public:
 		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
 		modMatrix.addSource(ModMatrix::modSource::kAMP,&nextAmpSample);
 
-		/*modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
-modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);
-modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
-modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);*/
 		isPrepared = true;
 	}
 
@@ -145,39 +141,71 @@ modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTE
 		setModRouting();
 	}
 	void setModRouting()
-{
-    for (auto i = 0; i < 1; i++)
+	{
+    for (auto i = 0; i < 4; i++) // 4 modulation slots
     {
-        if (oldRouting[i].modDest != routing[i].modDest || oldRouting[i].modSource != routing[i].modSource)
-        {
-            // Debugging: Print out the routing values
-            DBG("Slot " << i << ": modSource = " << routing[i].modSource
-                << ", modDest = " << routing[i].modDest
-                << ", modIntensity = " << routing[i].modIntensity);
+        bool hasSourceChanged = oldRouting[i].modSource != routing[i].modSource;
+        bool hasDestChanged = oldRouting[i].modDest != routing[i].modDest;
+        bool hasIntensityChanged = oldRouting[i].modIntensity != routing[i].modIntensity;
 
-            if (routing[i].modDest > 0) // if not "no connection"
+        // Debugging: Print the routing values
+        DBG("Slot " << i << ": modSource = " << routing[i].modSource
+            << ", modDest = " << routing[i].modDest
+            << ", modIntensity = " << routing[i].modIntensity);
+
+        // when it is connected
+        if (routing[i].modDest > 0)
+        {
+            if (hasSourceChanged || hasDestChanged || hasIntensityChanged)
             {
-                if (routing[i].modDest == 1) // if Filter Cutoff selected, route both filters
+                // if CutOff is selected route both filters
+                if (routing[i].modDest == 1)
                 {
                     modMatrix.addRouting(routing[i].modSource, 0, routing[i].modIntensity); // SVF Filter
                     modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
 
-                    // Debugging: Print confirmation
+                    // Debugging: Confirmation of routing to filters
                     DBG("Routing modSource " << routing[i].modSource
                         << " to SVF and Ladder Filter Cutoffs with intensity "
                         << routing[i].modIntensity);
                 }
-                else if (routing[i].modDest > 1)
+                else if (routing[i].modDest > 1) // other
                 {
                     modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
 
-                    // Debugging: Print confirmation
+                    // Debugging: Confirmation of other routing
                     DBG("Routing modSource " << routing[i].modSource
                         << " to destination " << routing[i].modDest
                         << " with intensity " << routing[i].modIntensity);
                 }
 
-                /*if (oldRouting[i].modDest == 1) // remove old cutoff routing
+                // if destination or source has changed reset routing
+                if (hasDestChanged || hasSourceChanged)
+                {
+                    if (oldRouting[i].modDest == 1)
+                    {
+                        modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
+                        modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
+                    }
+                    else if (oldRouting[i].modDest > 1)
+                    {
+                        modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
+                    }
+
+                    DBG("Reset previous routing from modSource " << oldRouting[i].modSource
+                        << " to destination " << oldRouting[i].modDest);
+                }
+
+                oldRouting[i].modDest = routing[i].modDest;
+                oldRouting[i].modSource = routing[i].modSource;
+                oldRouting[i].modIntensity = routing[i].modIntensity;
+            }
+        }
+        else // when "no connection" is selected
+        {
+            if (oldRouting[i].modDest > 0) // if previous destination was connected
+            {
+                if (oldRouting[i].modDest == 1)
                 {
                     modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
                     modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
@@ -185,19 +213,16 @@ modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTE
                 else if (oldRouting[i].modDest > 1)
                 {
                     modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
-                }*/
+                }
 
+                // Debugging: Confirmation of reset routing
+                DBG("Reset routing for modSource " << oldRouting[i].modSource
+                    << " from destination " << oldRouting[i].modDest);
             }
 
-            /*else // "no connection" selected
-            {
-                modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
-            }*/
-
-
-            // Update old routing
             oldRouting[i].modDest = routing[i].modDest;
             oldRouting[i].modSource = routing[i].modSource;
+            oldRouting[i].modIntensity = routing[i].modIntensity;
         }
     }
 }

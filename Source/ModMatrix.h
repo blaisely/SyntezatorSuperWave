@@ -23,8 +23,18 @@ public:
     {
         kFILTER_CUTOFFSVF,
         kFILTER_CUTOFFLDDR,
-        kOSC_DETUNE,
+        kFILTER_RESONANCE,
         kOSC_VOLUME,
+        kOSC_DETUNE,
+        kOSC1_PITCH,
+        kOSC2_PITCH,
+        kOSC1_GAIN,
+        kOSC2_GAIN,
+        kOSC1_PAN,
+        kOSC2_PAN,
+        kLFO1_AMT,
+        kLFO2_AMT,
+
         kNumDest
     };
     struct ModDest

@@ -100,6 +100,7 @@ public:
 
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFLDDR,ladder.getModCutOff());
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_RESONANCE,vaSVF.getModResonance());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_DETUNE,oscSW.getModDetune());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_VOLUME,oscSW.getModVolume());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
@@ -371,6 +372,7 @@ public:
             lfo1Mod = lfoGenerator1.render();
         	lfo2Mod = lfoGenerator2.render();
             modMatrix.render();
+        	ladder.setModResonance(*vaSVF.getModResonance());
             vaSVF.updateModulation();
             ladder.updateModulation();
         }

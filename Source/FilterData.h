@@ -113,7 +113,7 @@ public:
 	}
 	void calculateFilterCoeffs()
 	{
-		double fc = vaFilterParameters.fc;
+		double fc = vaFilterParameters.fc ;
 		double Q = vaFilterParameters.Q;
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		double wd = kTwoPi*fc;
@@ -132,7 +132,9 @@ public:
 	void calculateModulatedFilterCoeffs(const double& modCutoff)
 	{
 		double fc = modCutoff;
-		double Q = vaFilterParameters.Q;
+		float modResonance = modValue[kRESONANCE];
+		modResonance*=100.f;
+		double Q = std::clamp(vaFilterParameters.Q+modResonance,0.0,100.0);
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		double wd = kTwoPi*fc;
 		double T = 1.0 / sampleRate;
@@ -147,21 +149,32 @@ public:
 		double f_o = (sampleRate / 2.0) / fc;
 		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
 	}
+
 	float* getModCutOff()
 	{
 		return &modValue[kCUTOFF];
 	}
+	float* getModResonance()
+	{
+		return &modValue[kRESONANCE];
+	}
+	void setModResonance(const float res)
+	{
+		modValue[kRESONANCE] = res;
+	}
 	void updateModulation()
 	{
+		//TODO make sure it is scaled properly
+		calculateModulatedFilterCoeffs(vaFilterParameters.fc);
 		if(modValue[kCUTOFF]>0.0f)
 		{
-
 			float currentCutOff = vaFilterParameters.fc;
 			float modulatedCutOff = modValue[kCUTOFF]* 2.5f;
 			modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
 			modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
 			calculateModulatedFilterCoeffs(modulatedCutOff);
 		}
+
 	}
 
 private:
@@ -240,6 +253,14 @@ public:
 	{
 		return &modValue[kCUTOFF];
 	}
+	float* getModResonance()
+	{
+		return &modValue[kRESONANCE];
+	}
+	void setModResonance(const float res)
+	{
+		modValue[kRESONANCE] = res;
+	}
 	void updateModulation()
 	{
 		if(modValue[kCUTOFF]>0.0f)
@@ -248,7 +269,12 @@ public:
 			targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
 			targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
 			setCutoffFrequencyHz(targetModulatedCutOff);
+
 		}
+		float modRes = modValue[kRESONANCE];
+		modRes*=2.f;
+		modRes = std::clamp(resonance+modRes,0.f,2.f);
+		setResonance(modRes);
 	}
 
 private:

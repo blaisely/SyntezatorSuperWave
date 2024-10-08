@@ -14,6 +14,8 @@ public:
     enum modSource
     {
         kLFO,
+        kLFO2,
+        kAMP,
         kEG,
         kNumSrc
     };
@@ -39,6 +41,7 @@ public:
     void addDestination(int destination,float* value );
     void addSource(int source, float* value);
     void addRouting(int source, int destination,float intensity);
+    void resetRouting(int source, int destination);
     void render();
 private:
     std::array<ModDest,kNumDest> destinations;

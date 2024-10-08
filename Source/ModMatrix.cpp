@@ -22,9 +22,19 @@ void ModMatrix::addSource(int source, float* value)
 
 void ModMatrix::addRouting(int source, int destination, float modIntensity)
 {
-    destinations[destination].intensity[source] = modIntensity;
-    destinations[destination].isEnabled = true;
+
+        DBG("Mod Matrix set to Source: "+std::to_string(source) + " and Destination: "+std::to_string(destination));
+        destinations[destination].intensity[source] = modIntensity;
+        destinations[destination].isEnabled = true;
+
 }
+
+void ModMatrix::resetRouting(int source, int destination)
+{
+    DBG("Mod Matrix reset to Source: "+std::to_string(source) + " and Destination: "+std::to_string(destination));
+        destinations[destination].intensity[source]=0.0f;
+}
+
 void ModMatrix::render()
 {
     float modDestinationValue=0.0f;

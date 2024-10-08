@@ -104,9 +104,13 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_VOLUME,oscSW.getModVolume());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
-		modMatrix.addSource(ModMatrix::modSource::kEG,&lfo2Mod);
-		
+		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
+		modMatrix.addSource(ModMatrix::modSource::kAMP,&nextAmpSample);
 
+		/*modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
+modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);
+modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFLDDR,1.f);
+modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFFSVF,1.f);*/
 		isPrepared = true;
 	}
 
@@ -124,39 +128,81 @@ public:
 	{
 		routing[0].modDest = state[IDs::ModDestination1];
 		routing[0].modSource = state[IDs::ModSource1];
-		routing[0].modIntensity = state[IDs::ModIntensity1];
+		routing[0].modIntensity = static_cast<float>(state[IDs::ModIntensity1])/100.f;
 
 		routing[1].modDest = state[IDs::ModDestination2];
 		routing[1].modSource = state[IDs::ModSource2];
-		routing[1].modIntensity = state[IDs::ModIntensity2];
+		routing[1].modIntensity = static_cast<float>(state[IDs::ModIntensity2])/100.f;
 
 		routing[2].modDest = state[IDs::ModDestination3];
 		routing[2].modSource = state[IDs::ModSource3];
-		routing[2].modIntensity = state[IDs::ModIntensity3];
+		routing[2].modIntensity = static_cast<float>(state[IDs::ModIntensity3])/100.f;
 
 		routing[3].modDest = state[IDs::ModDestination4];
 		routing[3].modSource = state[IDs::ModSource4];
-		routing[3].modIntensity = state[IDs::ModIntensity4];
+		routing[3].modIntensity = static_cast<float>(state[IDs::ModIntensity4])/100.f;
 
 		setModRouting();
 	}
 	void setModRouting()
-	{
-		for(auto i=0;i<4;i++)
-		{
-		if(routing[i].modDest>0)
-		{
-			if(routing[i].modDest==1)
-			{
-				modMatrix.addRouting(routing[0].modSource,routing[i].modDest,routing[i].modIntensity);
-				modMatrix.addRouting(routing[0].modSource,routing[i].modDest+1,routing[i].modIntensity);
+{
+    for (auto i = 0; i < 1; i++)
+    {
+        if (oldRouting[i].modDest != routing[i].modDest || oldRouting[i].modSource != routing[i].modSource)
+        {
+            // Debugging: Print out the routing values
+            DBG("Slot " << i << ": modSource = " << routing[i].modSource
+                << ", modDest = " << routing[i].modDest
+                << ", modIntensity = " << routing[i].modIntensity);
 
-			}
-			else
-				modMatrix.addRouting(routing[0].modSource,routing[i].modDest+1,routing[i].modIntensity);
-		}
-	}
-	}
+            if (routing[i].modDest > 0) // if not "no connection"
+            {
+                if (routing[i].modDest == 1) // if Filter Cutoff selected, route both filters
+                {
+                    modMatrix.addRouting(routing[i].modSource, 0, routing[i].modIntensity); // SVF Filter
+                    modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
+
+                    // Debugging: Print confirmation
+                    DBG("Routing modSource " << routing[i].modSource
+                        << " to SVF and Ladder Filter Cutoffs with intensity "
+                        << routing[i].modIntensity);
+                }
+                else if (routing[i].modDest > 1)
+                {
+                    modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
+
+                    // Debugging: Print confirmation
+                    DBG("Routing modSource " << routing[i].modSource
+                        << " to destination " << routing[i].modDest
+                        << " with intensity " << routing[i].modIntensity);
+                }
+
+                /*if (oldRouting[i].modDest == 1) // remove old cutoff routing
+                {
+                    modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
+                    modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
+                }
+                else if (oldRouting[i].modDest > 1)
+                {
+                    modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
+                }*/
+
+            }
+
+            /*else // "no connection" selected
+            {
+                modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
+            }*/
+
+
+            // Update old routing
+            oldRouting[i].modDest = routing[i].modDest;
+            oldRouting[i].modSource = routing[i].modSource;
+        }
+    }
+}
+
+
 	void setFilterParameters()
 	{
 		vaSVF.setParameters();
@@ -223,7 +269,7 @@ public:
 		float freqLfo2 = state[IDs::LFO2Freq];
 		int typeLfo2 = state[IDs::LFO2Type];
 		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1);
-		lfoGenerator2.setParameters(depthLfo1,freqLfo1,typeLfo1);
+		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2);
 		lfoReset = state[IDs::LFOReset];
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
@@ -252,8 +298,8 @@ public:
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 
-            auto nextAmpSample = ampEnv.nextValue();
-            auto nextAmp2Sample = amp2Env.nextValue();
+            nextAmpSample = ampEnv.nextValue();
+            nextAmp2Sample = amp2Env.nextValue();
         	envelopeMod = modEnv.nextValue()*envelopeAmount;
 
         	float osc2Output = oscVA.getNextSample();
@@ -369,6 +415,9 @@ private:
 		float modIntensity=0.f;
 	};
 	std::array<modRouting,4> routing;
+	std::array<modRouting,4> oldRouting;
+	float nextAmpSample{0.f};
+	float nextAmp2Sample{0.f};
 	float panOSC1{0.0f};
 	float panOSC2{0.0f};
 	float panLeft[2]{0.f};

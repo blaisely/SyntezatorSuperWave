@@ -30,6 +30,10 @@ public:
         gain.prepare(spec);
         keyTrack.prepare(spec);
         lastSampleRate = sampleRate;
+        for(auto &v:smoothedMod)
+        {
+            v.reset(sampleRate,0.1f);
+        }
     }
 
     void getNextBlock(juce::dsp::AudioBlock<float>& block, const int channel)
@@ -62,6 +66,7 @@ public:
 
     float getNextSample()
     {
+
         setSideOsc(detuneSuperSaw,volumeSuperSaw);
         updatePitch();
         float y=0;
@@ -80,7 +85,8 @@ public:
         y += nextSample(params.phases[6], params.phaseIncrements[6],
             params.lastOutputs[6]) * params.volumeSides;
 
-        gain.setGainLinear(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
+        smoothedMod[kGAIN].setTargetValue(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
+        gain.setGainLinear(smoothedMod[kGAIN].getNextValue());
         y = gain.processSample(y);
         y = y*0.5f;
 
@@ -171,8 +177,8 @@ public:
     {
         const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune)/12.f);
         float modulatedPitch = modValue[kPITCH]*midiPitch;
-
-        const float freq =( midiPitch+modulatedPitch) * modPitch;
+        smoothedMod[kPITCH] = (modulatedPitch)+midiPitch;
+        const float freq =( smoothedMod[kPITCH].getNextValue()) * modPitch;
         this->oscFrequency = freq;
         params.phaseIncrements[0] = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
         setSidePhase();
@@ -198,8 +204,10 @@ public:
     }
     void setSideOsc(const float detune,const float volume)
     {
-        float modDetune = std::clamp(detune+modValue[kDETUNE],0.f,1.f);
-        float volumeDetune = std::clamp(volume+modValue[kVOLUME],0.f,1.f);
+        smoothedMod[kDETUNE].setTargetValue(std::clamp(detune+modValue[kDETUNE],0.f,1.f));
+        smoothedMod[kVOLUME].setTargetValue(std::clamp(detune+modValue[kVOLUME],0.f,1.f));
+        float modDetune = smoothedMod[kDETUNE].getNextValue();
+        float volumeDetune = smoothedMod[kVOLUME].getNextValue();
         params.detune = polyFit(modDetune);
         params.volumeSides = sideVolume(volumeDetune);
         params.volumeMain = mainVolume(volumeDetune);
@@ -294,6 +302,7 @@ private:
         std::array<float, 7> phases{};
         std::array<float, 7> lastOutputs{ 0.0f };
     };
+    std::array<juce::SmoothedValue<float>,kNumDest> smoothedMod;
     float detuneSuperSaw{0.0f};
     float volumeSuperSaw{0.0f};
     float gainAmt{0.f};

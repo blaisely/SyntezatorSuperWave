@@ -73,10 +73,10 @@ public:
     {
         updatePitch();
         float y=0;
-        y = nextSampleUniversal(phase,phaseIncrement,
-               lastOutput);
+        y = nextSampleUniversal(phase,phaseIncrement,lastOutput);
 
-        gain.setGainLinear(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
+        smoothedMod[kGAIN].setTargetValue(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
+        gain.setGainLinear(smoothedMod[kGAIN].getNextValue());
         y = gain.processSample(y);
         y = y*0.5f;
         return y;
@@ -136,6 +136,10 @@ public:
         spec.numChannels = outputChannels;
         gain.prepare(spec);
         lastSampleRate = sampleRate;
+        for(auto &v:smoothedMod)
+        {
+            v.reset(sampleRate,0.1f);
+        }
     }
     void setFrequency(const float& frequency,const int midiNote)
     {
@@ -175,6 +179,7 @@ public:
 private:
     enum{kGAIN,kPITCH,kNumDest};
     std::array<float,kNumDest> modValue{0.0f};
+    std::array<juce::SmoothedValue<float>,kNumDest> smoothedMod{0.0f};
     juce::ValueTree state;
     int type{ 0 };
     juce::dsp::Gain<float> gain;

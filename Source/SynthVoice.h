@@ -233,8 +233,6 @@ public:
         }
     }
 }
-
-
 	void setFilterParameters()
 	{
 		vaSVF.setParameters();
@@ -245,7 +243,6 @@ public:
 	{
 		oscSW.setParameters();
 		oscVA.setParameters();
-
 	}
 	void getEnvelopeParameters()
 	{

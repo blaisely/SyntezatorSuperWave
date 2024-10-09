@@ -36,7 +36,7 @@ public:
     {
         auto numSamples = block.getNumSamples();
         auto* sample = block.getChannelPointer(channel);
-        
+
         for (size_t i = 0; i < numSamples; i++)
         {
             sample[i] = nextSample(params.phases[0], params.phaseIncrements[0],
@@ -62,6 +62,8 @@ public:
 
     float getNextSample()
     {
+        setSideOsc(detuneSuperSaw,volumeSuperSaw);
+        updatePitch();
         float y=0;
         y = nextSample(params.phases[0], params.phaseIncrements[0],
                params.lastOutputs[0]) * params.volumeMain;
@@ -78,6 +80,7 @@ public:
         y += nextSample(params.phases[6], params.phaseIncrements[6],
             params.lastOutputs[6]) * params.volumeSides;
 
+        gain.setGainLinear(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
         y = gain.processSample(y);
         y = y*0.5f;
 
@@ -161,13 +164,15 @@ public:
     }
     void setFrequency(const float& frequency,const int midiNote)
     {
-        midiPitch =static_cast<float>( juce::MidiMessage::getMidiNoteInHertz(midiNote));
+        midiPitch = static_cast<float>( juce::MidiMessage::getMidiNoteInHertz(midiNote));
         updatePitch();
     }
     void updatePitch()
     {
         const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune)/12.f);
-        const float freq = midiPitch * modPitch;
+        float modulatedPitch = modValue[kPITCH]*midiPitch;
+
+        const float freq =( midiPitch+modulatedPitch) * modPitch;
         this->oscFrequency = freq;
         params.phaseIncrements[0] = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
         setSidePhase();
@@ -236,13 +241,16 @@ public:
     }
     void setParameters()
     {
-        setSideOsc(state[IDs::SWdetuneS], state[IDs::SWvolumeS]);
+        detuneSuperSaw = state[IDs::SWdetuneS];
+        volumeSuperSaw = state[IDs::SWvolumeS];
+        setSideOsc(detuneSuperSaw,volumeSuperSaw);
         octave = static_cast<float>(state[IDs::SWoctave])*12;
         coarse = static_cast<float>(state[IDs::SWdetune]);
         fineDetune = static_cast<float>(state[IDs::SWCoarse])/100.f;
         updatePitch();
         type = state.getProperty(IDs::SWtype);
-        gain.setGainLinear(state[IDs::SWgain]);
+        gainAmt = state[IDs::SWgain];
+        gain.setGainLinear(gainAmt);
     }
     void resetOsc() {
         gain.reset();
@@ -257,15 +265,23 @@ public:
     {
         return &modValue[kDETUNE];
     }
+    float* getModPitch()
+    {
+        return &modValue[kPITCH];
+    }
     float* getModVolume()
     {
         return &modValue[kVOLUME];
+    }
+    float* getModGain()
+    {
+        return &modValue[kGAIN];
     }
     void setModValue(const float mod,int number)
     {
         modValue[number]=mod;
     }
-    enum oscDest {kDETUNE,kVOLUME,kNumDest};
+    enum oscDest {kDETUNE,kVOLUME,kPITCH,kGAIN,kNumDest};
 
 private:
     juce::ValueTree state;
@@ -278,7 +294,9 @@ private:
         std::array<float, 7> phases{};
         std::array<float, 7> lastOutputs{ 0.0f };
     };
-
+    float detuneSuperSaw{0.0f};
+    float volumeSuperSaw{0.0f};
+    float gainAmt{0.f};
     std::array<float,kNumDest> modValue{0.0f};
     synthParams params;
     int type{ 0 };

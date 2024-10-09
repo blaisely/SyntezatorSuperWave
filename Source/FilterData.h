@@ -129,25 +129,25 @@ public:
 		double f_o = (sampleRate / 2.0) / fc;
 		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
 	}
-	void calculateModulatedFilterCoeffs(const double& modCutoff)
+	void calculateModulatedFilterCoeffs(double modCutoff, double modResonance)
 	{
 		double fc = modCutoff;
-		float modResonance = modValue[kRESONANCE];
-		modResonance*=100.f;
-		double Q = std::clamp(vaFilterParameters.Q+modResonance,0.0,100.0);
+		double Q = modResonance;  // Modulated resonance value
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
-		double wd = kTwoPi*fc;
-		double T = 1.0 / sampleRate;
-		double wa = (2.0 / T)*tan(wd*T / 2.0);
-		double g = wa*T / 2.0;
 
-		double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
-		alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
+		// Filter coefficient calculations remain the same
+		double wd = kTwoPi * fc;
+		double T = 1.0 / sampleRate;
+		double wa = (2.0 / T) * tan(wd * T / 2.0);
+		double g = wa * T / 2.0;
+
+		double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0 * Q);
+		alpha0 = 1.0 / (1.0 + 2.0 * R * g + g * g);
 		alpha = g;
-		rho = 2.0*R + g;
+		rho = 2.0 * R + g;
 
 		double f_o = (sampleRate / 2.0) / fc;
-		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
+		analogMatchSigma = 1.0 / (alpha * f_o * f_o);
 	}
 
 	float* getModCutOff()
@@ -164,17 +164,29 @@ public:
 	}
 	void updateModulation()
 	{
-		//TODO make sure it is scaled properly
-		calculateModulatedFilterCoeffs(vaFilterParameters.fc);
-		if(modValue[kCUTOFF]>0.0f)
-		{
-			float currentCutOff = vaFilterParameters.fc;
-			float modulatedCutOff = modValue[kCUTOFF]* 2.5f;
-			modulatedCutOff = currentCutOff* std::exp(modulatedCutOff);
-			modulatedCutOff = juce::jlimit(20.0f,20480.0f,modulatedCutOff);
-			calculateModulatedFilterCoeffs(modulatedCutOff);
-		}
+		float currentCutoff = vaFilterParameters.fc;
+		float currentResonance = vaFilterParameters.Q;
 
+		// Modulate Resonance independently
+		float modulatedResonance = modValue[kRESONANCE] * 100.0f;  // Scale the modulation value
+		modulatedResonance = currentResonance + modulatedResonance;
+		modulatedResonance = juce::jlimit(0.0f, 100.0f, modulatedResonance);  // Clamp between valid range
+
+		// If cutoff modulation is enabled
+		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.f))
+		{
+			float modulatedCutoff = modValue[kCUTOFF] * 2.5f;  // Apply scaling to modulation
+			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);  // Exponential scaling
+			modulatedCutoff = juce::jlimit(20.0f, 20480.0f, modulatedCutoff);  // Clamp cutoff range
+
+			// Update both cutoff and resonance in one go
+			calculateModulatedFilterCoeffs(modulatedCutoff, modulatedResonance);
+		}
+		else
+		{
+			// If no cutoff modulation, just update resonance
+			calculateModulatedFilterCoeffs(currentCutoff, modulatedResonance);
+		}
 	}
 
 private:
@@ -183,7 +195,7 @@ private:
 		kSVF_LP, kSVF_HP, kSVF_BP, kSVF_BS
 	};
 	enum{kCUTOFF,kRESONANCE,kNumDest};
-	std::array<float,kNumDest> modValue;
+	std::array<float,kNumDest> modValue{0.0f};
 	double sampleRate = 48000.0;
 	double integrator_zLeft[2];
 	double integrator_zRight[2];

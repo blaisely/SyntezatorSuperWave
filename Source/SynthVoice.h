@@ -103,6 +103,12 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_RESONANCE,vaSVF.getModResonance());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_DETUNE,oscSW.getModDetune());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_VOLUME,oscSW.getModVolume());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PITCH,oscSW.getModPitch());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_GAIN,oscSW.getModGain());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_GAIN,oscVA.getModGain());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PITCH,oscVA.getModPitch());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PAN,&panMod1);
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PAN,&panMod2);
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
 		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
@@ -276,8 +282,8 @@ public:
 	}
 	void setPanParameters()
 	{
-		panOSC1 = state[IDs::PanOsc1];
-		panOSC2 = state[IDs::PanOsc2];
+		panOSC1 = std::clamp(static_cast<float>(state[IDs::PanOsc1])+panMod1,-1.f,1.f);
+		panOSC2 = std::clamp(static_cast<float>(state[IDs::PanOsc2])+panMod2,-1.f,1.f);
 	}
 	void updatePan()
 	{
@@ -457,6 +463,8 @@ private:
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
 	double frequency{};
+	float panMod1{0.0f};
+	float panMod2{0.0f};
 	bool SVFEnabled;
 	bool commonEnvelope;
 	bool lfoReset;

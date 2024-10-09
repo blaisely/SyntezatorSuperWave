@@ -71,10 +71,12 @@ public:
     }
     float getNextSample()
     {
+        updatePitch();
         float y=0;
         y = nextSampleUniversal(phase,phaseIncrement,
                lastOutput);
 
+        gain.setGainLinear(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
         y = gain.processSample(y);
         y = y*0.5f;
         return y;
@@ -143,7 +145,9 @@ public:
     void updatePitch()
     {
         const float modPitch = std::pow(2.0f,(octave + detuneSemi+detuneFine)/12.f);
-        const float freq = midiPitch * modPitch;
+        float modulatedPitch = modValue[kPITCH]*midiPitch;
+
+        const float freq =( midiPitch+modulatedPitch) * modPitch;
         this->oscFrequency = freq;
         phaseIncrement = (oscFrequency / lastSampleRate) * juce::MathConstants<float>::twoPi;
     }
@@ -154,20 +158,30 @@ public:
         detuneSemi = state[IDs::VAdetune];
         detuneFine = static_cast<float>(state[IDs::VACoarse])/100.f;
         updatePitch();
-        gain.setGainLinear(state[IDs::VAgain]);
-
+        gainAmt = state[IDs::VAgain];
+        gain.setGainLinear(gainAmt);
+    }
+    float* getModPitch()
+    {
+        return &modValue[kPITCH];
+    }
+    float* getModGain()
+    {
+        return &modValue[kGAIN];
     }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
-
     }
 private:
+    enum{kGAIN,kPITCH,kNumDest};
+    std::array<float,kNumDest> modValue{0.0f};
     juce::ValueTree state;
     int type{ 0 };
     juce::dsp::Gain<float> gain;
     float lastOutput{};
     float phaseIncrement;
     float phase;
+    float gainAmt{0.0f};
     float output{};
     float lastSampleRate{};
     float oscFrequency{ 0.0f };

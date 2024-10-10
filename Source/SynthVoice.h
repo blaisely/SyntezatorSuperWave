@@ -23,10 +23,10 @@ public:
 
 	explicit SynthVoice::SynthVoice(juce::ValueTree& v):
 	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
-	osc1{Osc(v),Osc(v)},osc2{VAOsc(v),VAOsc(v)},
+	oscSW(v),oscVA(v),
 	vaSVF(v),
 	ladder(v),
-	lfoGenerator{LFO(v),LFO(v)}
+	lfoGenerator1(v), lfoGenerator2(v)
 	{
 		state.addListener(this);
 	}
@@ -49,24 +49,21 @@ public:
 	}
 	void setOscillatorsFrequency(const int midiNote)
 	{
-		for(auto i=0;i<2;++i)
-		{
-			osc1[i].setFrequency(frequency, midiNote);
-			osc2[i].setFrequency(frequency, midiNote);
-		}
+			oscSW.setFrequency(frequency, midiNote);
+			oscVA.setFrequency(frequency, midiNote);
+
 	}
 	void setRandomPhase()
 	{
-		phase = osc1[0].randomPhase();
+		phase = oscSW.randomPhase();
 		for(float & phase : phases)
 		{
-			phase = osc1[0].randomPhase();
+			phase = oscSW.randomPhase();
 		}
-		for (auto i = 0; i < numChannelsToProcess; ++i)
-		{
-			osc1[i].setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
-			osc2[i].setRandomPhase(phase);
-		}
+
+			oscSW.setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
+			oscVA.setRandomPhase(phase);
+
 	}
 
 	void stopNote(float velocity, bool allowTailOff) override
@@ -96,18 +93,30 @@ public:
 		keyTrack.prepare(spec);
 		ladder.prepare(spec);
 		level.setGainLinear(0.5f);
-		for (auto i = 0; i < numChannelsToProcess; ++i)
-		{
-			lfoGenerator[i].prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
-			osc1[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-			osc2[i].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-		}
+		lfoGenerator1.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
+		lfoGenerator2.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
+		oscSW.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
+		oscVA.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 
-		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFF,ladder.getModValue());
-		modMatrix.addSource(ModMatrix::modSource::kLFO,&cutOffMod);
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFLDDR,ladder.getModCutOff());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
+		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_RESONANCE,vaSVF.getModResonance());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC_DETUNE,oscSW.getModDetune());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC_VOLUME,oscSW.getModVolume());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PITCH,oscSW.getModPitch());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_GAIN,oscSW.getModGain());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_GAIN,oscVA.getModGain());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PITCH,oscVA.getModPitch());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PAN,&panMod1);
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PAN,&panMod2);
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_AMT,lfoGenerator1.getModAmount());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_FREQ,lfoGenerator1.getModFrequency());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_AMT,lfoGenerator2.getModAmount());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_FREQ,lfoGenerator2.getModFrequency());
+		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
-		modMatrix.addRouting(ModMatrix::modSource::kLFO,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
-		modMatrix.addRouting(ModMatrix::modSource::kEG,ModMatrix::modDestination::kFILTER_CUTOFF,1.f);
+		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
+		modMatrix.addSource(ModMatrix::modSource::kAMP,&nextAmpSample);
 
 		isPrepared = true;
 	}
@@ -120,7 +129,103 @@ public:
 		setOscParameters();
 		setPanParameters();
 		updatePan();
+		setModMatrix();
 	}
+	void setModMatrix()
+	{
+		routing[0].modDest = state[IDs::ModDestination1];
+		routing[0].modSource = state[IDs::ModSource1];
+		routing[0].modIntensity = static_cast<float>(state[IDs::ModIntensity1])/100.f;
+
+		routing[1].modDest = state[IDs::ModDestination2];
+		routing[1].modSource = state[IDs::ModSource2];
+		routing[1].modIntensity = static_cast<float>(state[IDs::ModIntensity2])/100.f;
+
+		routing[2].modDest = state[IDs::ModDestination3];
+		routing[2].modSource = state[IDs::ModSource3];
+		routing[2].modIntensity = static_cast<float>(state[IDs::ModIntensity3])/100.f;
+
+		routing[3].modDest = state[IDs::ModDestination4];
+		routing[3].modSource = state[IDs::ModSource4];
+		routing[3].modIntensity = static_cast<float>(state[IDs::ModIntensity4])/100.f;
+
+		setModRouting();
+	}
+	void setModRouting()
+	{
+    for (auto i = 0; i < 4; i++) // 4 modulation slots
+    {
+        bool hasSourceChanged = oldRouting[i].modSource != routing[i].modSource;
+        bool hasDestChanged = oldRouting[i].modDest != routing[i].modDest;
+        bool hasIntensityChanged = oldRouting[i].modIntensity != routing[i].modIntensity;
+
+        // Debugging: Print the routing values
+
+        // when it is connected
+        if (routing[i].modDest > 0)
+        {
+            if (hasSourceChanged || hasDestChanged || hasIntensityChanged)
+            {
+                // if CutOff is selected route both filters
+                if (routing[i].modDest == 1)
+                {
+                    modMatrix.addRouting(routing[i].modSource, 0, routing[i].modIntensity); // SVF Filter
+                    modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
+
+                    // Debugging: Confirmation of routing to filters
+
+                }
+                else if (routing[i].modDest > 1) // other
+                {
+                    modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
+
+                    // Debugging: Confirmation of other routing
+
+                }
+
+                // if destination or source has changed reset routing
+                if (hasDestChanged || hasSourceChanged)
+                {
+                    if (oldRouting[i].modDest == 1)
+                    {
+                        modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
+                        modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
+                    }
+                    else if (oldRouting[i].modDest > 1)
+                    {
+                        modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
+                    }
+
+                }
+
+                oldRouting[i].modDest = routing[i].modDest;
+                oldRouting[i].modSource = routing[i].modSource;
+                oldRouting[i].modIntensity = routing[i].modIntensity;
+            }
+        }
+        else // when "no connection" is selected
+        {
+            if (oldRouting[i].modDest > 0) // if previous destination was connected
+            {
+                if (oldRouting[i].modDest == 1)
+                {
+                    modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
+                    modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
+                }
+                else if (oldRouting[i].modDest > 1)
+                {
+                    modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
+                }
+
+
+            }
+
+            oldRouting[i].modDest = routing[i].modDest;
+            oldRouting[i].modSource = routing[i].modSource;
+            oldRouting[i].modIntensity = routing[i].modIntensity;
+        }
+    }
+}
 	void setFilterParameters()
 	{
 		vaSVF.setParameters();
@@ -129,10 +234,8 @@ public:
 	}
 	void setOscParameters()
 	{
-		osc1[0].setParameters();
-		osc1[1].setParameters();
-		osc2[0].setParameters();
-		osc2[1].setParameters();
+		oscSW.setParameters();
+		oscVA.setParameters();
 	}
 	void getEnvelopeParameters()
 	{
@@ -169,8 +272,8 @@ public:
 	}
 	void setPanParameters()
 	{
-		panOSC1 = state[IDs::PanOsc1];
-		panOSC2 = state[IDs::PanOsc2];
+		panOSC1 = std::clamp(static_cast<float>(state[IDs::PanOsc1])+panMod1,-1.f,1.f);
+		panOSC2 = std::clamp(static_cast<float>(state[IDs::PanOsc2])+panMod2,-1.f,1.f);
 	}
 	void updatePan()
 	{
@@ -181,8 +284,14 @@ public:
 	}
 	void setLFOParameters()
 	{
-		lfoGenerator[0].setParameters();
-		lfoGenerator[1].setParameters();
+		float depthLfo1 =static_cast<float>(state[IDs::LFODepth])/100.f;
+		float freqLfo1 = state[IDs::LFOFreq];
+		int typeLfo1 = state[IDs::LFOType];
+		float depthLfo2 =static_cast<float>(state[IDs::LFO2Depth])/100.f;
+		float freqLfo2 = state[IDs::LFO2Freq];
+		int typeLfo2 = state[IDs::LFO2Type];
+		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1);
+		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2);
 		lfoReset = state[IDs::LFOReset];
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
@@ -208,26 +317,29 @@ public:
 
         for (int sample = 0; sample < numToProcess; ++sample)
         {
+
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 
-            auto nextAmpSample = ampEnv.nextValue();
-            auto nextAmp2Sample = amp2Env.nextValue();
+            nextAmpSample = ampEnv.nextValue();
+            nextAmp2Sample = amp2Env.nextValue();
         	envelopeMod = modEnv.nextValue()*envelopeAmount;
+
+        	float osc2Output = oscVA.getNextSample();
+        	float osc1Output = oscSW.getNextSample();
 
 			if(commonEnvelope)
 			{
-				channelLeft += osc2[0].getNextSample() * nextAmpSample * panLeft[1];
-				channelRight += osc2[1].getNextSample() * nextAmpSample * panRight[1];
+				channelLeft += osc2Output * nextAmpSample * panLeft[1];
+				channelRight += osc2Output * nextAmpSample * panRight[1];
 			}
         	else
         	{
-        		channelLeft += osc2[0].getNextSample() * nextAmp2Sample * panLeft[1];
-        		channelRight += osc2[1].getNextSample() * nextAmp2Sample * panRight[1];
+        		channelLeft += osc2Output * nextAmp2Sample * panLeft[1];
+        		channelRight += osc2Output * nextAmp2Sample * panRight[1];
         	}
-            channelLeft += osc1[0].getNextSample() * nextAmpSample * panLeft[0];
-            channelRight += osc1[1].getNextSample() * nextAmpSample * panRight[0];
-
+            channelLeft += osc1Output * nextAmpSample * panLeft[0];
+            channelRight += osc1Output * nextAmpSample * panRight[0];
 
             if (SVFEnabled)
             {
@@ -243,9 +355,6 @@ public:
             channelLeft = level.processSample(channelLeft);
             channelRight = level.processSample(channelRight);
 
-            channelLeft = softClip(channelLeft);
-            channelRight = softClip(channelRight);
-
             outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
             outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
         }
@@ -257,8 +366,10 @@ public:
         if (updateCounter <= 0)
         {
             updateCounter = updateRate;
-            cutOffMod = lfoGenerator[0].render();
+            lfo1Mod = lfoGenerator1.render();
+        	lfo2Mod = lfoGenerator2.render();
             modMatrix.render();
+        	ladder.setModResonance(*vaSVF.getModResonance());
             vaSVF.updateModulation();
             ladder.updateModulation();
         }
@@ -305,16 +416,15 @@ public:
 	{
 		if(lfoReset)
 		{
-			lfoGenerator[0].reset();
-			lfoGenerator[1].reset();
+			lfoGenerator1.reset();
+			lfoGenerator2.reset();
 		}
 	}
 	void resetOscillators()
 	{
-		for (auto& osc : osc1)
-			osc.resetOsc();
-		for (auto& osc : osc2)
-			osc.resetOsc();
+
+		oscSW.resetOsc();
+		oscVA.resetOsc();
 	}
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
 	{}
@@ -322,28 +432,42 @@ public:
 	static constexpr int numChannelsToProcess{2};
 
 private:
+	struct modRouting
+	{
+		int modDest=0;
+		int modSource=0;
+		float modIntensity=0.f;
+	};
+	std::array<modRouting,4> routing;
+	std::array<modRouting,4> oldRouting;
+	float nextAmpSample{0.f};
+	float nextAmp2Sample{0.f};
 	float panOSC1{0.0f};
 	float panOSC2{0.0f};
 	float panLeft[2]{0.f};
 	float panRight[2]{0.f};
-	float cutOffMod{0.0f};
+	float lfo1Mod{0.0f};
+	float lfo2Mod{0.0f};
 	float envelopeAmount{0.0f};
 	float envelopeMod{0.0f};
 	bool isPrepared{false};
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
 	double frequency{};
+	float panMod1{0.0f};
+	float panMod2{0.0f};
 	bool SVFEnabled;
 	bool commonEnvelope;
 	bool lfoReset;
 	float oldFrequency{ 0.0f };
-	std::array<Osc, numChannelsToProcess> osc1;
-	std::array<VAOsc, numChannelsToProcess> osc2;
+	Osc  oscSW;
+	VAOsc oscVA;
 	ModMatrix modMatrix;
 	juce::dsp::Gain<float> level;
 	ZVAFilter vaSVF;
 	MOOGFilter ladder;
-	std::array<LFO,2> lfoGenerator;
+	LFO lfoGenerator1;
+	LFO lfoGenerator2;
 	juce::AudioBuffer<float> swBuffer;
 	juce::AudioBuffer<float> synthBuffer;
 	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;

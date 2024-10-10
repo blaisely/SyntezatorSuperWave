@@ -22,25 +22,39 @@ void ModMatrix::addSource(int source, float* value)
 
 void ModMatrix::addRouting(int source, int destination, float modIntensity)
 {
-    intensity[source] = modIntensity;
-    destinations[destination].isEnabled = true;
+
+        DBG("Mod Matrix set to Source: "+std::to_string(source) + " and Destination: "+std::to_string(destination));
+        destinations[destination].intensity[source] = modIntensity;
+        destinations[destination].isEnabled = true;
+
 }
+
+void ModMatrix::resetRouting(int source, int destination)
+{
+    DBG("Mod Matrix reset to Source: "+std::to_string(source) + " and Destination: "+std::to_string(destination));
+        destinations[destination].intensity[source]=0.0f;
+    float rest {0.0f};
+    *destinations[destination].value = rest;
+}
+
 void ModMatrix::render()
 {
     float modDestinationValue=0.0f;
     for(auto column=0;column<kNumDest;column++)
     {
-        for(auto row=0;row<kNumSrc;row++)
+        for(int row=0;row<kNumSrc;row++)
         {
-            if(!destinations[column].isEnabled || intensity[row]==0.0f)
+            if(!destinations[column].isEnabled || destinations[column].intensity[row]==0.0f || sources[row].value==nullptr)
                 continue;
 
             float modSourceValue = *sources[row].value;
 
-            modDestinationValue+=intensity[row] * modSourceValue;
+            modDestinationValue+=destinations[column].intensity[row] * modSourceValue;
+
+            if(destinations[column].isEnabled)
+                *destinations[column].value=modDestinationValue;
         }
-        if(destinations[column].isEnabled)
-            *destinations[column].value=modDestinationValue;
+
     }
 }
 

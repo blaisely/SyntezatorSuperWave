@@ -27,7 +27,9 @@ public:
     }
     float render()
     {
-        return lfo.processSample(0.0) * parameters.depth;
+        float modFreq = modValue[kFREQ]*parameters.frequency;
+        lfo.setFrequency(std::clamp(parameters.frequency+modFreq,0.f,20.f));
+        return lfo.processSample(0.0) * std::clamp(parameters.depth+modValue[kAMOUNT],0.f,1.f);
     }
     void reset()
     {
@@ -40,6 +42,14 @@ public:
         parameters.type = static_cast<int>(tree[IDs::LFOType]);
         setLFOType();
         lfo.setFrequency(parameters.frequency);
+    }
+    float* getModAmount()
+    {
+        return &modValue[kAMOUNT];
+    }
+    float* getModFrequency()
+    {
+        return &modValue[kFREQ];
     }
     void setLFOType()
     {
@@ -68,6 +78,7 @@ public:
     }
 
 private:
+    enum{kAMOUNT,kFREQ,kNumDest};
     juce::dsp::Oscillator<float> lfo;
     struct LFOParameters
     {
@@ -77,6 +88,7 @@ private:
         int type{ 0 };
         float modValue{ 0.0f };
     };
+    std::array<float,kNumDest> modValue{0.0f};
     LFOParameters parameters;
     juce::ValueTree tree;
     int modDest{ 0 };

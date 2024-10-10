@@ -12,15 +12,6 @@ public:
     {
         state.addListener(this);
     }
-   static float OscType(const int& oscillatorType,const float& phase) {
-        switch (oscillatorType) {
-        case 0: return sine(phase);
-        case 1: return poly_saw(phase);
-        case 2: return square(phase);
-        case 3: return triangle(phase);
-        default: return poly_saw(phase);
-        }
-    }
 
     static float poly_blep(float t, const float& phaseIncrement) {
         const float dt = phaseIncrement / juce::MathConstants<float>::twoPi;
@@ -95,37 +86,50 @@ public:
     float nextSampleUniversal(float& phase,const float& phaseIncrement, float& lastOutput) const {
         const float t = phase / juce::MathConstants<float>::twoPi;
         float value = 0.0f;
+        float value2 = 0.0f;
+        float output = 0.0f;
 
-        switch (type) {
-        case 0:
+        if(type>=0.0f && type<1.0f)
+        {
             value = sine(phase);
-            break;
-        case 1:
+
+            value2 = poly_saw(phase);
+            value2 -= poly_blep(t, phaseIncrement);
+            output = value*(1.f-type)+(value2*type);
+        }
+        if(type >= 1.f && type<2.f)
+        {
             value = poly_saw(phase);
             value -= poly_blep(t, phaseIncrement);
-            break;
-        case 2:
+
+            value2 = square(phase);
+            value2 += poly_blep(t, phaseIncrement);
+            value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            output = value*(2.f-type)+(value2*(type-1.f));
+        }
+        if(type>=2.f && type<=3.f)
+        {
             value = square(phase);
             value += poly_blep(t, phaseIncrement);
             value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
-            break;
-        case 3:
-            value = triangle(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
-            value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
-            lastOutput = value;
-            break;
-            default:
-                value = sine(phase);
-        	break;
-        }
 
+            value2 = triangle(phase);
+            value2 += poly_blep(t, phaseIncrement);
+            value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            value2 = phaseIncrement * value2 + (1.0f - phaseIncrement) * lastOutput;
+            lastOutput = value2;
+            output = value*(3.f-type)+(value2*(type-2.f));
+        }
+        if(type<0.f || type>3.f)
+        {
+            value = sine(phase);
+            output = value;
+        }
         phase += phaseIncrement;
         while (phase >= juce::MathConstants<float>::twoPi)
             phase -= juce::MathConstants<float>::twoPi;
 
-        return static_cast<float>(value);
+        return output;
     }
     void prepareToPlay(const float& sampleRate,const int& samplesPerBlock,const int& outputChannels) {
         juce::dsp::ProcessSpec spec{};
@@ -162,7 +166,7 @@ public:
     }
 private:
     juce::ValueTree state;
-    int type{ 0 };
+    float type{ 0.f };
     juce::dsp::Gain<float> gain;
     float lastOutput{};
     float phaseIncrement;

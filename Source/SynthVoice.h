@@ -216,8 +216,6 @@ public:
                 {
                     modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
                 }
-
-
             }
 
             oldRouting[i].modDest = routing[i].modDest;

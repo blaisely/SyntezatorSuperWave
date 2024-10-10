@@ -374,13 +374,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     layout.add(std::make_unique<juce::AudioParameterChoice>("filterType", "FilterType", juce::StringArray{ "LowPass", "HighPass", "BandPass" }
         , 0, attributesFilter));
-    auto attributesOsc1Menu = juce::AudioParameterChoiceAttributes().withLabel("selectedOsc1Type");
-    layout.add(std::make_unique<juce::AudioParameterChoice>("oscType_osc1", "OSC1 Type", juce::StringArray{ "Sine", "Saw", "Square", "Triangle" }
-        , 0, attributesOsc1Menu));
 
-    auto attributesOsc2Menu = juce::AudioParameterChoiceAttributes().withLabel("selectedOsc2Type");
-    layout.add(std::make_unique<juce::AudioParameterChoice>("oscType_osc2", "OSC2 Type", juce::StringArray{ "Sine", "Saw", "Square", "Triangle" }
-        , 0, attributesOsc2Menu));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscType_osc1","OSC1 Type",
+        juce::NormalisableRange<float>{0.0f,3.0f,0.1f},0.0f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("oscType_osc2","OSC2 Type",
+        juce::NormalisableRange<float>{0.0f,3.0f,0.1f},0.0f));
 
     layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "lfoReset", 0));

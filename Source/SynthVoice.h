@@ -109,6 +109,10 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PITCH,oscVA.getModPitch());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PAN,&panMod1);
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PAN,&panMod2);
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_AMT,lfoGenerator1.getModAmount());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_FREQ,lfoGenerator1.getModFrequency());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_AMT,lfoGenerator2.getModAmount());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_FREQ,lfoGenerator2.getModFrequency());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
 		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
@@ -156,9 +160,6 @@ public:
         bool hasIntensityChanged = oldRouting[i].modIntensity != routing[i].modIntensity;
 
         // Debugging: Print the routing values
-        DBG("Slot " << i << ": modSource = " << routing[i].modSource
-            << ", modDest = " << routing[i].modDest
-            << ", modIntensity = " << routing[i].modIntensity);
 
         // when it is connected
         if (routing[i].modDest > 0)
@@ -172,18 +173,14 @@ public:
                     modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
 
                     // Debugging: Confirmation of routing to filters
-                    DBG("Routing modSource " << routing[i].modSource
-                        << " to SVF and Ladder Filter Cutoffs with intensity "
-                        << routing[i].modIntensity);
+
                 }
                 else if (routing[i].modDest > 1) // other
                 {
                     modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
 
                     // Debugging: Confirmation of other routing
-                    DBG("Routing modSource " << routing[i].modSource
-                        << " to destination " << routing[i].modDest
-                        << " with intensity " << routing[i].modIntensity);
+
                 }
 
                 // if destination or source has changed reset routing
@@ -199,8 +196,6 @@ public:
                         modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
                     }
 
-                    DBG("Reset previous routing from modSource " << oldRouting[i].modSource
-                        << " to destination " << oldRouting[i].modDest);
                 }
 
                 oldRouting[i].modDest = routing[i].modDest;
@@ -222,9 +217,7 @@ public:
                     modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
                 }
 
-                // Debugging: Confirmation of reset routing
-                DBG("Reset routing for modSource " << oldRouting[i].modSource
-                    << " from destination " << oldRouting[i].modDest);
+
             }
 
             oldRouting[i].modDest = routing[i].modDest;
@@ -324,6 +317,7 @@ public:
 
         for (int sample = 0; sample < numToProcess; ++sample)
         {
+
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 

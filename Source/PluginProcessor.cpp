@@ -318,8 +318,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 1");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination1", "Mod Destination 1",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2",
-        "Drive Amount"},
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency"},
     0, attributesModDestination1));
     auto attributesModSource1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 1");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource1", "Mod Source 1",
@@ -331,8 +330,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination2 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 2");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination2", "Mod Destination 2",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-    "Gain OSC2","Pan OSC1","Pan OSC2",
-    "Drive Amount"},
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency"},
     0, attributesModDestination2));
     auto attributesModSource2 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 2");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource2", "Mod Source 2",
@@ -344,8 +342,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination3 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 3");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination3", "Mod Destination 3",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-    "Gain OSC2","Pan OSC1","Pan OSC2",
-    "Drive Amount"},
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency"},
     0, attributesModDestination3));
     auto attributesModSource3 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 3");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource3", "Mod Source 3",
@@ -357,8 +354,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination4 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 4");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination4", "Mod Destination 4",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-    "Gain OSC2","Pan OSC1","Pan OSC2",
-    "Drive Amount"},
+         "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency"},
     0, attributesModDestination4));
     auto attributesModSource4 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 4");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource4", "Mod Source 4",

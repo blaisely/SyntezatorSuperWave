@@ -34,7 +34,8 @@ public:
         kOSC2_PAN,
         kLFO1_AMT,
         kLFO2_AMT,
-
+        kLFO1_FREQ,
+        kLFO2_FREQ,
         kNumDest
     };
     struct ModDest

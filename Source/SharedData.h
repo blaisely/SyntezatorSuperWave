@@ -79,6 +79,7 @@ namespace IDs{
     ID ModIntensity2("Mod Intensity2");
     ID ModIntensity3("Mod Intensity3");
     ID ModIntensity4("Mod Intensity4");
+    ID LoopEnvelope("Loop Mod Envelope");
 
 
 };

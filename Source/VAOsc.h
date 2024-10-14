@@ -142,7 +142,7 @@ public:
         lastSampleRate = sampleRate;
         for(auto &v:smoothedMod)
         {
-            v.reset(sampleRate,0.1f);
+            v.reset(sampleRate,0.001f);
         }
     }
     void setFrequency(const float& frequency,const int midiNote)

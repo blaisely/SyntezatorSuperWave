@@ -71,6 +71,40 @@ public:
                 return 2.0f * (x / (2.0f * juce::MathConstants<float>::pi) - floor(0.5f + x / (2.0f * juce::MathConstants<float>::pi)));
                 });
             break;
+	    case 3:
+	        lfo.initialise([](float x)->float
+	        {
+	           static float lastValue = 0.0f;
+	            static float lastPhase = 0.0f;
+	        	if(x<0.0f&&lastPhase>= 0.0f)
+	        	{
+	        		lastValue = juce::Random::getSystemRandom().nextFloat()*2.0f-1.0f;
+	        	}
+	        	lastPhase = x;
+	        	return lastValue;
+	        	//at every zero crossing generate new random value and hold it
+	        });
+	        break;
+	    case 4:
+	    	lfo.initialise([](float x)->float
+	    	{
+	    		static float currentValue=0.0f;
+	    		static float targetValue = 0.0f;
+	    		static float interpolation = 0.0f;
+	    		static float lastPhase = 0.0f;
+	    		if(x<0.0f && lastPhase>=0.0f)
+	    		{
+	    			targetValue = juce::Random::getSystemRandom().nextFloat()*2.0f-1.0f;
+	    			interpolation = 0.0f;
+	    		}
+	    		interpolation+=0.0001f;
+	    		if(interpolation>1.0f)
+	    				interpolation = 1.0f;
+	    		currentValue = juce::jmap(interpolation,0.f,1.0f,currentValue,targetValue);
+	    		lastPhase = x;
+	    		return currentValue;
+
+	    	});
 	    default:
             lfo.initialise([](float x) { return std::sin(x); });
             break;

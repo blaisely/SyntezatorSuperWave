@@ -167,24 +167,19 @@ public:
 		float currentCutoff = vaFilterParameters.fc;
 		float currentResonance = vaFilterParameters.Q;
 
-		// Modulate Resonance independently
-		float modulatedResonance = modValue[kRESONANCE] * 100.0f;  // Scale the modulation value
+		float modulatedResonance = modValue[kRESONANCE] * 100.0f;
 		modulatedResonance = currentResonance + modulatedResonance;
-		modulatedResonance = juce::jlimit(0.0f, 100.0f, modulatedResonance);  // Clamp between valid range
+		modulatedResonance = juce::jlimit(0.0f, 100.0f, modulatedResonance);
 
-		// If cutoff modulation is enabled
 		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.f))
 		{
-			float modulatedCutoff = modValue[kCUTOFF] * 2.5f;  // Apply scaling to modulation
-			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);  // Exponential scaling
-			modulatedCutoff = juce::jlimit(20.0f, 20480.0f, modulatedCutoff);  // Clamp cutoff range
-
-			// Update both cutoff and resonance in one go
+			float modulatedCutoff = modValue[kCUTOFF] * 2.5f;
+			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);
+			modulatedCutoff = juce::jlimit(20.0f, 20480.0f, modulatedCutoff);
 			calculateModulatedFilterCoeffs(modulatedCutoff, modulatedResonance);
 		}
 		else
 		{
-			// If no cutoff modulation, just update resonance
 			calculateModulatedFilterCoeffs(currentCutoff, modulatedResonance);
 		}
 	}

@@ -76,6 +76,8 @@ private:
     SynthVoice* myVoice;
     float lastSampleRate;
     juce::dsp::Gain<float> pluginGain;
+    juce::SmoothedValue<float> gainAmt{0.0f};
+    float sampleRate{48000.f};
     void reset() override;
      juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
 

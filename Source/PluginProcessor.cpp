@@ -131,6 +131,7 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     DCOffset.prepare(spec);
     pluginGain.prepare(spec);
     lastSampleRate = sampleRate;
+    gainAmt.reset(lastSampleRate,0.1);
     updateFilter();
     mySynth.setCurrentPlaybackSampleRate(lastSampleRate);
 
@@ -178,6 +179,7 @@ void SimpleSynthAudioProcessor::updateFilter() {
 }
 void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
+
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -201,9 +203,17 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto context = juce::dsp::ProcessContextReplacing<float>(audioBlock);
 
     DCOffset.process(context);
-    float gain = tree[IDs::GainOvr];
-    pluginGain.setGainLinear(gain);
-    pluginGain.process(context);
+    gainAmt.setTargetValue(static_cast<float>(tree[IDs::GainOvr]));
+
+        for(auto sample=0;sample<buffer.getNumSamples();sample++)
+        {
+            pluginGain.setGainLinear(gainAmt.getNextValue());
+            auto g = pluginGain.processSample(buffer.getSample(0,sample));
+            buffer.setSample(0,sample,g);
+            buffer.setSample(1,sample,g);
+        }
+
+
 }
 
 //==============================================================================
@@ -362,8 +372,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     2, attributesModDestination4));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity4","Mod Intensity 4",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
-
-
 
     layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "DetuneAmount",
         juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));

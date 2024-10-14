@@ -199,16 +199,16 @@ public:
 		switch(type)
 		{
 		case 0:
-			setMode(Mode::LPF24);
+			setMode(Mode::LPF12);
 			break;
 		case 1:
-			setMode(Mode::HPF24);
+			setMode(Mode::BPF12);
 			break;
 		case 2:
-			setMode(Mode::BPF24);
+			setMode(Mode::HPF12);
 			break;
 		default:
-				setMode(Mode::LPF24);
+			setMode(Mode::LPF12);
 			break;
 		}
 	}

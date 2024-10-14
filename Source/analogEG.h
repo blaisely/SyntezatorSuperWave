@@ -39,6 +39,10 @@ public:
     {
         return target >= 2.0f;
     }
+    bool isInSustain()
+    {
+        return target<2.0f;
+    }
 
     void noteOn()
     {

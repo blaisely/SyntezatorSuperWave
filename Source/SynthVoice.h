@@ -72,8 +72,17 @@ public:
 		amp2Env.noteOff();
 		modEnv.noteOff();
 		resetLFO();
-		if (! allowTailOff || ! ampEnv.isActive() )
-			clearCurrentNote();
+		if(commonEnvelope)
+		{
+			if (! allowTailOff || ! ampEnv.isActive() )
+				clearCurrentNote();
+		}
+		else
+		{
+			if (! allowTailOff || ! ampEnv.isActive() && ! amp2Env.isActive()  )
+				clearCurrentNote();
+		}
+
 	}
 	void pitchWheelMoved(int newPitchWheelValue) override
 	{
@@ -97,7 +106,8 @@ public:
 		lfoGenerator2.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 		oscSW.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		oscVA.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-
+		panOSC1.reset(sampleRate,0.001);
+		panOSC2.reset(sampleRate,0.001);
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFLDDR,ladder.getModCutOff());
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_RESONANCE,vaSVF.getModResonance());
@@ -244,7 +254,7 @@ public:
 			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR1Attack])));
 		ampEnv.decayMultiplier = std::exp(-inverseSampleRate *
 			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR1Decay])));
-		ampEnv.sustainLevel = static_cast<float>(state[IDs::ADSR1Sustain]);
+		ampEnv.sustainLevel = static_cast<float>(state[IDs::ADSR1Sustain])/100.f;
 		float envRelease = state[IDs::ADSR1Release];
 		if (envRelease < 1.0f) {
 			ampEnv.releaseMultiplier = 0.75f;  // extra fast release
@@ -256,7 +266,7 @@ public:
 			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR2Attack])));
 		amp2Env.decayMultiplier=modEnv.decayMultiplier = std::exp(-inverseSampleRate *
 			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR2Decay])));
-		amp2Env.sustainLevel=modEnv.sustainLevel = static_cast<float>(state[IDs::ADSR2Sustain]);
+		amp2Env.sustainLevel=modEnv.sustainLevel = static_cast<float>(state[IDs::ADSR2Sustain])/100.f;
 		float env2Release = state[IDs::ADSR2Release];
 		if (env2Release < 1.0f) {
 			amp2Env.releaseMultiplier = modEnv.releaseMultiplier = 0.75f;
@@ -267,18 +277,19 @@ public:
 
 		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
 		commonEnvelope = state[IDs::CommonEnvelope];
+		loopEnvelope = state[IDs::LoopEnvelope];
 	}
 	void setPanParameters()
 	{
-		panOSC1 = std::clamp(static_cast<float>(state[IDs::PanOsc1])+panMod1,-1.f,1.f);
-		panOSC2 = std::clamp(static_cast<float>(state[IDs::PanOsc2])+panMod2,-1.f,1.f);
+		panOSC1.setTargetValue(std::clamp(static_cast<float>(state[IDs::PanOsc1])+panMod1,-1.f,1.f));
+		panOSC2.setTargetValue(std::clamp(static_cast<float>(state[IDs::PanOsc2])+panMod2,-1.f,1.f));
 	}
 	void updatePan()
 	{
-		panLeft[0] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
-		panLeft[1] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
-		panRight[0] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC1+1));
-		panRight[1] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC2+1));
+		panLeft[0] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC1.getNextValue()+1));
+		panLeft[1] = std::cos((juce::MathConstants<float>::halfPi/2.f)*(panOSC2.getNextValue()+1));
+		panRight[0] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC1.getCurrentValue()+1));
+		panRight[1] = std::sin((juce::MathConstants<float>::halfPi/2.f)*(panOSC2.getCurrentValue()+1));
 	}
 	void setLFOParameters()
 	{
@@ -315,13 +326,19 @@ public:
 
         for (int sample = 0; sample < numToProcess; ++sample)
         {
-
+		updatePan();
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 
             nextAmpSample = ampEnv.nextValue();
             nextAmp2Sample = amp2Env.nextValue();
         	envelopeMod = modEnv.nextValue()*envelopeAmount;
+
+        	if (modEnv.isInSustain()==true && loopEnvelope)
+        	{
+        		modEnv.reset();
+        		modEnv.noteOn();
+        	}
 
         	float osc2Output = oscVA.getNextSample();
         	float osc1Output = oscSW.getNextSample();
@@ -377,12 +394,23 @@ public:
     {
         outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
     }
+		if(commonEnvelope)
+		{
+			if (!ampEnv.isActive()&&!amp2Env.isActive())
+			{
+				clearCurrentNote();
+				resetOscillators();
+			}
+		}
+		else
+		{
+			if (!ampEnv.isActive())
+			{
+				clearCurrentNote();
+				resetOscillators();
+			}
+		}
 
-    if (!ampEnv.isActive())
-    {
-        clearCurrentNote();
-        resetOscillators();
-    }
 }
 
 	void updateModulations()
@@ -440,8 +468,8 @@ private:
 	std::array<modRouting,4> oldRouting;
 	float nextAmpSample{0.f};
 	float nextAmp2Sample{0.f};
-	float panOSC1{0.0f};
-	float panOSC2{0.0f};
+	juce::SmoothedValue<float> panOSC1{0.0f};
+	juce::SmoothedValue<float> panOSC2{0.0f};
 	float panLeft[2]{0.f};
 	float panRight[2]{0.f};
 	float lfo1Mod{0.0f};
@@ -457,6 +485,7 @@ private:
 	bool SVFEnabled;
 	bool commonEnvelope;
 	bool lfoReset;
+	bool loopEnvelope = false;
 	float oldFrequency{ 0.0f };
 	Osc  oscSW;
 	VAOsc oscVA;

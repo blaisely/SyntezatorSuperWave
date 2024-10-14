@@ -31,8 +31,11 @@ namespace IDs{
     ID ADSR2Release("adsr2_r");
     ID ADSR2Mod("adsr2_mod");
     ID LFODepth("LFODepth");
+    ID LFO2Depth("LFO2Depth");
     ID LFOFreq("LFOFrequency");
+    ID LFO2Freq("LFO2Frequency");
     ID LFOType("LFOType");
+    ID LFO2Type("LFO2Type");
     ID LFOMod("LFOMod");
     ID Filter("Filter");
     ID FilterT("FilterType");
@@ -50,8 +53,7 @@ namespace IDs{
     ID ADSR1("ADSR1");
     ID ADSR2("ADSR2");
     ID SampleRate("SmpRate");
-    ID SWGainOvr("SWGainOvr");
-    ID VAGainOvr("VAGainOvr");
+    ID GainOvr("GainOvr");
     ID SWFrequency("SWFreq");
     ID VAFrequency("VAFreq");
     ID MidiNote("MidiNote");
@@ -63,6 +65,21 @@ namespace IDs{
     ID ReversedEnvelope("Reversed Mod Envelope");
     ID PanOsc1("Pan OSC1");
     ID PanOsc2("Pan OSC2");
+    ID SWCoarse("Coarse SW");
+    ID VACoarse("Coarse VA");
+    ID ModSource1("Mod Source1");
+    ID ModSource2("Mod Source2");
+    ID ModSource3("Mod Source3");
+    ID ModSource4("Mod Source4");
+    ID ModDestination1("Mod Destination1");
+    ID ModDestination2("Mod Destination2");
+    ID ModDestination3("Mod Destination3");
+    ID ModDestination4("Mod Destination4");
+    ID ModIntensity1("Mod Intensity1");
+    ID ModIntensity2("Mod Intensity2");
+    ID ModIntensity3("Mod Intensity3");
+    ID ModIntensity4("Mod Intensity4");
+    ID LoopEnvelope("Loop Mod Envelope");
 
 
 };

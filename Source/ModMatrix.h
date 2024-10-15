@@ -36,6 +36,10 @@ public:
         kLFO2_AMT,
         kLFO1_FREQ,
         kLFO2_FREQ,
+        kOSC1_PWM,
+        kOSC2_PWM,
+        kOSC1_TYPE,
+        kOSC2_TYPE,
         kNumDest
     };
     struct ModDest

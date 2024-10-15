@@ -76,11 +76,13 @@ public:
 		{
 			if (! allowTailOff || ! ampEnv.isActive() )
 				clearCurrentNote();
+
 		}
 		else
 		{
 			if (! allowTailOff || ! ampEnv.isActive() && ! amp2Env.isActive()  )
 				clearCurrentNote();
+
 		}
 
 	}
@@ -123,6 +125,10 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_FREQ,lfoGenerator1.getModFrequency());
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_AMT,lfoGenerator2.getModAmount());
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_FREQ,lfoGenerator2.getModFrequency());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PWM,oscSW.getModPWM());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_TYPE,oscSW.getModOscType());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_TYPE,oscVA.getModOscType());
+		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PWM,oscVA.getModPWM());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
 		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
 		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);

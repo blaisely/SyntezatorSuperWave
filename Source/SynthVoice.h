@@ -305,8 +305,10 @@ public:
 		float depthLfo2 =static_cast<float>(state[IDs::LFO2Depth])/100.f;
 		float freqLfo2 = state[IDs::LFO2Freq];
 		int typeLfo2 = state[IDs::LFO2Type];
-		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1);
-		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2);
+		bool lfo1Unipolar = state[IDs::LFO1Unipolar];
+		bool lfo2Unipolar = state[IDs::LFO2Unipolar];
+		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1,lfo1Unipolar);
+		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2,lfo2Unipolar);
 		lfoReset = state[IDs::LFOReset];
 	}
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override

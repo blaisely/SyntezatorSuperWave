@@ -28,17 +28,22 @@ public:
     {
         float modFreq = modValue[kFREQ]*parameters.frequency;
         lfo.setFrequency(std::clamp(parameters.frequency+modFreq,0.f,20.f));
-        return lfo.processSample(0.0) * std::clamp(parameters.depth+modValue[kAMOUNT],0.f,1.f);
+    	if(parameters.isUnipolar)
+    		return (lfo.processSample(0.0) * std::clamp(parameters.depth+modValue[kAMOUNT],0.f,1.f))+1.f*0.5f;
+    	else
+    		return (lfo.processSample(0.0) * std::clamp(parameters.depth+modValue[kAMOUNT],0.f,1.f));
+
     }
     void reset()
     {
         lfo.reset();
     }
-    void setParameters()
+    void setParameters(const float depth, const float freq, const int type,const bool isUnipolar)
     {
-        parameters.depth=static_cast<float>(tree[IDs::LFODepth])/100.f;
-        parameters.frequency = static_cast<float>(tree[IDs::LFOFreq]);
-        parameters.type = static_cast<int>(tree[IDs::LFOType]);
+        parameters.depth= depth;
+        parameters.frequency = freq;
+        parameters.type = type;
+    	parameters.isUnipolar = isUnipolar;
         setLFOType();
         lfo.setFrequency(parameters.frequency);
     }
@@ -120,6 +125,7 @@ private:
         float delay{ 0.0f };
         int type{ 0 };
         float modValue{ 0.0f };
+    	bool isUnipolar{false};
     };
     std::array<float,kNumDest> modValue{0.0f};
     LFOParameters parameters;

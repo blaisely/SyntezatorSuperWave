@@ -82,6 +82,8 @@ namespace IDs{
     ID LoopEnvelope("Loop Mod Envelope");
     ID PulseWidthOSC1("Pulse Width OSC1");
     ID PulseWidthOSC2("Pulse Width OSC2");
+    ID LFO1Unipolar("LFO1 Unipolar");
+    ID LFO2Unipolar("LFO2 Unipolar");
 
 
 };

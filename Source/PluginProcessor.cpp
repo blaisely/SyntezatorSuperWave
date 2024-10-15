@@ -397,10 +397,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
         juce::NormalisableRange<float>{0.0f,3.0f,0.1f},0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("pulseWidthOsc2","Pulse Width OSC2",
         juce::NormalisableRange<float>{10,90,1},50,juce::AudioParameterFloatAttributes().withLabel("%")));
-    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter", 1));
-    layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "lfoReset", 0));
-    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope", 1));
+    layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter ON", 1));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "LFO Reset", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope for OSCs", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope", "Loop Mod Envelope", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfo1Unipolar", "LFO1 Unipolar", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfo2Unipolar", "LFO2 Unipolar", 0));
 
 
     return layout;
@@ -473,6 +475,8 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.loopModEnvelope = apvts.getRawParameterValue("loopEnvelope")->load();
     settings.pulseWidthOsc1 = apvts.getRawParameterValue("pulseWidthOsc1")->load();
     settings.pulseWidthOsc2 = apvts.getRawParameterValue("pulseWidthOsc2")->load();
+    settings.lfo1Unipolar = apvts.getRawParameterValue("lfo1Unipolar")->load();
+    settings.lfo2Unipolar = apvts.getRawParameterValue("lfo2Unipolar")->load();
 
     return settings;
 }
@@ -590,4 +594,6 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::LoopEnvelope,s.loopModEnvelope,nullptr);
     tree.setProperty(IDs::PulseWidthOSC1,s.pulseWidthOsc1,nullptr);
     tree.setProperty(IDs::PulseWidthOSC2,s.pulseWidthOsc2,nullptr);
+    tree.setProperty(IDs::LFO1Unipolar,s.lfo1Unipolar,nullptr);
+    tree.setProperty(IDs::LFO2Unipolar,s.lfo2Unipolar,nullptr);
 }

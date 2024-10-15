@@ -41,16 +41,16 @@ public:
 	               int currentPitchWheelPosition) override {
 		const auto midiNote = midiNoteNumber;
 		resetLFO();
-		setOscillatorsFrequency(midiNote);
+		setOscillatorsFrequency(midiNote,velocity);
 		setRandomPhase();
 		ampEnv.noteOn();
 		amp2Env.noteOn();
 		modEnv.noteOn();
 	}
-	void setOscillatorsFrequency(const int midiNote)
+	void setOscillatorsFrequency(const int midiNote, const float velocity)
 	{
-			oscSW.setFrequency(frequency, midiNote);
-			oscVA.setFrequency(frequency, midiNote);
+			oscSW.setFrequency(frequency, midiNote, velocity);
+			oscVA.setFrequency(frequency, midiNote, velocity);
 
 	}
 	void setRandomPhase()

@@ -85,7 +85,7 @@ public:
         smoothedMod[kGAIN].setTargetValue(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
         gain.setGainLinear(smoothedMod[kGAIN].getNextValue());
         y = gain.processSample(y);
-        y = y*0.5f;
+        y = y*0.5f*noteVelocity;
         return y;
     }
 
@@ -150,9 +150,10 @@ public:
         return output;
     }
 
-    void setFrequency(const float& frequency,const int midiNote)
+    void setFrequency(const float& frequency,const int midiNote, const float velocity)
     {
         midiPitch = juce::MidiMessage::getMidiNoteInHertz(midiNote);
+        noteVelocity = velocity;
         updatePitch();
     }
     void updatePitch()
@@ -214,5 +215,6 @@ private:
     float detuneFine{0};
     float midiPitch{0.f};
     float pw{0.0f};
+    float noteVelocity{0.0f};
 };
 

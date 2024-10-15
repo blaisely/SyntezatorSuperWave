@@ -66,7 +66,8 @@ public:
         
         int octaveosc1{ 0 }, octaveosc2{ 0 }, coarseosc1{0}, coarseosc2{ 0},filterOn{0},filterDrive{0},commonEnvelope{0},
         lfoReset{0},lfoType{0},reversedEnvelope{0},detuneosc1{0},detuneosc2{0},lfo2Type{0},modSource1{0},modSource2{0},modSource3{0},
-        modSource4{0},modDestination1{0},modDestination2{0},modDestination3{0},modDestination4{0},loopModEnvelope{0};
+        modSource4{0},modDestination1{0},modDestination2{0},modDestination3{0},modDestination4{0},loopModEnvelope{0},
+        lfo1Unipolar{0},lfo2Unipolar{0};
     };
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();

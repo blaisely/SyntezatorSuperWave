@@ -80,6 +80,8 @@ namespace IDs{
     ID ModIntensity3("Mod Intensity3");
     ID ModIntensity4("Mod Intensity4");
     ID LoopEnvelope("Loop Mod Envelope");
+    ID PulseWidthOSC1("Pulse Width OSC1");
+    ID PulseWidthOSC2("Pulse Width OSC2");
 
 
 };

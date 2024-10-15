@@ -61,7 +61,8 @@ public:
         float cutoff{ 1000.0f }, resonance{ 0.0f }, oscType_osc1{ 0.0f }, oscType_osc2{ 0.0f }, filterType{ 0 }, attack{ 0.0f }, decay{ 0.0f }, sustain{ 0.0f },
             release{ 0.0f }, gain_osc1{ 0.0f }, gain_osc2{ 0.0f },lfofreq{0.0f}, lfodepth{0.0f}, detune{0.0f}, volume{0.0f},
         attackEnv2{0.0f},decayEnv2{0.0f},sustainEnv2{0.0f},releaseEnv2{0.0f},envelopeAmount{0.0f},panOsc1{0.0f},panOsc2{0.0f},gainOVR{0.0f},
-        lfo2freq{0.0f},lfo2depth{0.0f},modIntensity1{0.f},modIntensity2{0.f},modIntensity3{0.f},modIntensity4{0.f};
+        lfo2freq{0.0f},lfo2depth{0.0f},modIntensity1{0.f},modIntensity2{0.f},modIntensity3{0.f},modIntensity4{0.f},pulseWidthOsc1{0.0f},
+        pulseWidthOsc2{0.0f};
         
         int octaveosc1{ 0 }, octaveosc2{ 0 }, coarseosc1{0}, coarseosc2{ 0},filterOn{0},filterDrive{0},commonEnvelope{0},
         lfoReset{0},lfoType{0},reversedEnvelope{0},detuneosc1{0},detuneosc2{0},lfo2Type{0},modSource1{0},modSource2{0},modSource3{0},

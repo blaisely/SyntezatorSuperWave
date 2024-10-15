@@ -23,7 +23,6 @@ public:
         auto spec = juce::dsp::ProcessSpec{ sampleRate/updateRate,blockSize,numChannels };
         lfo.prepare(spec);
         lfo.initialise([](float x) { return std::sin(x); });
-
     }
     float render()
     {

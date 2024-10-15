@@ -18,7 +18,8 @@ public:
         // Update the amplitude envelope. This is a one-pole filter creating
         // an analog-style exponential envelope curve.
         level = multiplier * (level - target) + target;
-
+        //DBG("Level: "+ std::to_string(level));
+        //DBG("Target: "+ std::to_string(target));
         // Done with the attack portion? Then go into decay. Notice that target
         // is 2.0 when the envelope is in the attack stage; that is how we tell
         // apart the different stages.
@@ -39,9 +40,9 @@ public:
     {
         return target >= 2.0f;
     }
-    bool isInSustain()
+    bool isInSustain() const
     {
-        return target<2.0f;
+        return target<2.f && juce::approximatelyEqual(level,target,juce::Tolerance<float>{}.withRelative(0.005f));
     }
 
     void noteOn()

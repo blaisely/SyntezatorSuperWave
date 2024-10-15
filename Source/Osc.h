@@ -15,7 +15,7 @@
 #include "SharedData.h"
 #include "helpers.h"
 
-
+static juce::SmoothedValue<float> pulseWidth {0.5f};
 class Osc  final :juce::ValueTree::Listener
 {
 public:
@@ -34,6 +34,8 @@ public:
         {
             v.reset(sampleRate,0.001f);
         }
+        pulseWidth.reset(sampleRate,0.001f);
+        typeOsc.reset(sampleRate,0.001f);
     }
 
     void getNextBlock(juce::dsp::AudioBlock<float>& block, const int channel)
@@ -66,7 +68,8 @@ public:
 
     float getNextSample()
     {
-
+        pulseWidth.setTargetValue(std::clamp(pw+modValue[kPWM],0.1f,0.9f));
+        typeOsc.setTargetValue(std::clamp(static_cast<float>(state[IDs::SWtype])+(modValue[kOSC_TYPE]),0.f,3.f));
         setSideOsc(detuneSuperSaw,volumeSuperSaw);
         updatePitch();
         float y=0;
@@ -92,12 +95,12 @@ public:
 
         return y;
     }
-    float nextSample(float& phase,const float& phaseIncrement, float& lastOutput) const {
+    float nextSample(float& phase,const float& phaseIncrement, float& lastOutput)  {
         const float t = phase / juce::MathConstants<float>::twoPi;
         float value = 0.0f;
         float value2 = 0.0f;
         float output = 0.0f;
-
+        float type = typeOsc.getNextValue();
         if(type>=0.0f && type<1.0f)
         {
             value = sine(phase);
@@ -113,14 +116,14 @@ public:
 
             value2 = square(phase);
             value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
             output = value*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
             value = square(phase);
             value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
 
             value2 = triangle(phase);
             value2 += poly_blep(t, phaseIncrement);
@@ -165,7 +168,7 @@ public:
     }
 
     static float square(const float& phase) {
-        return (phase < juce::MathConstants<float>::pi) ? 1.0f : -1.0f;
+        return (phase < (juce::MathConstants<float>::twoPi * pulseWidth.getNextValue())) ? 1.0f : -1.0f;
     }
 
     static float triangle(const float& phase) {
@@ -210,7 +213,7 @@ public:
     void setSideOsc(const float detune,const float volume)
     {
         smoothedMod[kDETUNE].setTargetValue(std::clamp(detune+modValue[kDETUNE],0.f,1.f));
-        smoothedMod[kVOLUME].setTargetValue(std::clamp(detune+modValue[kVOLUME],0.f,1.f));
+        smoothedMod[kVOLUME].setTargetValue(std::clamp(volume+modValue[kVOLUME],0.f,1.f));
         float modDetune = smoothedMod[kDETUNE].getNextValue();
         float volumeDetune = smoothedMod[kVOLUME].getNextValue();
         params.detune = polyFit(modDetune);
@@ -261,9 +264,11 @@ public:
         coarse = static_cast<float>(state[IDs::SWdetune]);
         fineDetune = static_cast<float>(state[IDs::SWCoarse])/100.f;
         updatePitch();
-        type = state.getProperty(IDs::SWtype);
+        typeOsc.setTargetValue(state.getProperty(IDs::SWtype));
         gainAmt = state[IDs::SWgain];
         gain.setGainLinear(gainAmt);
+        pw = static_cast<float>(state[IDs::PulseWidthOSC1])/100.f;
+
     }
     void resetOsc() {
         gain.reset();
@@ -282,9 +287,17 @@ public:
     {
         return &modValue[kPITCH];
     }
+    float* getModPWM()
+    {
+        return &modValue[kPWM];
+    }
     float* getModVolume()
     {
         return &modValue[kVOLUME];
+    }
+    float* getModOscType()
+    {
+        return &modValue[kOSC_TYPE];
     }
     float* getModGain()
     {
@@ -294,9 +307,10 @@ public:
     {
         modValue[number]=mod;
     }
-    enum oscDest {kDETUNE,kVOLUME,kPITCH,kGAIN,kNumDest};
+    enum oscDest {kDETUNE,kVOLUME,kPITCH,kGAIN,kPWM,kOSC_TYPE,kNumDest};
 
 private:
+
     juce::ValueTree state;
     struct synthParams
     {
@@ -313,7 +327,7 @@ private:
     float gainAmt{0.f};
     std::array<float,kNumDest> modValue{0.0f};
     synthParams params;
-    float type{ 0.f };
+    juce::SmoothedValue<float> typeOsc{ 0.f };
     juce::dsp::Gain<float> gain;
     float octave{0};
     float fineDetune{0};
@@ -321,5 +335,7 @@ private:
     float midiPitch{0.f};
     float lastSampleRate{0.0f};
     float oscFrequency{ 0.0f };
+    float pw{0.0f};
+
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
 };

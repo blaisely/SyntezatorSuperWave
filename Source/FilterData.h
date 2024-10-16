@@ -31,6 +31,8 @@ public:
 		integrator_zLeft[1] = 0.0;
 		integrator_zRight[0] = 0.0;
 		integrator_zRight[1] = 0.0;
+		filterResonance.reset(sampleRate,0.001f);
+		filterCutOff.reset(sampleRate,0.001f);
 		return true;
 	}
 	void setParameters()
@@ -111,28 +113,27 @@ public:
 		return filterOutputGain*lpf;
 
 	}
+
 	void calculateFilterCoeffs()
 	{
-		double fc = vaFilterParameters.fc ;
-		double Q = vaFilterParameters.Q;
-		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
-		double wd = kTwoPi*fc;
-		double T = 1.0 / sampleRate;
-		double wa = (2.0 / T)*tan(wd*T / 2.0);
-		double g = wa*T / 2.0;
+		float currentCutoff = vaFilterParameters.fc;
+		float currentResonance = vaFilterParameters.Q;
+		float modulatedCutoff;
+		float modulatedResonance = modValue[kRESONANCE] * 100.0f;
+		modulatedResonance = currentResonance + modulatedResonance;
+		filterResonance.setTargetValue(juce::jlimit(0.0f, 100.0f, modulatedResonance));
+		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.f))
+		{
+			modulatedCutoff = modValue[kCUTOFF] * 2.5f;
+			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);
+			modulatedCutoff = juce::jlimit(20.0f, 20480.0f, modulatedCutoff);
+		}
+		else
+			modulatedCutoff = currentCutoff;
+		filterCutOff.setTargetValue(modulatedCutoff);
 
-		double R = vaFilterParameters.selfOscillate ? 0.0 : 1.0 / (2.0*Q);
-		alpha0 = 1.0 / (1.0 + 2.0*R*g + g*g);
-		alpha = g;
-		rho = 2.0*R + g;
-
-		double f_o = (sampleRate / 2.0) / fc;
-		analogMatchSigma = 1.0 / (alpha*f_o*f_o);
-	}
-	void calculateModulatedFilterCoeffs(double modCutoff, double modResonance)
-	{
-		double fc = modCutoff;
-		double Q = modResonance;  // Modulated resonance value
+		double fc = filterCutOff.getNextValue();
+		double Q = filterResonance.getNextValue();  // Modulated resonance value
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 
 		// Filter coefficient calculations remain the same
@@ -162,27 +163,7 @@ public:
 	{
 		modValue[kRESONANCE] = res;
 	}
-	void updateModulation()
-	{
-		float currentCutoff = vaFilterParameters.fc;
-		float currentResonance = vaFilterParameters.Q;
 
-		float modulatedResonance = modValue[kRESONANCE] * 100.0f;
-		modulatedResonance = currentResonance + modulatedResonance;
-		modulatedResonance = juce::jlimit(0.0f, 100.0f, modulatedResonance);
-
-		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.f))
-		{
-			float modulatedCutoff = modValue[kCUTOFF] * 2.5f;
-			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);
-			modulatedCutoff = juce::jlimit(20.0f, 20480.0f, modulatedCutoff);
-			calculateModulatedFilterCoeffs(modulatedCutoff, modulatedResonance);
-		}
-		else
-		{
-			calculateModulatedFilterCoeffs(currentCutoff, modulatedResonance);
-		}
-	}
 
 private:
 	juce::ValueTree tree;
@@ -200,6 +181,8 @@ private:
 	double beta = 0.0;
 	double analogMatchSigma = 0.0;
 	double kTwoPi = juce::MathConstants<double>::twoPi;
+	juce::SmoothedValue<float> filterResonance {0.0f};
+	juce::SmoothedValue<float> filterCutOff{0.0f};
 
 
 	struct ZVAFilterParameters
@@ -229,7 +212,7 @@ public:
 	void setParameters()
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
-		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,2.0f);
+		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,1.0f);
 		driveAmount = tree[IDs::FilterDrive];
 		setCutoffFrequencyHz(cutOffFrequency);
 		setResonance(resonance);
@@ -270,23 +253,21 @@ public:
 	}
 	void updateModulation()
 	{
-		if(modValue[kCUTOFF]>0.0f)
+		if(!juce::approximatelyEqual(modValue[kCUTOFF],0.00f))
 		{
 			float targetModulatedCutOff = modValue[kCUTOFF]*2.5f;
 			targetModulatedCutOff = cutOffFrequency * std::exp(targetModulatedCutOff);
 			targetModulatedCutOff = juce::jlimit(20.0f, 20480.0f, targetModulatedCutOff);
 			setCutoffFrequencyHz(targetModulatedCutOff);
-
 		}
 		float modRes = modValue[kRESONANCE];
-		modRes*=2.f;
-		modRes = std::clamp(resonance+modRes,0.f,2.f);
+		modRes = std::clamp(resonance+modRes,0.f,1.f);
 		setResonance(modRes);
 	}
 
 private:
 	enum{kCUTOFF,kRESONANCE,kNumDest};
-	std::array<float,kNumDest> modValue;
+	std::array<float,kNumDest> modValue {0.0f};
 	float cutOffFrequency{};
 	float resonance{};
 	int type{};

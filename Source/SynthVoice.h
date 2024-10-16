@@ -325,16 +325,15 @@ public:
     auto outputLeft = swBuffer.getWritePointer(0);
     auto outputRight = swBuffer.getWritePointer(1);
 
-    int remainingSamples = numSamples;
-    int samplePos = 0;
-
-    while (remainingSamples > 0)
-    {
-        const int numToProcess = juce::jmin(remainingSamples, updateCounter);
-
-        for (int sample = 0; sample < numToProcess; ++sample)
+		for (int sample = 0; sample < numSamples; ++sample)
         {
-		updatePan();
+        	lfo1Mod = lfoGenerator1.render();
+        	lfo2Mod = lfoGenerator2.render();
+        	modMatrix.render();
+        	ladder.setModResonance(*vaSVF.getModResonance());
+		    updatePan();
+        	vaSVF.calculateFilterCoeffs();
+        	ladder.updateModulation();
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 
@@ -378,25 +377,9 @@ public:
             channelLeft = level.processSample(channelLeft);
             channelRight = level.processSample(channelRight);
 
-            outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
-            outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
+            outputLeft[sample] = channelLeft + inputLeft[sample];
+            outputRight[sample] = channelRight + inputRight[sample];
         }
-
-        remainingSamples -= numToProcess;
-        samplePos += numToProcess;
-        updateCounter -= numToProcess;
-
-        if (updateCounter <= 0)
-        {
-            updateCounter = updateRate;
-            lfo1Mod = lfoGenerator1.render();
-        	lfo2Mod = lfoGenerator2.render();
-            modMatrix.render();
-        	ladder.setModResonance(*vaSVF.getModResonance());
-            vaSVF.updateModulation();
-            ladder.updateModulation();
-        }
-    }
 
     for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
     {
@@ -419,13 +402,8 @@ public:
 			}
 		}
 
-}
-
-	void updateModulations()
-	{
-		vaSVF.updateModulation();
-		ladder.updateModulation();
 	}
+
 
 	void setUpBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
 	{

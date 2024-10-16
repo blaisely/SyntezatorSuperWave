@@ -20,7 +20,7 @@ public:
     void prepareToPlay(double sampleRate, unsigned int numChannels, unsigned int blockSize)
     {
         reset();
-        auto spec = juce::dsp::ProcessSpec{ sampleRate/updateRate,blockSize,numChannels };
+        auto spec = juce::dsp::ProcessSpec{ sampleRate,blockSize,numChannels };
         lfo.prepare(spec);
         lfo.initialise([](float x) { return std::sin(x); });
     }

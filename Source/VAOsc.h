@@ -5,6 +5,7 @@
 #include<random>
 #include "SharedData.h"
 #define MOD 1000000007
+#define ANALOG 0.003f;
 static juce::SmoothedValue<float> pulseWidth2 {0.5f};
 class VAOsc:juce::ValueTree::Listener {
 public:

@@ -14,7 +14,7 @@
 #include<random>
 #include "SharedData.h"
 #include "helpers.h"
-
+#define ANALOG 0.002f
 static juce::SmoothedValue<float> pulseWidth {0.5f};
 class Osc  final :juce::ValueTree::Listener
 {
@@ -184,7 +184,7 @@ public:
     }
     void updatePitch()
     {
-        const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune)/12.f);
+        const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune+ANALOG)/12.f);
         float modulatedPitch = modValue[kPITCH]*midiPitch;
         smoothedMod[kPITCH] = (modulatedPitch)+midiPitch;
         const float freq =( smoothedMod[kPITCH].getNextValue()) * modPitch;

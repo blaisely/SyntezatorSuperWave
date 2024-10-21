@@ -38,7 +38,10 @@ inline double hyperbolicTangent(double xn, double saturation)
 }
 inline double arctangentSaturation(double x, double drive)
 {
-    return atan(pow(drive, 1.2) * x) / atan(drive);
+    drive = std::max(1.0, drive);
+
+    double adjustedDrive = (drive - 1.0) / 9.0;
+    return atan(pow(adjustedDrive, 1.2) * x) / atan(adjustedDrive);
 }
 inline float softClip (const float x)
 {

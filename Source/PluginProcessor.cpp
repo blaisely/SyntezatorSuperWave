@@ -275,7 +275,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterInt>(
         "filterKeytrackOffset", "Filter Keytrack Offset",-48,48,0));
 
-    layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
+    layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,100,1,
+        juce::AudioParameterIntAttributes().withLabel("%")));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterVelocity","Filter Velocity Sensitivity",juce::NormalisableRange<float>{0,100,1},0,
         juce::AudioParameterFloatAttributes().withLabel("%")));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.7f));

@@ -84,6 +84,8 @@ namespace IDs{
     ID PulseWidthOSC2("Pulse Width OSC2");
     ID LFO1Unipolar("LFO1 Unipolar");
     ID LFO2Unipolar("LFO2 Unipolar");
+    ID FilterKeytrackEnable("Filter Keytrack Enable");
+    ID FilterKeytrackOffset("Filter Keytrack Offset");
 
 
 };

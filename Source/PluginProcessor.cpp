@@ -271,6 +271,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
         juce::NormalisableRange<float>(0.000,100.00,0.01,0.4),0.707,
         juce::AudioParameterFloatAttributes().withLabel("%")));
+    layout.add(std::make_unique<juce::AudioParameterBool>("filterKeytrackEnable", "Filter Keytrack Enable",0));
+    layout.add(std::make_unique<juce::AudioParameterInt>(
+        "filterKeytrackOffset", "Filter Keytrack Offset",-48,48,0));
 
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,20,1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterVelocity","Filter Velocity Sensitivity",juce::NormalisableRange<float>{0,100,1},0,
@@ -419,23 +422,18 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.oscType_osc1 = apvts.getRawParameterValue("oscType_osc1")->load();
     settings.oscType_osc2 = apvts.getRawParameterValue("oscType_osc2")->load();
     settings.filterType = apvts.getRawParameterValue("filterType")->load();
-
     settings.attack = apvts.getRawParameterValue("attack")->load();
     settings.decay = apvts.getRawParameterValue("decay")->load();
     settings.sustain  = apvts.getRawParameterValue("sustain")->load();
     settings.release = apvts.getRawParameterValue("release")->load();
-
     settings.attackEnv2 = apvts.getRawParameterValue("attackOsc2")->load();
     settings.decayEnv2 = apvts.getRawParameterValue("decayOsc2")->load();
     settings.sustainEnv2  = apvts.getRawParameterValue("sustainOsc2")->load();
     settings.releaseEnv2 = apvts.getRawParameterValue("releaseOsc2")->load();
-
     settings.commonEnvelope = apvts.getRawParameterValue("commonEnvelope")->load();
     settings.envelopeAmount = apvts.getRawParameterValue("filterEnvelope")->load();
-
     settings.gain_osc1 = apvts.getRawParameterValue("gain_osc1")->load();
     settings.gain_osc2 = apvts.getRawParameterValue("gain_osc2")->load();
-
     settings.lfodepth = apvts.getRawParameterValue("lfodepth")->load();
     settings.lfo2depth = apvts.getRawParameterValue("lfo2depth")->load();
     settings.lfofreq = apvts.getRawParameterValue("lfofreq")->load();
@@ -443,34 +441,27 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.lfoReset = apvts.getRawParameterValue("lfoReset")->load();
     settings.lfoType = apvts.getRawParameterValue("lfoType")->load();
     settings.lfo2Type = apvts.getRawParameterValue("lfo2Type")->load();
-
     settings.detune = apvts.getRawParameterValue("detuneSuper")->load();
     settings.volume = apvts.getRawParameterValue("volumeSuper")->load();
     settings.filterOn = apvts.getRawParameterValue("filterbutton")->load();
-
     settings.coarseosc1 = apvts.getRawParameterValue("coarse_osc1")->load();
     settings.coarseosc2 = apvts.getRawParameterValue("coarse_osc2")->load();
     settings.octaveosc2 = apvts.getRawParameterValue("octave_osc2")->load();
     settings.octaveosc1 = apvts.getRawParameterValue("octave_osc1")->load();
     settings.detuneosc1 = apvts.getRawParameterValue("detune_osc1")->load();
     settings.detuneosc2 = apvts.getRawParameterValue("detune_osc2")->load();
-
     settings.panOsc1 = apvts.getRawParameterValue("panOsc1")->load();
     settings.panOsc2 = apvts.getRawParameterValue("panOsc2")->load();
     settings.gainOVR = apvts.getRawParameterValue("gainOVR")->load();
-
     settings.modDestination1 = apvts.getRawParameterValue("modDestination1")->load();
     settings.modSource1 = apvts.getRawParameterValue("modSource1")->load();
     settings.modIntensity1 = apvts.getRawParameterValue("modIntensity1")->load();
-
     settings.modDestination2 = apvts.getRawParameterValue("modDestination2")->load();
     settings.modSource2 = apvts.getRawParameterValue("modSource2")->load();
     settings.modIntensity2 = apvts.getRawParameterValue("modIntensity2")->load();
-
     settings.modDestination3 = apvts.getRawParameterValue("modDestination3")->load();
     settings.modSource3 = apvts.getRawParameterValue("modSource3")->load();
     settings.modIntensity3 = apvts.getRawParameterValue("modIntensity3")->load();
-
     settings.modDestination4 = apvts.getRawParameterValue("modDestination4")->load();
     settings.modSource4 = apvts.getRawParameterValue("modSource4")->load();
     settings.modIntensity4 = apvts.getRawParameterValue("modIntensity4")->load();
@@ -479,6 +470,8 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.pulseWidthOsc2 = apvts.getRawParameterValue("pulseWidthOsc2")->load();
     settings.lfo1Unipolar = apvts.getRawParameterValue("lfo1Unipolar")->load();
     settings.lfo2Unipolar = apvts.getRawParameterValue("lfo2Unipolar")->load();
+    settings.filterKeytrack = apvts.getRawParameterValue("filterKeytrackEnable")->load();
+    settings.filterKeytrackOffset = apvts.getRawParameterValue("filterKeytrackOffset")->load();
 
     return settings;
 }
@@ -577,19 +570,15 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::GainOvr,s.gainOVR,nullptr);
     tree.setProperty(IDs::SWCoarse,s.detuneosc1,nullptr);
     tree.setProperty(IDs::VACoarse,s.detuneosc2,nullptr);
-
     tree.setProperty(IDs::ModDestination1,s.modDestination1,nullptr);
     tree.setProperty(IDs::ModSource1,s.modSource1,nullptr);
     tree.setProperty(IDs::ModIntensity1,s.modIntensity1,nullptr);
-
     tree.setProperty(IDs::ModDestination2,s.modDestination2,nullptr);
     tree.setProperty(IDs::ModSource2,s.modSource2,nullptr);
     tree.setProperty(IDs::ModIntensity2,s.modIntensity2,nullptr);
-
     tree.setProperty(IDs::ModDestination3,s.modDestination3,nullptr);
     tree.setProperty(IDs::ModSource3,s.modSource3,nullptr);
     tree.setProperty(IDs::ModIntensity3,s.modIntensity3,nullptr);
-
     tree.setProperty(IDs::ModDestination4,s.modDestination4,nullptr);
     tree.setProperty(IDs::ModSource4,s.modSource4,nullptr);
     tree.setProperty(IDs::ModIntensity4,s.modIntensity4,nullptr);
@@ -598,4 +587,6 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::PulseWidthOSC2,s.pulseWidthOsc2,nullptr);
     tree.setProperty(IDs::LFO1Unipolar,s.lfo1Unipolar,nullptr);
     tree.setProperty(IDs::LFO2Unipolar,s.lfo2Unipolar,nullptr);
+    tree.setProperty(IDs::FilterKeytrackEnable,s.filterKeytrack,nullptr);
+    tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
 }

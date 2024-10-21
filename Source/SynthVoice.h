@@ -39,10 +39,15 @@ public:
 
 	void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
 	               int currentPitchWheelPosition) override {
-		const auto midiNote = midiNoteNumber;
+		midiNote = midiNoteNumber;
 		resetLFO();
 		setOscillatorsFrequency(midiNote,velocity);
 		setRandomPhase();
+		if(filterKeytrack)
+		{
+			vaSVF.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
+			ladder.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
+		}
 		ampEnv.noteOn();
 		amp2Env.noteOn();
 		modEnv.noteOn();
@@ -137,8 +142,15 @@ public:
 		isPrepared = true;
 	}
 
+	void setKeytrack()
+	{
+		filterKeytrack = state[IDs::FilterKeytrackEnable];
+		filterKeytrackOffset = state[IDs::FilterKeytrackOffset];
+	}
+
 	void update()
 	{
+		setKeytrack();
 		setLFOParameters();
 		getEnvelopeParameters();
 		setFilterParameters();
@@ -174,9 +186,6 @@ public:
         bool hasSourceChanged = oldRouting[i].modSource != routing[i].modSource;
         bool hasDestChanged = oldRouting[i].modDest != routing[i].modDest;
         bool hasIntensityChanged = oldRouting[i].modIntensity != routing[i].modIntensity;
-
-        // Debugging: Print the routing values
-
         // when it is connected
         if (routing[i].modDest > 0)
         {
@@ -187,16 +196,10 @@ public:
                 {
                     modMatrix.addRouting(routing[i].modSource, 0, routing[i].modIntensity); // SVF Filter
                     modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
-
-                    // Debugging: Confirmation of routing to filters
-
                 }
                 else if (routing[i].modDest > 1) // other
                 {
-                    modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
-
-                    // Debugging: Confirmation of other routing
-
+	                modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
                 }
 
                 // if destination or source has changed reset routing
@@ -242,8 +245,8 @@ public:
 }
 	void setFilterParameters()
 	{
-		vaSVF.setParameters();
-		ladder.setParameters();
+		vaSVF.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
+		ladder.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
 		SVFEnabled = static_cast<int>(state[IDs::SVFEnabled]);
 	}
 	void setOscParameters()
@@ -325,15 +328,18 @@ public:
     auto outputLeft = swBuffer.getWritePointer(0);
     auto outputRight = swBuffer.getWritePointer(1);
 
-		for (int sample = 0; sample < numSamples; ++sample)
+	int remainingSamples = numSamples;
+    int samplePos = 0;
+
+    while (remainingSamples > 0)
+    {
+        const int numToProcess = juce::jmin(remainingSamples, updateCounter);
+
+        for (int sample = 0; sample < numToProcess; ++sample)
         {
-        	lfo1Mod = lfoGenerator1.render();
-        	lfo2Mod = lfoGenerator2.render();
-        	modMatrix.render();
-        	ladder.setModResonance(*vaSVF.getModResonance());
-		    updatePan();
         	vaSVF.calculateFilterCoeffs();
         	ladder.updateModulation();
+			updatePan();
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
 
@@ -341,15 +347,14 @@ public:
             nextAmp2Sample = amp2Env.nextValue();
         	envelopeMod = modEnv.nextValue()*envelopeAmount;
 
-        	if (modEnv.isInSustain()==true && loopEnvelope)
-        	{
-        		modEnv.reset();
-        		modEnv.noteOn();
-        	}
-
         	float osc2Output = oscVA.getNextSample();
         	float osc1Output = oscSW.getNextSample();
 
+			if(modEnv.isInSustain()&&loopEnvelope)
+			{
+				modEnv.reset();
+				modEnv.noteOn();
+			}
 			if(commonEnvelope)
 			{
 				channelLeft += osc2Output * nextAmpSample * panLeft[1];
@@ -377,10 +382,24 @@ public:
             channelLeft = level.processSample(channelLeft);
             channelRight = level.processSample(channelRight);
 
-            outputLeft[sample] = channelLeft + inputLeft[sample];
-            outputRight[sample] = channelRight + inputRight[sample];
+            outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
+            outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
         }
 
+        remainingSamples -= numToProcess;
+        samplePos += numToProcess;
+        updateCounter -= numToProcess;
+
+        if (updateCounter <= 0)
+        {
+            updateCounter = updateRate;
+            lfo1Mod = lfoGenerator1.render();
+        	lfo2Mod = lfoGenerator2.render();
+            modMatrix.render();
+        	ladder.setModResonance(*vaSVF.getModResonance());
+
+        }
+    }
     for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
     {
         outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
@@ -450,6 +469,9 @@ private:
 		int modSource=0;
 		float modIntensity=0.f;
 	};
+	int midiNote{0};
+	bool filterKeytrack{false};
+	int filterKeytrackOffset{0};
 	std::array<modRouting,4> routing;
 	std::array<modRouting,4> oldRouting;
 	float nextAmpSample{0.f};

@@ -50,8 +50,16 @@ public:
 			else
 				vaFilterParameters.fc=tree[IDs::Cutoff];
 
-			vaFilterParameters.Q=tree[IDs::Resonance];
-			vaFilterParameters.filterDrive = static_cast<double>(tree[IDs::FilterDrive]);
+			vaFilterParameters.selfOscillate = false;
+			vaFilterParameters.Q=static_cast<float>(tree[IDs::Resonance])/10.f;
+
+			if(vaFilterParameters.Q<0.1f)
+				vaFilterParameters.Q = 0.1f;
+			if(vaFilterParameters.Q==10.f)
+				vaFilterParameters.selfOscillate = true;
+
+			vaFilterParameters.filterDrive =juce::jmap( static_cast<float>(tree[IDs::FilterDrive]),1.f,5.f);
+
 			int filterType = (tree[IDs::FilterT]);
 			switch(filterType)
 			{
@@ -79,7 +87,6 @@ public:
 		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
 		double filterDrive = vaFilterParameters.filterDrive;
 
-		filterDrive = juce::jmap(filterDrive,0.0,5.0);
 		if (vaFilterParameters.enableGainComp)
 		{
 			double peak_dB = dBPeakGainFor_Q(vaFilterParameters.Q);
@@ -89,6 +96,7 @@ public:
 				xn *= halfPeak_dBGain;
 			}
 		}
+		xn = arctangentSaturation(xn,filterDrive);
 		double hpf = alpha0*(xn - rho*integrator_z[0] - integrator_z[1]);
 
 		double bpf = alpha*hpf + integrator_z[0];
@@ -127,9 +135,9 @@ public:
 		float currentCutoff = vaFilterParameters.fc;
 		float currentResonance = vaFilterParameters.Q;
 		float modulatedCutoff;
-		float modulatedResonance = modValue[kRESONANCE] * 100.0f;
+		float modulatedResonance = modValue[kRESONANCE] * 10.0f;
 		modulatedResonance = currentResonance + modulatedResonance;
-		filterResonance.setTargetValue(juce::jlimit(0.0f, 100.0f, modulatedResonance));
+		filterResonance.setTargetValue(juce::jlimit(0.0f, 10.0f, modulatedResonance));
 		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.00f))
 		{
 			modulatedCutoff = modValue[kCUTOFF] * 2.5f;
@@ -222,7 +230,7 @@ public:
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
 		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,1.0f);
-		driveAmount = tree[IDs::FilterDrive];
+		driveAmount = juce::jmap(static_cast<float>(tree[IDs::FilterDrive]),1.f,100.f,1.f,10.f);
 		if(keyTrack)
 		{
 			cutOffFrequency  = juce::MidiMessage::getMidiNoteInHertz(currentMidiPitch);

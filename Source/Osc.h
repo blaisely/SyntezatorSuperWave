@@ -196,7 +196,7 @@ public:
     {
         std::random_device rd;
         std::mt19937 gen(rd());
-        std::uniform_real_distribution<> distr(0.0, 0.5);
+        std::uniform_real_distribution<> distr(0.0, juce::MathConstants<float>::twoPi);
         auto randomValue = static_cast<float> (distr(gen));
         return randomValue;
     }

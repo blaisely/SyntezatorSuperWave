@@ -35,13 +35,21 @@ public:
 		filterCutOff.reset(sampleRate,0.001f);
 		return true;
 	}
-	void setParameters()
+	void setParameters(bool keyTrack, int keyTrackOffset, float currentMidiPitch)
 	{
 		if(vaFilterParameters.fc!=static_cast<float>(tree[IDs::Cutoff])||
 			vaFilterParameters.Q!=static_cast<float>(tree[IDs::Resonance]) ||
-			vaFilterParameters.filterDrive!=static_cast<double>(tree[IDs::FilterDrive]))
+			vaFilterParameters.filterDrive!=static_cast<double>(tree[IDs::FilterDrive])||keyTrack)
 		{
-			vaFilterParameters.fc=tree[IDs::Cutoff];
+			if(keyTrack)
+			{
+				float fc  = juce::MidiMessage::getMidiNoteInHertz(currentMidiPitch);
+				fc*=std::pow(2.0f,keyTrackOffset/12);
+				vaFilterParameters.fc = fc;
+			}
+			else
+				vaFilterParameters.fc=tree[IDs::Cutoff];
+
 			vaFilterParameters.Q=tree[IDs::Resonance];
 			vaFilterParameters.filterDrive = static_cast<double>(tree[IDs::FilterDrive]);
 			int filterType = (tree[IDs::FilterT]);
@@ -122,7 +130,7 @@ public:
 		float modulatedResonance = modValue[kRESONANCE] * 100.0f;
 		modulatedResonance = currentResonance + modulatedResonance;
 		filterResonance.setTargetValue(juce::jlimit(0.0f, 100.0f, modulatedResonance));
-		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.f))
+		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.00f))
 		{
 			modulatedCutoff = modValue[kCUTOFF] * 2.5f;
 			modulatedCutoff = currentCutoff * std::exp(modulatedCutoff);
@@ -130,10 +138,11 @@ public:
 		}
 		else
 			modulatedCutoff = currentCutoff;
+
 		filterCutOff.setTargetValue(modulatedCutoff);
 
 		double fc = filterCutOff.getNextValue();
-		double Q = filterResonance.getNextValue();  // Modulated resonance value
+		double Q = filterResonance.getNextValue();
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 
 		// Filter coefficient calculations remain the same
@@ -209,12 +218,20 @@ public:
 	setEnabled(true);
 	}
 	~MOOGFilter()=default;
-	void setParameters()
+	void setParameters(bool keyTrack, int keyTrackOffset, int currentMidiPitch)
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
 		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,1.0f);
 		driveAmount = tree[IDs::FilterDrive];
-		setCutoffFrequencyHz(cutOffFrequency);
+		if(keyTrack)
+		{
+			cutOffFrequency  = juce::MidiMessage::getMidiNoteInHertz(currentMidiPitch);
+			cutOffFrequency*=std::pow(2.0f,keyTrackOffset/12);
+			setCutoffFrequencyHz(cutOffFrequency);
+		}
+		else if(!keyTrack)
+			setCutoffFrequencyHz(cutOffFrequency);
+
 		setResonance(resonance);
 		setDrive(driveAmount);
 		type = static_cast<int>(tree[IDs::FilterT]);

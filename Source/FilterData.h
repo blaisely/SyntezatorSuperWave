@@ -58,7 +58,7 @@ public:
 			if(vaFilterParameters.Q==10.f)
 				vaFilterParameters.selfOscillate = true;
 
-			vaFilterParameters.filterDrive =juce::jmap( static_cast<float>(tree[IDs::FilterDrive]),1.f,5.f);
+			vaFilterParameters.filterDrive =juce::jmap(static_cast<float>(tree[IDs::FilterDrive]),1.f,3.f);
 
 			int filterType = (tree[IDs::FilterT]);
 			switch(filterType)

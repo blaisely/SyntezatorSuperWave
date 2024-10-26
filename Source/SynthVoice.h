@@ -17,12 +17,12 @@
 #include "Osc.h"
 #include "ModMatrix.h"
 #include "SharedData.h"
-class SynthVoice : public juce::SynthesiserVoice,juce::ValueTree::Listener
+class SynthVoice : public juce::SynthesiserVoice, juce::ValueTree::Listener
 {
 public:
 
 	explicit SynthVoice::SynthVoice(juce::ValueTree& v):
-	keyTrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(48000.0f,20.0f)), state(v),
+	hiPassKeytrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(),20.0f)), state(v),
 	oscSW(v),oscVA(v),
 	vaSVF(v),
 	ladder(v),
@@ -48,6 +48,10 @@ public:
 			vaSVF.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
 			ladder.setParameters(filterKeytrack,filterKeytrackOffset,midiNote);
 		}
+
+		*hiPassKeytrack.state = *juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(),
+			static_cast<float>(juce::MidiMessage::getMidiNoteInHertz(midiNote)));
+
 		ampEnv.noteOn();
 		amp2Env.noteOn();
 		modEnv.noteOn();
@@ -106,7 +110,7 @@ public:
 		synthBuffer.clear();
 		const juce::dsp::ProcessSpec spec{sampleRate,static_cast<uint32_t>(samplesPerBlock),static_cast<uint32_t>(outputChannels)};
 		level.prepare(spec);
-		keyTrack.prepare(spec);
+		hiPassKeytrack.prepare(spec);
 		ladder.prepare(spec);
 		level.setGainLinear(0.5f);
 		lfoGenerator1.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
@@ -400,6 +404,9 @@ public:
 
         }
     }
+
+		juce::dsp::ProcessContextReplacing<float> process_context_replacing{oscillatorSW};
+		hiPassKeytrack.process(process_context_replacing);
     for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
     {
         outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
@@ -436,7 +443,7 @@ public:
 		vaSVF.reset(getSampleRate());
 		resetLFO();
 		level.reset();
-		keyTrack.reset();
+		hiPassKeytrack.reset();
 		ladder.reset();
 		ampEnv.reset();
 		amp2Env.reset();
@@ -505,7 +512,7 @@ private:
 	LFO lfoGenerator2;
 	juce::AudioBuffer<float> swBuffer;
 	juce::AudioBuffer<float> synthBuffer;
-	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
+	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  hiPassKeytrack;
 	juce::ValueTree state;
 	analogEG ampEnv;
 	analogEG amp2Env;

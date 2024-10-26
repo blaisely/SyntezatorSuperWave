@@ -50,7 +50,6 @@ SimpleSynthAudioProcessor::SimpleSynthAudioProcessor()
 
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
-    mySynth.setNoteStealingEnabled(true);
 }
 
 SimpleSynthAudioProcessor::~SimpleSynthAudioProcessor()

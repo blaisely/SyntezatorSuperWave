@@ -280,6 +280,12 @@ public:
             params.phases[i] = 0.0f;
             params.phaseIncrements[i] = 0.0f;
         }
+        for(auto &v:smoothedMod)
+        {
+            v.reset(lastSampleRate,0.001f);
+        }
+        pulseWidth.reset(lastSampleRate,0.001f);
+        typeOsc.reset(lastSampleRate,0.001f);
     }
     float* getModDetune()
     {

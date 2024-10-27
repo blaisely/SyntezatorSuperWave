@@ -29,13 +29,20 @@ namespace IDs{
     ID ADSR2Decay("adsr2_d");
     ID ADSR2Sustain("adsr2_s");
     ID ADSR2Release("adsr2_r");
+    ID ADSR3Attack("adsr3_a");
+    ID ADSR3Decay("adsr3_d");
+    ID ADSR3Sustain("adsr3_s");
+    ID ADSR3Release("adsr3_r");
     ID ADSR2Mod("adsr2_mod");
     ID LFODepth("LFODepth");
     ID LFO2Depth("LFO2Depth");
+    ID LFO3Depth("LFO3Depth");
     ID LFOFreq("LFOFrequency");
     ID LFO2Freq("LFO2Frequency");
+    ID LFO3Freq("LFO3Frequency");
     ID LFOType("LFOType");
     ID LFO2Type("LFO2Type");
+    ID LFO3Type("LFO3Type");
     ID LFOMod("LFOMod");
     ID Filter("Filter");
     ID FilterT("FilterType");
@@ -80,10 +87,12 @@ namespace IDs{
     ID ModIntensity3("Mod Intensity3");
     ID ModIntensity4("Mod Intensity4");
     ID LoopEnvelope("Loop Mod Envelope");
+    ID LoopEnvelope2("Loop Mod Envelope2");
     ID PulseWidthOSC1("Pulse Width OSC1");
     ID PulseWidthOSC2("Pulse Width OSC2");
     ID LFO1Unipolar("LFO1 Unipolar");
     ID LFO2Unipolar("LFO2 Unipolar");
+    ID LFO3Unipolar("LFO3 Unipolar");
     ID FilterKeytrackEnable("Filter Keytrack Enable");
     ID FilterKeytrackOffset("Filter Keytrack Offset");
 

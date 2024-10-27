@@ -25,7 +25,7 @@ public:
         {
             v.reset(sampleRate,0.001f);
         }
-        pulseWidth.reset(sampleRate,0.001f);
+        pulseWidth2.reset(sampleRate,0.001f);
     }
 
     static float poly_blep(float t, const float& phaseIncrement) {
@@ -81,12 +81,15 @@ public:
         smoothedMod[kOSC_TYPE].setTargetValue(std::clamp(type+modValue[kOSC_TYPE],0.f,3.f));
         updatePitch();
         float y=0;
+
         y = nextSample(phase,phaseIncrement,lastOutput);
 
         smoothedMod[kGAIN].setTargetValue(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
         gain.setGainLinear(smoothedMod[kGAIN].getNextValue());
+
         y = gain.processSample(y);
         y = y*0.5f*noteVelocity;
+
         return y;
     }
 
@@ -95,6 +98,11 @@ public:
         phase = 0.0f;
         phaseIncrement = 0.0f;
         lastOutput = 0.0f;
+        for(auto &v:smoothedMod)
+        {
+            v.reset(lastSampleRate,0.001f);
+        }
+        pulseWidth2.reset(lastSampleRate,0.001f);
 
     }
     void setRandomPhase(const float& phase)
@@ -111,7 +119,6 @@ public:
         if(type>=0.0f && type<1.0f)
         {
             value = sine(phase);
-
             value2 = poly_saw(phase);
             value2 -= poly_blep(t, phaseIncrement);
             output = value*(1.f-type)+(value2*type);
@@ -120,17 +127,16 @@ public:
         {
             value = poly_saw(phase);
             value -= poly_blep(t, phaseIncrement);
-
             value2 = square(phase);
             value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            value2 -= poly_blep(fmod(t + pulseWidth2.getCurrentValue(), 1.0f), phaseIncrement);
             output = value*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
             value = square(phase);
             value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            value -= poly_blep(fmod(t + pulseWidth2.getCurrentValue(), 1.0f), phaseIncrement);
 
             value2 = triangle(phase);
             value2 += poly_blep(t, phaseIncrement);
@@ -177,7 +183,6 @@ public:
         gainAmt = state[IDs::VAgain];
         gain.setGainLinear(gainAmt);
         pw = static_cast<float>(state[IDs::PulseWidthOSC2])/100.f;
-
     }
     float* getModPitch()
     {

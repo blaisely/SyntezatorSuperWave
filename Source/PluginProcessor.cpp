@@ -204,6 +204,7 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     DCOffset.process(context);
     gainAmt.setTargetValue(static_cast<float>(tree[IDs::GainOvr]));
 
+    //Process every sample by gain value
         for(auto sample=0;sample<buffer.getNumSamples();sample++)
         {
             pluginGain.setGainLinear(gainAmt.getNextValue());
@@ -266,24 +267,28 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     juce::NormalisableRange<float> sustainRange{0.0f,100.0f,1.f};
     juce::NormalisableRange<float> releaseRange{0.0f,100.f,1.f,0.7};
     layout.add(std::make_unique<juce::AudioParameterFloat>("gainOVR","Gain",0.f,1.f,0.1f));
+    //Filter Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20480.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",
         juce::NormalisableRange<float>(0.000,100.00,0.01,0.4),0.707,
         juce::AudioParameterFloatAttributes().withLabel("%")));
+    auto attributesFilter = juce::AudioParameterChoiceAttributes().withLabel("selectedFilterType");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("filterType", "FilterType", juce::StringArray{ "LowPass", "HighPass", "BandPass" }
+        , 0, attributesFilter));
     layout.add(std::make_unique<juce::AudioParameterBool>("filterKeytrackEnable", "Filter Keytrack Enable",0));
     layout.add(std::make_unique<juce::AudioParameterInt>(
         "filterKeytrackOffset", "Filter Keytrack Offset",-48,48,0));
-
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,100,1,
         juce::AudioParameterIntAttributes().withLabel("%")));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterVelocity","Filter Velocity Sensitivity",juce::NormalisableRange<float>{0,100,1},0,
         juce::AudioParameterFloatAttributes().withLabel("%")));
+    //Gain Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.7f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", -100.0f, 100.0f, 0.0f));
-
+    //Tuning Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave Osc1",
         juce::NormalisableRange<float>{-3,3,1},0));
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc2", "Octave Osc2",
@@ -297,7 +302,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("detune_osc2", "Fine Detune Osc2",
         juce::NormalisableRange<float>{-100,100,1},0));
 
-
+    //ADSR Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("attack", "Attack",attackRange,
         0.40f,juce::AudioParameterFloatAttributes().withLabel("%")));
     layout.add(std::make_unique<juce::AudioParameterFloat>("decay", "Decay",decayRange,1.f,
@@ -316,22 +321,38 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc2", "ReleaseEnv2(Osc2)",releaseRange,1.f,
         juce::AudioParameterFloatAttributes().withLabel("%")));
 
+    layout.add(std::make_unique<juce::AudioParameterFloat>("attackOsc3", "AttackEnv3",attackRange,0.4f,
+        juce::AudioParameterFloatAttributes().withLabel("%")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("decayOsc3", "DecayEnv3",decayRange,1.f,
+        juce::AudioParameterFloatAttributes().withLabel("%")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("sustainOsc3", "SustainEnv3",sustainRange , 100.0f,
+        juce::AudioParameterFloatAttributes().withLabel("%")));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("releaseOsc3", "ReleaseEnv3",releaseRange,1.f,
+        juce::AudioParameterFloatAttributes().withLabel("%")));
+    //LFO Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfodepth", "LF0 Depth",
         juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f}, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfofreq", "LFO Freq",
         juce::NormalisableRange<float>{ 0.01f, 20.0f, 0.01f,0.3f},0.1f));
     auto attributesLFOType = juce::AudioParameterChoiceAttributes().withLabel("LFO Type");
     layout.add(std::make_unique<juce::AudioParameterChoice>("lfoType", "LFO Type", juce::StringArray{ "Sine", "Square", "Saw"
-    ,"S&H","Random"},
+    ,"Sample&Hold"},
     0, attributesLFOType));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfo2depth", "LFO2 Depth",
         juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.2f}, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfo2freq", "LFO2 Freq",
         juce::NormalisableRange<float>{ 0.01f, 20.0f, 0.01f,0.3f},0.1f));
     auto attributesLFO2Type = juce::AudioParameterChoiceAttributes().withLabel("LFO2 Type");
-    layout.add(std::make_unique<juce::AudioParameterChoice>("lfo2Type", "LFO2 Type", juce::StringArray{ "Sine", "Square", "Saw"},
-    0, attributesLFOType));
-
+    layout.add(std::make_unique<juce::AudioParameterChoice>("lfo2Type", "LFO2 Type", juce::StringArray{ "Sine", "Square", "Saw","Sample&Hold"},
+    0, attributesLFO2Type));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("lfo3depth", "LFO3 Depth",
+        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f}, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("lfo3freq", "LFO3 Freq",
+        juce::NormalisableRange<float>{ 0.01f, 20.0f, 0.01f,0.3f},0.1f));
+    auto attributesLFO3Type = juce::AudioParameterChoiceAttributes().withLabel("LFO3 Type");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("lfo3Type", "LFO3 Type", juce::StringArray{ "Sine", "Square", "Saw","Sample&Hold"},
+    0, attributesLFO3Type));
+    //Mod Matrix Params
     auto attributesModDestination1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 1");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination1", "Mod Destination 1",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
@@ -340,7 +361,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     0, attributesModDestination1));
     auto attributesModSource1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 1");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource1", "Mod Source 1",
-        juce::StringArray{"LFO 1","LFO2","AMP","Env2"},
+        juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
     0, attributesModDestination1));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity1","Mod Intensity 1",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
@@ -353,7 +374,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     0, attributesModDestination2));
     auto attributesModSource2 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 2");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource2", "Mod Source 2",
-    juce::StringArray{"LFO 1","LFO2","AMP","Env2"},
+    juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
     1, attributesModDestination2));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity2","Mod Intensity 2",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
@@ -366,7 +387,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     0, attributesModDestination3));
     auto attributesModSource3 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 3");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource3", "Mod Source 3",
-    juce::StringArray{"LFO 1","LFO2","AMP","Env2"},
+    juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
     2, attributesModDestination3));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity3","Mod Intensity 3",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
@@ -379,21 +400,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     0, attributesModDestination4));
     auto attributesModSource4 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 4");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modSource4", "Mod Source 4",
-    juce::StringArray{"LFO 1","LFO2","AMP","Env2"},
+    juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
     2, attributesModDestination4));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity4","Mod Intensity 4",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
-
-    layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "DetuneAmount",
+    //SuperSaw params
+    layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "Detune Amount",
         juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("volumeSuper", "DetuneVolume",
+    layout.add(std::make_unique<juce::AudioParameterFloat>("volumeSuper", "Detune Mix",
         juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f}, 0.0f));
-
-    auto attributesFilter = juce::AudioParameterChoiceAttributes().withLabel("selectedFilterType");
-
-    layout.add(std::make_unique<juce::AudioParameterChoice>("filterType", "FilterType", juce::StringArray{ "LowPass", "HighPass", "BandPass" }
-        , 0, attributesFilter));
-
+    //OSC params
     layout.add(std::make_unique<juce::AudioParameterFloat>("oscType_osc1","OSC1 Type",
         juce::NormalisableRange<float>{0.0f,3.0f,0.1f},0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("pulseWidthOsc1","Pulse Width OSC1",
@@ -402,12 +418,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
         juce::NormalisableRange<float>{0.0f,3.0f,0.1f},0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("pulseWidthOsc2","Pulse Width OSC2",
         juce::NormalisableRange<float>{10,90,1},50,juce::AudioParameterFloatAttributes().withLabel("%")));
+    //Additional Params
     layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter ON", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "LFO Reset", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope for OSCs", 1));
-    layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope", "Loop Mod Envelope", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope", "Loop Mod Envelope1", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope2", "Loop Mod Envelope2", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo1Unipolar", "LFO1 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo2Unipolar", "LFO2 Unipolar", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfo3Unipolar", "LFO3 Unipolar", 0));
 
 
     return layout;
@@ -430,17 +449,24 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.decayEnv2 = apvts.getRawParameterValue("decayOsc2")->load();
     settings.sustainEnv2  = apvts.getRawParameterValue("sustainOsc2")->load();
     settings.releaseEnv2 = apvts.getRawParameterValue("releaseOsc2")->load();
+    settings.attackEnv3 = apvts.getRawParameterValue("attackOsc3")->load();
+    settings.decayEnv3 = apvts.getRawParameterValue("decayOsc3")->load();
+    settings.sustainEnv3  = apvts.getRawParameterValue("sustainOsc3")->load();
+    settings.releaseEnv3 = apvts.getRawParameterValue("releaseOsc3")->load();
     settings.commonEnvelope = apvts.getRawParameterValue("commonEnvelope")->load();
     settings.envelopeAmount = apvts.getRawParameterValue("filterEnvelope")->load();
     settings.gain_osc1 = apvts.getRawParameterValue("gain_osc1")->load();
     settings.gain_osc2 = apvts.getRawParameterValue("gain_osc2")->load();
     settings.lfodepth = apvts.getRawParameterValue("lfodepth")->load();
     settings.lfo2depth = apvts.getRawParameterValue("lfo2depth")->load();
+    settings.lfo3depth = apvts.getRawParameterValue("lfo3depth")->load();
     settings.lfofreq = apvts.getRawParameterValue("lfofreq")->load();
     settings.lfo2freq = apvts.getRawParameterValue("lfo2freq")->load();
+    settings.lfo3freq = apvts.getRawParameterValue("lfo3freq")->load();
     settings.lfoReset = apvts.getRawParameterValue("lfoReset")->load();
     settings.lfoType = apvts.getRawParameterValue("lfoType")->load();
     settings.lfo2Type = apvts.getRawParameterValue("lfo2Type")->load();
+    settings.lfo3Type = apvts.getRawParameterValue("lfo3Type")->load();
     settings.detune = apvts.getRawParameterValue("detuneSuper")->load();
     settings.volume = apvts.getRawParameterValue("volumeSuper")->load();
     settings.filterOn = apvts.getRawParameterValue("filterbutton")->load();
@@ -466,12 +492,15 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.modSource4 = apvts.getRawParameterValue("modSource4")->load();
     settings.modIntensity4 = apvts.getRawParameterValue("modIntensity4")->load();
     settings.loopModEnvelope = apvts.getRawParameterValue("loopEnvelope")->load();
+    settings.loopModEnvelope2 = apvts.getRawParameterValue("loopEnvelope2")->load();
     settings.pulseWidthOsc1 = apvts.getRawParameterValue("pulseWidthOsc1")->load();
     settings.pulseWidthOsc2 = apvts.getRawParameterValue("pulseWidthOsc2")->load();
     settings.lfo1Unipolar = apvts.getRawParameterValue("lfo1Unipolar")->load();
     settings.lfo2Unipolar = apvts.getRawParameterValue("lfo2Unipolar")->load();
+    settings.lfo3Unipolar = apvts.getRawParameterValue("lfo3Unipolar")->load();
     settings.filterKeytrack = apvts.getRawParameterValue("filterKeytrackEnable")->load();
     settings.filterKeytrackOffset = apvts.getRawParameterValue("filterKeytrackOffset")->load();
+
 
     return settings;
 }
@@ -545,14 +574,21 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::ADSR2Decay, s.decayEnv2, nullptr);
     tree.setProperty(IDs::ADSR2Sustain, s.sustainEnv2, nullptr);
     tree.setProperty(IDs::ADSR2Release, s.releaseEnv2, nullptr);
+    tree.setProperty(IDs::ADSR3Attack, s.attackEnv3, nullptr);
+    tree.setProperty(IDs::ADSR3Decay, s.decayEnv3, nullptr);
+    tree.setProperty(IDs::ADSR3Sustain, s.sustainEnv3, nullptr);
+    tree.setProperty(IDs::ADSR3Release, s.releaseEnv3, nullptr);
     tree.setProperty(IDs::SWgain, s.gain_osc1, nullptr);
     tree.setProperty(IDs::VAgain, s.gain_osc2, nullptr);
     tree.setProperty(IDs::LFODepth, s.lfodepth, nullptr);
     tree.setProperty(IDs::LFO2Depth, s.lfo2depth, nullptr);
+    tree.setProperty(IDs::LFO3Depth, s.lfo3depth, nullptr);
     tree.setProperty(IDs::LFOFreq, s.lfofreq, nullptr);
     tree.setProperty(IDs::LFO2Freq, s.lfo2freq, nullptr);
+    tree.setProperty(IDs::LFO3Freq, s.lfo3freq, nullptr);
     tree.setProperty(IDs::LFOType, s.lfoType, nullptr);
     tree.setProperty(IDs::LFO2Type, s.lfo2Type, nullptr);
+    tree.setProperty(IDs::LFO3Type, s.lfo3Type, nullptr);
     tree.setProperty(IDs::SWdetuneS, s.detune, nullptr);
     tree.setProperty(IDs::SWvolumeS, s.volume, nullptr);
     tree.setProperty(IDs::SWdetune, s.coarseosc1, nullptr);
@@ -587,6 +623,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::PulseWidthOSC2,s.pulseWidthOsc2,nullptr);
     tree.setProperty(IDs::LFO1Unipolar,s.lfo1Unipolar,nullptr);
     tree.setProperty(IDs::LFO2Unipolar,s.lfo2Unipolar,nullptr);
+    tree.setProperty(IDs::LFO3Unipolar,s.lfo3Unipolar,nullptr);
     tree.setProperty(IDs::FilterKeytrackEnable,s.filterKeytrack,nullptr);
     tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
 }

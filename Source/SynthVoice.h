@@ -26,7 +26,7 @@ public:
 	oscSW(v),oscVA(v),
 	vaSVF(v),
 	ladder(v),
-	lfoGenerator1(v), lfoGenerator2(v)
+	lfoGenerator1(v), lfoGenerator2(v), lfoGenerator3(v)
 	{
 		state.addListener(this);
 	}
@@ -55,16 +55,14 @@ public:
 		ampEnv.noteOn();
 		amp2Env.noteOn();
 		modEnv.noteOn();
+		modEnv2.noteOn();
 	}
 	void setOscillatorsFrequency(const int midiNote, const float velocity)
 	{
 		float analogOffset = juce::Random::getSystemRandom().nextFloat()*0.008f;
 		oscSW.setFrequency(frequency, midiNote, velocity, analogOffset);
-		DBG("Analog OSC1: "+std::to_string(analogOffset));
 		analogOffset = juce::Random::getSystemRandom().nextFloat()*0.0008f;
 		oscVA.setFrequency(frequency, midiNote, velocity,analogOffset);
-		DBG("Analog OSC2: "+std::to_string(analogOffset));
-
 	}
 	void setRandomPhase()
 	{
@@ -73,10 +71,8 @@ public:
 		{
 			phase = oscSW.randomPhase();
 		}
-
-			oscSW.setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
-			oscVA.setRandomPhase(phase);
-
+		oscSW.setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
+		oscVA.setRandomPhase(phase);
 	}
 
 	void stopNote(float velocity, bool allowTailOff) override
@@ -84,18 +80,17 @@ public:
 		ampEnv.noteOff();
 		amp2Env.noteOff();
 		modEnv.noteOff();
+		modEnv2.noteOff();
 		resetLFO();
 		if(commonEnvelope)
 		{
 			if (! allowTailOff || ! ampEnv.isActive() )
 				clearCurrentNote();
-
 		}
 		else
 		{
 			if (! allowTailOff || ! ampEnv.isActive() && ! amp2Env.isActive()  )
 				clearCurrentNote();
-
 		}
 
 	}
@@ -109,9 +104,10 @@ public:
 
 	void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
 	{
-		reset();
+
 		synthBuffer.setSize(2, samplesPerBlock, true, true, true);
 		synthBuffer.clear();
+		inverseSampleRate = 1.0f / sampleRate;
 		const juce::dsp::ProcessSpec spec{sampleRate,static_cast<uint32_t>(samplesPerBlock),static_cast<uint32_t>(outputChannels)};
 		level.prepare(spec);
 		hiPassKeytrack.prepare(spec);
@@ -119,6 +115,7 @@ public:
 		level.setGainLinear(0.5f);
 		lfoGenerator1.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 		lfoGenerator2.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
+		lfoGenerator3.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 		oscSW.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		oscVA.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		panOSC1.reset(sampleRate,0.001);
@@ -143,17 +140,13 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_TYPE,oscVA.getModOscType());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PWM,oscVA.getModPWM());
 		modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
-		modMatrix.addSource(ModMatrix::modSource::kEG,&envelopeMod);
+		modMatrix.addSource(ModMatrix::modSource::kEG,&nextModEnv1);
+		modMatrix.addSource(ModMatrix::modSource::kEG2,&nextModEnv2);
 		modMatrix.addSource(ModMatrix::modSource::kLFO2,&lfo2Mod);
+		modMatrix.addSource(ModMatrix::modSource::kLFO3,&lfo3Mod);
 		modMatrix.addSource(ModMatrix::modSource::kAMP,&nextAmpSample);
-
+		reset();
 		isPrepared = true;
-	}
-
-	void setKeytrack()
-	{
-		filterKeytrack = state[IDs::FilterKeytrackEnable];
-		filterKeytrackOffset = state[IDs::FilterKeytrackOffset];
 	}
 
 	void update()
@@ -166,6 +159,11 @@ public:
 		setPanParameters();
 		updatePan();
 		setModMatrix();
+	}
+	void setKeytrack()
+	{
+		filterKeytrack = state[IDs::FilterKeytrackEnable];
+		filterKeytrackOffset = state[IDs::FilterKeytrackOffset];
 	}
 	void setModMatrix()
 	{
@@ -264,37 +262,33 @@ public:
 	}
 	void getEnvelopeParameters()
 	{
-		auto sampleRate = float(getSampleRate());
-		float inverseSampleRate = 1.0f / sampleRate;
-
-		ampEnv.attackMultiplier = std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR1Attack])));
-		ampEnv.decayMultiplier = std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR1Decay])));
-		ampEnv.sustainLevel = static_cast<float>(state[IDs::ADSR1Sustain])/100.f;
-		float envRelease = state[IDs::ADSR1Release];
-		if (envRelease < 1.0f) {
-			ampEnv.releaseMultiplier = 0.75f;  // extra fast release
-		} else {
-			ampEnv.releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
-		}
-
-		amp2Env.attackMultiplier =modEnv.attackMultiplier= std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR2Attack])));
-		amp2Env.decayMultiplier=modEnv.decayMultiplier = std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * static_cast<float>(state[IDs::ADSR2Decay])));
-		amp2Env.sustainLevel=modEnv.sustainLevel = static_cast<float>(state[IDs::ADSR2Sustain])/100.f;
-		float env2Release = state[IDs::ADSR2Release];
-		if (env2Release < 1.0f) {
-			amp2Env.releaseMultiplier = modEnv.releaseMultiplier = 0.75f;
-		} else {
-			amp2Env.releaseMultiplier=modEnv.releaseMultiplier =
-				std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * env2Release));
-		}
+		calculateADSR((float)state[IDs::ADSR1Attack],(float)state[IDs::ADSR1Decay],state[IDs::ADSR1Sustain],state[IDs::ADSR1Release],
+			ampEnv);
+		calculateADSR(state[IDs::ADSR2Attack],state[IDs::ADSR2Decay],state[IDs::ADSR2Sustain],state[IDs::ADSR2Release],
+			amp2Env);
+		calculateADSR(state[IDs::ADSR2Attack],state[IDs::ADSR2Decay],state[IDs::ADSR2Sustain],state[IDs::ADSR2Release],
+			modEnv);
+		calculateADSR(state[IDs::ADSR3Attack],state[IDs::ADSR3Decay],state[IDs::ADSR3Sustain],state[IDs::ADSR3Release],
+			modEnv2);
 
 		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
 		commonEnvelope = state[IDs::CommonEnvelope];
 		loopEnvelope = state[IDs::LoopEnvelope];
+		loopEnvelope2 = state[IDs::LoopEnvelope2];
+	}
+	void calculateADSR(const float& a, const float& d,const float& s, const float& r, analogEG& envelope) const
+	{
+		envelope.attackMultiplier = std::exp(-inverseSampleRate *
+			std::exp(5.5f - 0.075f * a));
+		envelope.decayMultiplier = std::exp(-inverseSampleRate *
+			std::exp(5.5f - 0.075f * d));
+		envelope.sustainLevel = s/100.f;
+		float envRelease = r;
+		if (envRelease < 1.0f) {
+			envelope.releaseMultiplier = 0.75f;  // extra fast release
+		} else {
+			envelope.releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
+		}
 	}
 	void setPanParameters()
 	{
@@ -313,17 +307,27 @@ public:
 		float depthLfo1 =static_cast<float>(state[IDs::LFODepth])/100.f;
 		float freqLfo1 = state[IDs::LFOFreq];
 		int typeLfo1 = state[IDs::LFOType];
+
 		float depthLfo2 =static_cast<float>(state[IDs::LFO2Depth])/100.f;
 		float freqLfo2 = state[IDs::LFO2Freq];
 		int typeLfo2 = state[IDs::LFO2Type];
+
+		float depthLfo3 =static_cast<float>(state[IDs::LFO3Depth])/100.f;
+		float freqLfo3 = state[IDs::LFO3Freq];
+		int typeLfo3 = state[IDs::LFO3Type];
+
 		bool lfo1Unipolar = state[IDs::LFO1Unipolar];
 		bool lfo2Unipolar = state[IDs::LFO2Unipolar];
+		bool lfo3Unipolar = state[IDs::LFO3Unipolar];
+		lfoReset = state[IDs::LFOReset];
+
 		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1,lfo1Unipolar);
 		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2,lfo2Unipolar);
-		lfoReset = state[IDs::LFOReset];
+		lfoGenerator3.setParameters(depthLfo3,freqLfo3,typeLfo3,lfo3Unipolar);
 	}
+
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
-{
+	{
     jassert(isPrepared);
     if (!isVoiceActive())
         return;
@@ -353,16 +357,15 @@ public:
 
             nextAmpSample = ampEnv.nextValue();
             nextAmp2Sample = amp2Env.nextValue();
-        	envelopeMod = modEnv.nextValue()*envelopeAmount;
+        	nextModEnv1 = modEnv.nextValue()*envelopeAmount;
+        	nextModEnv2 = modEnv2.nextValue();
 
         	float osc2Output = oscVA.getNextSample();
         	float osc1Output = oscSW.getNextSample();
 
-			if(modEnv.isInSustain()&&loopEnvelope)
-			{
-				modEnv.reset();
-				modEnv.noteOn();
-			}
+			loopModEnvelope1();
+        	loopModEnvelope2();
+
 			if(commonEnvelope)
 			{
 				channelLeft += osc2Output * nextAmpSample * panLeft[1];
@@ -378,17 +381,14 @@ public:
 
             if (SVFEnabled)
             {
-                channelLeft = vaSVF.processAudioSample(channelLeft, 0);
-                channelRight = vaSVF.processAudioSample(channelRight, 1);
+                processSVF(channelLeft, channelRight);
             }
             else
             {
-                channelLeft = ladder.processAudioSample(channelLeft, 0);
-                channelRight = ladder.processAudioSample(channelRight, 1);
+                processLadder(channelLeft, channelRight);
             }
 
-            channelLeft = level.processSample(channelLeft);
-            channelRight = level.processSample(channelRight);
+            processGain(channelLeft, channelRight);
 
             outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
             outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
@@ -403,14 +403,14 @@ public:
             updateCounter = updateRate;
             lfo1Mod = lfoGenerator1.render();
         	lfo2Mod = lfoGenerator2.render();
+        	lfo3Mod = lfoGenerator3.render();
             modMatrix.render();
         	ladder.setModResonance(*vaSVF.getModResonance());
 
         }
     }
+		processKeytrack(oscillatorSW);
 
-		juce::dsp::ProcessContextReplacing<float> process_context_replacing{oscillatorSW};
-		hiPassKeytrack.process(process_context_replacing);
     for (int channel = 0; channel < outputBuffer.getNumChannels(); ++channel)
     {
         outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
@@ -434,11 +434,58 @@ public:
 
 	}
 
-
 	void setUpBuffer(const juce::AudioBuffer<float>& outputBuffer,const int numSamples)
 	{
 		swBuffer.setSize(outputBuffer.getNumChannels(), numSamples, false, false, true);
 		swBuffer.clear();
+	}
+	void processKeytrack(juce::dsp::AudioBlock<float> oscillatorSW)
+	{
+		juce::dsp::ProcessContextReplacing<float> process_context_replacing{oscillatorSW};
+		hiPassKeytrack.process(process_context_replacing);
+	}
+	void processSVF(float& channelLeft, float& channelRight)
+	{
+		channelLeft = vaSVF.processAudioSample(channelLeft, 0);
+		channelRight = vaSVF.processAudioSample(channelRight, 1);
+	}
+
+	void processLadder(float& channelLeft, float& channelRight)
+	{
+		channelLeft = ladder.processAudioSample(channelLeft, 0);
+		channelRight = ladder.processAudioSample(channelRight, 1);
+	}
+
+	void processGain(float& channelLeft, float& channelRight)
+	{
+		channelLeft = level.processSample(channelLeft);
+		channelRight = level.processSample(channelRight);
+	}
+
+	void loopModEnvelope1()
+	{
+		if(modEnv1Loop())
+		{
+			modEnv.reset();
+			modEnv.noteOn();
+		}
+	}
+
+	void loopModEnvelope2()
+	{
+		if(modEnv2Loop())
+		{
+			modEnv2.reset();
+			modEnv2.noteOn();
+		}
+	}
+	bool modEnv1Loop()
+	{
+		return modEnv.isInSustain() && loopEnvelope;
+	}
+	bool modEnv2Loop()
+	{
+		return modEnv2.isInSustain() && loopEnvelope2;
 	}
 
 	void reset()
@@ -452,7 +499,8 @@ public:
 		ampEnv.reset();
 		amp2Env.reset();
 		modEnv.reset();
-
+		panOSC1.reset(getSampleRate(),0.001);
+		panOSC2.reset(getSampleRate(),0.001);
 	}
 	void resetLFO()
 	{
@@ -460,11 +508,11 @@ public:
 		{
 			lfoGenerator1.reset();
 			lfoGenerator2.reset();
+			lfoGenerator3.reset();
 		}
 	}
 	void resetOscillators()
 	{
-
 		oscSW.resetOsc();
 		oscVA.resetOsc();
 	}
@@ -480,6 +528,7 @@ private:
 		int modSource=0;
 		float modIntensity=0.f;
 	};
+	float inverseSampleRate{0.f};
 	int midiNote{0};
 	bool filterKeytrack{false};
 	int filterKeytrackOffset{0};
@@ -493,8 +542,10 @@ private:
 	float panRight[2]{0.f};
 	float lfo1Mod{0.0f};
 	float lfo2Mod{0.0f};
+	float lfo3Mod{0.0f};
 	float envelopeAmount{0.0f};
-	float envelopeMod{0.0f};
+	float nextModEnv1{0.0f};
+	float nextModEnv2{0.0f};
 	bool isPrepared{false};
 	std::array<float, 6> phases{0.0f};
 	float phase{ 0.0f };
@@ -505,6 +556,7 @@ private:
 	bool commonEnvelope;
 	bool lfoReset;
 	bool loopEnvelope = false;
+	bool loopEnvelope2 = false;
 	float oldFrequency{ 0.0f };
 	Osc  oscSW;
 	VAOsc oscVA;
@@ -514,6 +566,7 @@ private:
 	MOOGFilter ladder;
 	LFO lfoGenerator1;
 	LFO lfoGenerator2;
+	LFO lfoGenerator3;
 	juce::AudioBuffer<float> swBuffer;
 	juce::AudioBuffer<float> synthBuffer;
 	juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  hiPassKeytrack;
@@ -521,6 +574,7 @@ private:
 	analogEG ampEnv;
 	analogEG amp2Env;
 	analogEG modEnv;
+	analogEG modEnv2;
 	int updateRate{ 32 };
 	int updateCounter{ updateRate };
 

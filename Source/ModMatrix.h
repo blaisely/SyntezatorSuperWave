@@ -15,8 +15,10 @@ public:
     {
         kLFO,
         kLFO2,
+        kLFO3,
         kAMP,
         kEG,
+        kEG2,
         kNumSrc
     };
     enum modDestination

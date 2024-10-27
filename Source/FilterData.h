@@ -35,7 +35,7 @@ public:
 		filterCutOff.reset(sampleRate,0.001f);
 		return true;
 	}
-	void setParameters(bool keyTrack, int keyTrackOffset, float currentMidiPitch)
+	void setParameters(bool keyTrack, int keyTrackOffset, int currentMidiPitch)
 	{
 		if(vaFilterParameters.fc!=static_cast<float>(tree[IDs::Cutoff])||
 			vaFilterParameters.Q!=static_cast<float>(tree[IDs::Resonance]) ||

@@ -176,15 +176,16 @@ public:
         return 2.0f * (fabs(value) - 0.5f);
     }
 
-    void setFrequency(const float& frequency,const int midiNote, const float velocity)
+    void setFrequency(const float& frequency,const int midiNote, const float velocity, const float analog)
     {
         midiPitch = static_cast<float>( juce::MidiMessage::getMidiNoteInHertz(midiNote));
         noteVelocity = velocity;
+        this->analog = analog;
         updatePitch();
     }
     void updatePitch()
     {
-        const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune+ANALOG)/12.f);
+        const float modPitch = std::pow(2.0f,(octave + coarse + fineDetune+analog)/12.f);
         float modulatedPitch = modValue[kPITCH]*midiPitch;
         smoothedMod[kPITCH] = (modulatedPitch)+midiPitch;
         const float freq =( smoothedMod[kPITCH].getNextValue()) * modPitch;
@@ -338,6 +339,6 @@ private:
     float oscFrequency{ 0.0f };
     float pw{0.0f};
     float noteVelocity{0.0f};
-
+    float analog{0.0f};
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  keyTrack;
 };

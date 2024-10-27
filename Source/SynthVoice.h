@@ -58,8 +58,12 @@ public:
 	}
 	void setOscillatorsFrequency(const int midiNote, const float velocity)
 	{
-			oscSW.setFrequency(frequency, midiNote, velocity);
-			oscVA.setFrequency(frequency, midiNote, velocity);
+		float analogOffset = juce::Random::getSystemRandom().nextFloat()*0.008f;
+		oscSW.setFrequency(frequency, midiNote, velocity, analogOffset);
+		DBG("Analog OSC1: "+std::to_string(analogOffset));
+		analogOffset = juce::Random::getSystemRandom().nextFloat()*0.0008f;
+		oscVA.setFrequency(frequency, midiNote, velocity,analogOffset);
+		DBG("Analog OSC2: "+std::to_string(analogOffset));
 
 	}
 	void setRandomPhase()

@@ -151,15 +151,16 @@ public:
         return output;
     }
 
-    void setFrequency(const float& frequency,const int midiNote, const float velocity)
+    void setFrequency(const float& frequency,const int midiNote, const float velocity, const float analog)
     {
         midiPitch = juce::MidiMessage::getMidiNoteInHertz(midiNote);
         noteVelocity = velocity;
+        this->analog = analog;
         updatePitch();
     }
     void updatePitch()
     {
-        const float modPitch = std::pow(2.0f,(octave + detuneSemi+detuneFine)/12.f);
+        const float modPitch = std::pow(2.0f,(octave + detuneSemi+detuneFine+analog)/12.f);
         float modulatedPitch = modValue[kPITCH]*midiPitch;
 
         const float freq =( midiPitch+modulatedPitch) * modPitch;
@@ -216,6 +217,7 @@ private:
     float detuneFine{0};
     float midiPitch{0.f};
     float pw{0.0f};
+    float analog{0.0f};
     float noteVelocity{0.0f};
 };
 

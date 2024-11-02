@@ -329,7 +329,7 @@ private:
         std::array<float, 7> phases{};
         std::array<float, 7> lastOutputs{ 0.0f };
     };
-    std::array<juce::SmoothedValue<float>,kNumDest> smoothedMod;
+    std::array<juce::SmoothedValue<float>,kNumDest> smoothedMod{0.0f};
     float detuneSuperSaw{0.0f};
     float volumeSuperSaw{0.0f};
     float gainAmt{0.f};

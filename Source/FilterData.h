@@ -137,7 +137,9 @@ public:
 		float modulatedCutoff;
 		float modulatedResonance = modValue[kRESONANCE] * 10.0f;
 		modulatedResonance = currentResonance + modulatedResonance;
-		filterResonance.setTargetValue(juce::jlimit(0.0f, 10.0f, modulatedResonance));
+		if(modulatedResonance==10.f)
+			vaFilterParameters.selfOscillate = true;
+		filterResonance.setTargetValue(juce::jlimit(0.1f, 10.0f, modulatedResonance));
 		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.00f))
 		{
 			modulatedCutoff = modValue[kCUTOFF] * 2.5f;
@@ -275,6 +277,10 @@ public:
 	void setModResonance(const float res)
 	{
 		modValue[kRESONANCE] = res;
+	}
+	void setModCutOff(const float fc)
+	{
+		modValue[kCUTOFF] = fc;
 	}
 	void updateModulation()
 	{

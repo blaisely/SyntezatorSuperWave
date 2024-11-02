@@ -120,7 +120,6 @@ public:
 		oscVA.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
 		panOSC1.reset(sampleRate,0.001);
 		panOSC2.reset(sampleRate,0.001);
-		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFLDDR,ladder.getModCutOff());
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
 		modMatrix.addDestination(ModMatrix::modDestination::kFILTER_RESONANCE,vaSVF.getModResonance());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC_DETUNE,oscSW.getModDetune());
@@ -197,30 +196,13 @@ public:
         {
             if (hasSourceChanged || hasDestChanged || hasIntensityChanged)
             {
-                // if CutOff is selected route both filters
-                if (routing[i].modDest == 1)
-                {
-                    modMatrix.addRouting(routing[i].modSource, 0, routing[i].modIntensity); // SVF Filter
-                    modMatrix.addRouting(routing[i].modSource, 1, routing[i].modIntensity); // Ladder Filter
-                }
-                else if (routing[i].modDest > 1) // other
-                {
-	                modMatrix.addRouting(routing[i].modSource, routing[i].modDest, routing[i].modIntensity);
-                }
+            	modMatrix.addRouting(routing[i].modSource, routing[i].modDest-1, routing[i].modIntensity);
 
                 // if destination or source has changed reset routing
                 if (hasDestChanged || hasSourceChanged)
                 {
-                    if (oldRouting[i].modDest == 1)
-                    {
-                        modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
-                        modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
-                    }
-                    else if (oldRouting[i].modDest > 1)
-                    {
-                        modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
-                    }
-
+                	if(oldRouting[i].modDest>0)
+                	modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest-1);
                 }
 
                 oldRouting[i].modDest = routing[i].modDest;
@@ -231,18 +213,7 @@ public:
         else // when "no connection" is selected
         {
             if (oldRouting[i].modDest > 0) // if previous destination was connected
-            {
-                if (oldRouting[i].modDest == 1)
-                {
-                    modMatrix.resetRouting(oldRouting[i].modSource, 0); // SVF Filter
-                    modMatrix.resetRouting(oldRouting[i].modSource, 1); // Ladder Filter
-                }
-                else if (oldRouting[i].modDest > 1)
-                {
-                    modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest);
-                }
-            }
-
+            	modMatrix.resetRouting(oldRouting[i].modSource, oldRouting[i].modDest-1);
             oldRouting[i].modDest = routing[i].modDest;
             oldRouting[i].modSource = routing[i].modSource;
             oldRouting[i].modIntensity = routing[i].modIntensity;
@@ -406,6 +377,7 @@ public:
         	lfo3Mod = lfoGenerator3.render();
             modMatrix.render();
         	ladder.setModResonance(*vaSVF.getModResonance());
+        	//ladder.setModCutOff(*vaSVF.getModCutOff());
 
         }
     }

@@ -24,7 +24,6 @@ public:
     enum modDestination
     {
         kFILTER_CUTOFFSVF,
-        kFILTER_CUTOFFLDDR,
         kFILTER_RESONANCE,
         kOSC_VOLUME,
         kOSC_DETUNE,

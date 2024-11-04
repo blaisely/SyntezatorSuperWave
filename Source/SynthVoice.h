@@ -377,7 +377,7 @@ public:
         	lfo3Mod = lfoGenerator3.render();
             modMatrix.render();
         	ladder.setModResonance(*vaSVF.getModResonance());
-        	//ladder.setModCutOff(*vaSVF.getModCutOff());
+        	ladder.setModCutOff(*vaSVF.getModCutOff());
 
         }
     }

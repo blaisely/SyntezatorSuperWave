@@ -40,9 +40,10 @@ void ModMatrix::resetRouting(int source, int destination)
 void ModMatrix::render()
 {
     //Go through every row and column and sum the modulation values
-    float modDestinationValue=0.0f;
+
     for(auto column=0;column<kNumDest;column++)
     {
+        float modDestinationValue=0.0f;
         for(int row=0;row<kNumSrc;row++)
         {
             if(!destinations[column].isEnabled || destinations[column].intensity[row]==0.0f || sources[row].value==nullptr)

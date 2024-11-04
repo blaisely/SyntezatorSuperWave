@@ -43,7 +43,7 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     
 
-    setSize(200, 200);
+    setSize(530, 150);
 }
 
 Envelope::~Envelope()
@@ -51,10 +51,9 @@ Envelope::~Envelope()
 
 void Envelope::paint (juce::Graphics& g)
 {
-
-    g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));   // clear the background
-    g.setColour (juce::Colours::white);
-    g.setFont (14.0f);
+    juce::Rectangle<int> area = getLocalBounds();
+    g.setColour(juce::Colour(0xff312F2F));
+    g.fillRoundedRectangle(area.toFloat(),6);
    
 }
 
@@ -62,10 +61,6 @@ void Envelope::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
 
-    attack.setBounds(area.removeFromLeft(50));
-    decay.setBounds(area.removeFromLeft(50));
-    sustain.setBounds(area.removeFromLeft(50));
-    release.setBounds(area.removeFromLeft(50));
 
 }
 

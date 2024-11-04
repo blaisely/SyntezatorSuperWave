@@ -225,8 +225,8 @@ bool SimpleSynthAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* SimpleSynthAudioProcessor::createEditor()
 {
-    return new SimpleSynthAudioProcessorEditor (*this);
-    //return new juce::GenericAudioProcessorEditor(*this);
+    //return new SimpleSynthAudioProcessorEditor (*this);
+    return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================

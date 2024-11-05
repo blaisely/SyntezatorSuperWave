@@ -177,8 +177,6 @@ void oscGUI::sliderValueChanged(juce::Slider* slider)
 {
 }
 
-
-
 void oscGUI::makeKnob(juce::Slider& slider, juce::String ID, juce::Label& label)
 {
     slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);

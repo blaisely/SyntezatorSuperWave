@@ -214,7 +214,6 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
             buffer.setSample(1,sample,g2);
         }
 
-
 }
 
 //==============================================================================

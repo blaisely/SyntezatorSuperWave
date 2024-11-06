@@ -25,21 +25,30 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeSlider(sustainMod,sustainModLabel);
     makeSlider(releaseMod,releaseModLabel);
     makeSlider(modAmount,modAmountLabel);
+    makeKnob(lfoDepth,lfoDepthLabel);
+    makeKnob(lfoFreq,lfoFreqLabel);
     attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attackAmp);
     decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decayAmp);
     sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "sustain", sustainAmp);
     releaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "release", releaseAmp);
 
     attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"attackOsc2",attackMod);
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"decayOsc2",decayMod);
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"sustainOsc2",sustainMod);
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"releaseOsc2",releaseMod);
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"filterEnvelope",modAmount);
+    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"decayOsc2",decayMod);
+    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"sustainOsc2",sustainMod);
+    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"releaseOsc2",releaseMod);
+    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"filterEnvelope",modAmount);
+    loopEnvelopeAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"loopEnvelope",loopEnvelope);
+    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfodepth",lfoDepth);
+    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfofreq",lfoFreq);
 
     addAndMakeVisible(modEnvType);
     modEnvType.setToggleable(true);
     modEnvType.setButtonText("Env 1");
     modEnvType.addListener(this);
+    loopEnvelope.setButtonText("Loop");
+    loopEnvelope.addListener(this);
+    addAndMakeVisible(loopEnvelope);
+
 
     setSize(530, 150);
 }
@@ -58,23 +67,28 @@ void Envelope::paint (juce::Graphics& g)
 void Envelope::resized()
 {
     constexpr int sliderWidth = 25;
-    constexpr int sliderHeight = 100;
+    constexpr int sliderHeight = 115;
     constexpr int margin  = 1;
     constexpr int labelWidth = 25;
-    constexpr int labelHeight = 15;
+    constexpr int labelHeight = 10;
     constexpr int buttonWidth = 40;
     constexpr int buttonHeight = 20;
     constexpr int amountSliderWidth = 20;
     constexpr int amountSliderHeight = 80;
+    constexpr int lfoKnobSize =70;
+    constexpr int lfoLabelWidth=80;
     juce::Rectangle<int> area = getLocalBounds();
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
-    juce::Rectangle<int> ampLabelArea = ampArea.removeFromBottom(15);
+    juce::Rectangle<int> ampLabelArea = ampArea.removeFromBottom(10);
     juce::Rectangle<int> modEnvelope = area.removeFromLeft(122).reduced(5);
-    juce::Rectangle<int> modLabelArea = modEnvelope.removeFromBottom(15);
-    juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(40).reduced(5);
-    juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(15);
-    juce::Rectangle<int> lfoArea = area.removeFromLeft(122).expanded(5);
-    juce::Rectangle<int> controlsArea = area.removeFromLeft(122);
+    juce::Rectangle<int> modLabelArea = modEnvelope.removeFromBottom(10);
+    juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(90).reduced(5);
+    juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(10).removeFromRight(60);
+    juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(40);
+    juce::Rectangle<int> lfoArea = area.removeFromLeft(150).reduced(5);
+    juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(80);
+    juce::Rectangle<int> lfoKnobsLabel = lfoKnobsArea.removeFromBottom(10);
+
 
     juce::FlexBox amp;
     amp.flexDirection = juce::FlexBox::Direction::row;
@@ -110,11 +124,20 @@ void Envelope::resized()
 
     juce::FlexBox modControls;
     modControls.flexDirection = juce::FlexBox::Direction::column;
-    addItemToFlexBox(modControls,modEnvType,buttonWidth,buttonHeight,margin);
-    addItemToFlexBox(modControls,modAmount,amountSliderWidth,amountSliderHeight,margin);
+    modControls.alignContent = juce::FlexBox::AlignContent::spaceAround;
+    addItemToFlexBoxWithAlign(modControls,modEnvType,buttonWidth,buttonHeight,1);
+    addItemToFlexBoxWithAlign(modControls,loopEnvelope,buttonWidth,buttonHeight,1);
     modControls.performLayout(envelopeButtonsArea);
+    modAmount.setBounds(amountSliderArea);
     modAmountLabel.setBounds(envelopeButtonsLabelArea);
 
+    juce::FlexBox lfoKnobs;
+    lfoKnobs.flexDirection = juce::FlexBox::Direction::column;
+    addItemToFlexBox(lfoKnobs,lfoDepth, lfoKnobSize,lfoKnobSize,margin);
+    addItemToFlexBox(lfoKnobs,lfoDepthLabel,lfoLabelWidth,labelHeight,margin);
+    addItemToFlexBox(lfoKnobs,lfoFreq,lfoKnobSize,lfoKnobSize,margin);
+    lfoKnobs.performLayout(lfoKnobsArea);
+    lfoFreqLabel.setBounds(lfoKnobsLabel);
 
 
 }
@@ -131,6 +154,7 @@ void Envelope::buttonStateChanged(juce::Button* button)
 void Envelope::buttonClicked(juce::Button* button)
 {
     bool state = true;
+    bool state2= true;
     if(button==&modEnvType)
     {
         if(!button->getToggleState())
@@ -139,7 +163,11 @@ void Envelope::buttonClicked(juce::Button* button)
             button->setButtonText("Env 1");
         state= button->getToggleState();
         button->setToggleState(!state,juce::dontSendNotification);
-
+    }
+    if(button==&loopEnvelope)
+    {
+        state= button->getToggleState();
+        button->setToggleState(!state,juce::dontSendNotification);
     }
 }
 
@@ -150,7 +178,7 @@ void Envelope::makeKnob(juce::Slider& slider,juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(15.0f);
+    label.setFont(12.0f);
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }
@@ -162,7 +190,7 @@ void Envelope::makeSlider(juce::Slider& slider, juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(15.0f);
+    label.setFont(12.0f);
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }

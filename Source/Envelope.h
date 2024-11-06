@@ -17,11 +17,14 @@
 /*
 */
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 class Envelope  : public juce::Component, private juce::Slider::Listener, public juce::Button::Listener
 {
 public:
     template<typename T>
    void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
+    template<typename T>
+   void addItemToFlexBoxWithAlign(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
     Envelope(SimpleSynthAudioProcessor&);
     ~Envelope() override;
 
@@ -36,6 +39,7 @@ public:
 
 private:
     juce::TextButton modEnvType;
+    juce::TextButton loopEnvelope;
     juce::Slider attackAmp;
     juce::Slider attackMod;
     juce::Slider decayAmp;
@@ -45,6 +49,8 @@ private:
     juce::Slider releaseAmp;
     juce::Slider releaseMod;
     juce::Slider modAmount;
+    juce::Slider lfoDepth;
+    juce::Slider lfoFreq;
     juce::Label attackAmpLabel{"Attack","A"};
     juce::Label attackModLabel{"Attack","A"};
     juce::Label decayAmpLabel{"Decay","D"};
@@ -54,6 +60,8 @@ private:
     juce::Label releaseAmpLabel{"Release","R"};
     juce::Label releaseModLabel{"Release","R"};
     juce::Label modAmountLabel{"amt","Amount"};
+    juce::Label lfoDepthLabel{"Depth", "Depth"};
+    juce::Label lfoFreqLabel{"Freq", "Freq"};
     std::unique_ptr<SliderAttachment> attackAttachment;
     std::unique_ptr<SliderAttachment> attackModAttachment;
     std::unique_ptr<SliderAttachment> decayAttachment;
@@ -63,6 +71,9 @@ private:
     std::unique_ptr<SliderAttachment> releaseAttachment;
     std::unique_ptr<SliderAttachment> releaseModAttachment;
     std::unique_ptr<SliderAttachment> modAmountAttach;
+    std::unique_ptr<SliderAttachment> lfoDepthAttach;
+    std::unique_ptr<SliderAttachment> lfoFreqAttach;
+    std::unique_ptr<ButtonAttachment> loopEnvelopeAttach;
 
 
     SimpleSynthAudioProcessor& audioProcessor;
@@ -74,4 +85,9 @@ template <typename T>
 void Envelope::addItemToFlexBox(juce::FlexBox& fb, T& item, const int& w, const int& h, const int& m)
 {
     fb.items.add(juce::FlexItem(item).withMaxHeight(h).withMaxWidth(w).withMargin(m).withFlex(1));
+}
+template <typename T>
+void Envelope::addItemToFlexBoxWithAlign(juce::FlexBox& fb, T& item, const int& w, const int& h, const int& m)
+{
+    fb.items.add(juce::FlexItem(item).withMaxHeight(h).withMaxWidth(w).withMargin(m).withFlex(1).withAlignSelf(juce::FlexItem::AlignSelf::autoAlign));
 }

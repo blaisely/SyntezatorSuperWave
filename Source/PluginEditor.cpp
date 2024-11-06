@@ -17,9 +17,10 @@ SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAud
     // editor's size to whatever you need it to be.
     setSize (850, 465);
 
-    //addAndMakeVisible(filterGui);
+
     addAndMakeVisible(oscGui);
     addAndMakeVisible(envelopeGui);
+    addAndMakeVisible(filterGui);
 
    
 }
@@ -48,12 +49,13 @@ void SimpleSynthAudioProcessorEditor::resized()
     juce::Rectangle<int> topSection = area.removeFromTop(275).removeFromLeft(530);
     juce::Rectangle<int> bottomSection = area.removeFromBottom(190).removeFromLeft(530);
     juce::Rectangle<int> controlsSection  = bottomSection.removeFromTop(150);
+    juce::Rectangle<int> leftSection = area.removeFromTop(275).removeFromLeft(320);
     
 
     oscGui.setBounds(topSection.reduced(5));
     envelopeGui.setBounds(controlsSection.reduced(5));
-   
-   
+    filterGui.setBounds(area.reduced(5));
+
 }
 
 

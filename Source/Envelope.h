@@ -96,8 +96,6 @@ private:
     juce::StringArray LFO2IDs{"lfo2depth","lfo2freq","lfo2Unipolar","lfoReset2","lfo2Type"};
     juce::StringArray LFO3IDs{"lfo3depth","lfo3freq","lfo3Unipolar","lfoReset3","lfo3Type"};
 
-
-
     SimpleSynthAudioProcessor& audioProcessor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Envelope)

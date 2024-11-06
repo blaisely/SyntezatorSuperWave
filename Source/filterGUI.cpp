@@ -11,47 +11,31 @@
 #include <JuceHeader.h>
 #include "filterGUI.h"
 
-
-
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
 filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 {
-    cutOffSlider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    cutOffSlider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
-    filterCutOffAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterCutoff", cutOffSlider));
-    
+    makeKnob(filterCutOff,filterCutOffLabel);
+    makeKnob(filterResonance,filterResonanceLabel);
+    makeKnob(filterDrive,filterDriveLabel);
+    makeSlider(keyTrackOffset,offsetLabel);
+    filterCutOffAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterCutoff",filterCutOff);
+    filterResonanceAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterRes",filterResonance);
+    filterDriveAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterDrive",filterDrive);
+    keyTrackOffsetAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterKeytrackOffset",keyTrackOffset);
+    filterKeytrackAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterKeytrackEnable",filterKeytracking);
+    filterEmuAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterbutton",filterEmu);
+    addAndMakeVisible(filterEmu);
+    filterEmu.addListener(this);
+    filterEmu.setButtonText("SVF");
+    filterEmu.setToggleable(true);
+    addAndMakeVisible(filterKeytracking);
+    filterKeytracking.addListener(this);
+    filterKeytracking.setButtonText("KeyTrack");
+    filterKeytracking.setToggleable(true);
+    addAndMakeVisible(filterLabel);
 
-    addAndMakeVisible(&cutOffSlider);
-    cutOffSlider.addListener(this);
-    cutOffSlider.setSkewFactorFromMidPoint(1000.0f);
-
-    filterResonance.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    filterResonance.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
-    filterResonanceAttach.reset(new juce::AudioProcessorValueTreeState::SliderAttachment(audioProcessor.state, "filterRes", filterResonance));
-
-    addAndMakeVisible(&filterResonance);
-    filterResonance.addListener(this);
-
-    filterMenu.addItem("LowPass", 1);
-    filterMenu.addItem("HighPass", 2);
-    filterMenu.addItem("BandPass", 3);
-    addAndMakeVisible(filterMenu);
-    filterMenu.addListener(this);
-    filterSelection.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(audioProcessor.state, "filterType", filterMenu));
-    filterMenu.setJustificationType(juce::Justification::centred);
-
-    makeSlider(lfoFreq, lfoFreqAttach, ID_lfoFreq, lfoFreqLabel, 0.0f, 100.0f, 0.0f);
-    makeSlider(lfoDepth, lfoDepthAttach, ID_lfoDepth, lfoDepthLabel, 0.0f, 1000.0f, 0.0f);
-
-    filterOn.setButtonText("Digital");
-    buttonAttach.reset(new juce::AudioProcessorValueTreeState::ButtonAttachment(audioProcessor.state, "filterbutton", filterOn));
-    addAndMakeVisible(filterOn);
-    filterOn.addListener(this);
-
-    
-    setSize(200, 400);
-
+    setSize(320, 275);
 }
 
 filterGUI::~filterGUI()
@@ -60,34 +44,25 @@ filterGUI::~filterGUI()
 
 void filterGUI::paint (juce::Graphics& g)
 {
-    
-    g.fillAll(juce::Colours::black);
-
-    g.setColour(juce::Colours::white);
-    g.drawRect(getLocalBounds(), 1);  
-   
-
 }
 
 void filterGUI::resized()
 {
-   
-    juce::Rectangle<int> area = getLocalBounds();
-    const int sliderWidth = 100;
-    const int sliderHeight = 100;
-    juce::Rectangle<int> topSection = getLocalBounds().removeFromTop(150);
-    juce::Rectangle<int> bottomSection = getLocalBounds().removeFromBottom(150);
-    juce::Rectangle<int> middleSection = { 0,150,150,50 };
-    juce::Rectangle<int> middleSection3 = { 150,150,50,50 };
-    juce::Rectangle<int> middleSection_2 = { 0,200,200,50 };
-    cutOffSlider.setBounds(topSection.removeFromLeft(100));
-    filterResonance.setBounds(topSection.removeFromLeft(100));
-    filterMenu.setBounds(middleSection);
-    filterOn.setBounds(middleSection3.reduced(5));
-    lfoDepth.setBounds(bottomSection.removeFromLeft(100));
-    lfoFreq.setBounds(bottomSection);
-    lfoDepthLabel.setBounds(middleSection_2.removeFromLeft(100));
-    lfoFreqLabel.setBounds(middleSection_2);
+    constexpr int knobSize = 100;
+    constexpr int margin =1;
+    constexpr int labelWidth = 100;
+    constexpr int labelHeight = 15;
+    juce::Rectangle<int> area = getLocalBounds().reduced(5);
+    juce::Rectangle<int> titleArea = area.removeFromTop(30).reduced(5);
+    juce::Rectangle<int> leftSection = area.removeFromLeft(115);
+    filterLabel.setBounds(titleArea);
+    juce::FlexBox left;
+    left.flexDirection = juce::FlexBox::Direction::column;
+    addItemToFlexBox(left,filterCutOff,knobSize,knobSize,margin);
+    addItemToFlexBox(left,filterCutOffLabel,labelWidth,labelHeight,margin);
+    addItemToFlexBox(left,filterResonance,knobSize,knobSize,margin);
+    addItemToFlexBox(left,filterResonanceLabel,labelWidth,labelHeight,margin);
+    left.performLayout(leftSection);
 
 }
 
@@ -101,34 +76,30 @@ void filterGUI::sliderValueChanged(juce::Slider* slider)
 
 void filterGUI::buttonClicked(juce::Button* button)
 {
-    
-    if (button == &filterOn)
-    {
-        bool currentValue = audioProcessor.state.getParameterAsValue("filterbutton").getValue();
-        if (currentValue)
-        {
-            filterOn.setButtonText("DIGITAL");
-        }
-        else
-        {
-            filterOn.setButtonText("SVF");
-        }
-        audioProcessor.state.getParameterAsValue("filterbutton").setValue(!currentValue);
-    }
+
 }
 
-void filterGUI::makeSlider(juce::Slider& slider, std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>& attachment, juce::String ID, juce::Label& label, float initValue, float maxValue,float minValue)
+void filterGUI::makeKnob(juce::Slider& slider,juce::Label& label)
 {
     slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    slider.setRange(minValue, maxValue);
-    slider.setValue(initValue);
-    slider.setTextBoxStyle(juce::Slider::TextBoxBelow, true, 50.0f, 20.0f);
-    attachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, ID, slider);
+    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(15.0f);
+    label.setFont(12.0f);
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
-
 }
+
+void filterGUI::makeSlider(juce::Slider& slider, juce::Label& label)
+{
+    slider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
+    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
+    addAndMakeVisible(&slider);
+    slider.addListener(this);
+    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
+    label.setFont(12.0f);
+    label.setJustificationType(juce::Justification::centred);
+    addAndMakeVisible(label);
+}
+

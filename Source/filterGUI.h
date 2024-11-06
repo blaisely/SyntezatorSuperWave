@@ -16,71 +16,49 @@
 //==============================================================================
 
 
-class CustomLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    CustomLookAndFeel() {}
-
-    void drawButtonText(juce::Graphics& g, juce::TextButton& button,
-        bool isMouseOverButton, bool isButtonDown) override
-    {
-        juce::Font font(10.0f); // Set your desired font size here
-        g.setFont(font);
-        g.setColour(button.findColour(button.getToggleState() ? juce::TextButton::textColourOnId
-            : juce::TextButton::textColourOffId));
-
-        const int yIndent = juce::jmin(4, button.proportionOfHeight(0.3f));
-        const int cornerSize = juce::jmin(button.getHeight(), button.getWidth()) / 2;
-
-        const int fontHeight = juce::roundToInt(font.getHeight() * 0.6f);
-        const int leftIndent = juce::jmin(fontHeight, 2 + cornerSize / (isMouseOverButton || isButtonDown ? 2 : 4));
-        const int rightIndent = juce::jmin(fontHeight, 2 + (cornerSize + fontHeight) / (isMouseOverButton || isButtonDown ? 2 : 4));
-
-        const int textWidth = button.getWidth() - leftIndent - rightIndent;
-
-        const juce::String text(button.getButtonText());
-
-        if (textWidth > 0)
-            g.drawFittedText(text, leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
-                juce::Justification::centred, 2);
-    }
-};
-
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
+typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
 class filterGUI  : public juce::Component, private juce::ComboBox::Listener, private juce::Slider::Listener, private juce::Button::Listener
 {
 public:
+    template<typename T>
+    void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
     filterGUI(SimpleSynthAudioProcessor&);
     ~filterGUI() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
     void comboBoxChanged(juce::ComboBox* box) override;
-
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
-    void makeSlider(juce::Slider& slider, std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment>& attachment, juce::String ID, juce::Label& label,float initValue,float maxValue,float minValue);
+    void makeKnob(juce::Slider& slider,juce::Label& label);
+    void makeSlider(juce::Slider& slider,juce::Label& label);
 
 private:
-    juce::Slider cutOffSlider;
+    juce::Slider filterCutOff;
     juce::Slider filterResonance;
-    juce::Slider lfoFreq;
-    juce::Slider lfoDepth;
-    juce::TextButton filterOn;
-    juce::Label lfoFreqLabel = { "LFO FREQ", "LFO FREQ" };
-    juce::Label lfoDepthLabel = { "LFO DEPTH", "LFO DEPTH" };
-    SimpleSynthAudioProcessor& audioProcessor;
-    juce::String ID_lfoFreq = {"lfofreq"};
-    juce::String ID_lfoDepth = { "lfodepth" };
+    juce::Slider filterDrive;
+    juce::TextButton filterKeytracking;
+    juce::Slider keyTrackOffset;
+    juce::Label filterCutOffLabel{"CutOff","CutOff"};
+    juce::Label filterResonanceLabel{"Resonance","Resonance"};
+    juce::Label filterDriveLabel{"Drive","Drive"};
+    juce::Label offsetLabel{"Offset","Offset"};
+    juce::Label filterLabel{"FILTER","FILTER"};
     std::unique_ptr<SliderAttachment> filterCutOffAttach;
     std::unique_ptr<SliderAttachment> filterResonanceAttach;
-    std::unique_ptr<SliderAttachment> lfoFreqAttach;
-    std::unique_ptr<SliderAttachment> lfoDepthAttach;
-   
-    CustomLookAndFeel buttonLook;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> filterSelection;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> buttonAttach;
-    juce::ComboBox filterMenu;
-
+    std::unique_ptr<SliderAttachment> filterDriveAttach;
+    std::unique_ptr<SliderAttachment> keyTrackOffsetAttach;
+    std::unique_ptr<ButtonAttachment> filterEmuAttach;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filterKeytrackAttach;
+    juce::TextButton filterEmu;
+    juce::ComboBox filterType;
+    SimpleSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (filterGUI)
 };
+template <typename T>
+void filterGUI::addItemToFlexBox(juce::FlexBox& fb, T& item, const int& w, const int& h, const int& m)
+{
+    fb.items.add(juce::FlexItem(item).withMaxHeight(h).withMaxWidth(w).withMargin(m).withFlex(1));
+}

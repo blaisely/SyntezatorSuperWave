@@ -243,6 +243,7 @@ public:
 			modEnv2);
 
 		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
+		envelopeAmount2 = static_cast<float>(state[IDs::FilterEnvelopeAmount2])/100.f;
 		commonEnvelope = state[IDs::CommonEnvelope];
 		loopEnvelope = state[IDs::LoopEnvelope];
 		loopEnvelope2 = state[IDs::LoopEnvelope2];
@@ -329,7 +330,7 @@ public:
             nextAmpSample = ampEnv.nextValue();
             nextAmp2Sample = amp2Env.nextValue();
         	nextModEnv1 = modEnv.nextValue()*envelopeAmount;
-        	nextModEnv2 = modEnv2.nextValue();
+        	nextModEnv2 = modEnv2.nextValue()*envelopeAmount2;
 
         	float osc2Output = oscVA.getNextSample();
         	float osc1Output = oscSW.getNextSample();
@@ -516,6 +517,7 @@ private:
 	float lfo2Mod{0.0f};
 	float lfo3Mod{0.0f};
 	float envelopeAmount{0.0f};
+	float envelopeAmount2{0.0f};
 	float nextModEnv1{0.0f};
 	float nextModEnv2{0.0f};
 	bool isPrepared{false};

@@ -184,7 +184,8 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto chainSettings = getChainSettings(state);
-    
+    DBG(chainSettings.loopModEnvelope);
+
     syncStates(tree,chainSettings);
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
 
@@ -287,6 +288,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", -100.0f, 100.0f, 0.0f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope2", "Filter Envelope Amount", -100.0f, 100.0f, 0.0f));
     //Tuning Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("octave_osc1", "Octave Osc1",
         juce::NormalisableRange<float>{-3,3,1},0));
@@ -420,6 +422,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     //Additional Params
     layout.add(std::make_unique<juce::AudioParameterBool>("filterbutton", "SVF Filter ON", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "LFO Reset", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset2", "LFO2 Reset", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset3", "LFO3 Reset", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope for OSCs", 1));
     layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope", "Loop Mod Envelope1", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope2", "Loop Mod Envelope2", 0));
@@ -454,6 +458,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.releaseEnv3 = apvts.getRawParameterValue("releaseOsc3")->load();
     settings.commonEnvelope = apvts.getRawParameterValue("commonEnvelope")->load();
     settings.envelopeAmount = apvts.getRawParameterValue("filterEnvelope")->load();
+    settings.envelopeAmount2 = apvts.getRawParameterValue("filterEnvelope2")->load();
     settings.gain_osc1 = apvts.getRawParameterValue("gain_osc1")->load();
     settings.gain_osc2 = apvts.getRawParameterValue("gain_osc2")->load();
     settings.lfodepth = apvts.getRawParameterValue("lfodepth")->load();
@@ -463,6 +468,8 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.lfo2freq = apvts.getRawParameterValue("lfo2freq")->load();
     settings.lfo3freq = apvts.getRawParameterValue("lfo3freq")->load();
     settings.lfoReset = apvts.getRawParameterValue("lfoReset")->load();
+    settings.lfoReset2 = apvts.getRawParameterValue("lfoReset2")->load();
+    settings.lfoReset3 = apvts.getRawParameterValue("lfoReset3")->load();
     settings.lfoType = apvts.getRawParameterValue("lfoType")->load();
     settings.lfo2Type = apvts.getRawParameterValue("lfo2Type")->load();
     settings.lfo3Type = apvts.getRawParameterValue("lfo3Type")->load();
@@ -597,8 +604,11 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::SVFEnabled,s.filterOn,nullptr);
     tree.setProperty(IDs::FilterDrive,s.filterDrive,nullptr);
     tree.setProperty(IDs::LFOReset,s.lfoReset,nullptr);
+    tree.setProperty(IDs::LFOReset2,s.lfoReset2,nullptr);
+    tree.setProperty(IDs::LFOReset3,s.lfoReset3,nullptr);
     tree.setProperty(IDs::CommonEnvelope,s.commonEnvelope,nullptr);
     tree.setProperty(IDs::FilterEnvelopeAmount,s.envelopeAmount,nullptr);
+    tree.setProperty(IDs::FilterEnvelopeAmount2,s.envelopeAmount2,nullptr);
     tree.setProperty(IDs::ReversedEnvelope,s.reversedEnvelope,nullptr);
     tree.setProperty(IDs::PanOsc1,s.panOsc1,nullptr);
     tree.setProperty(IDs::PanOsc2,s.panOsc2,nullptr);

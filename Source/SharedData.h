@@ -67,8 +67,11 @@ namespace IDs{
     ID SVFEnabled("SVF Enabled");
     ID FilterDrive("Filter Drive");
     ID LFOReset("LFO Reset");
+    ID LFOReset2("LFO2 Reset");
+    ID LFOReset3("LFO3 Reset");
     ID CommonEnvelope("Common Envelope");
     ID FilterEnvelopeAmount("Filter Envelope Amount");
+    ID FilterEnvelopeAmount2("Filter Envelope Amount2");
     ID ReversedEnvelope("Reversed Mod Envelope");
     ID PanOsc1("Pan OSC1");
     ID PanOsc2("Pan OSC2");

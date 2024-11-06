@@ -40,15 +40,36 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     loopEnvelopeAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"loopEnvelope",loopEnvelope);
     lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfodepth",lfoDepth);
     lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfofreq",lfoFreq);
+    lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfo1Unipolar",lfoUnipolar);
+    lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfoReset",lfoReset);
+    lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoType",lfoType);
 
     addAndMakeVisible(modEnvType);
     modEnvType.setToggleable(true);
     modEnvType.setButtonText("Env 1");
     modEnvType.addListener(this);
     loopEnvelope.setButtonText("Loop");
+    loopEnvelope.setToggleable(true);
     loopEnvelope.addListener(this);
     addAndMakeVisible(loopEnvelope);
-
+    juce::StringArray lfoOptions{"Sine","Square","Saw","Sample&Hold"};
+    lfoType.addItemList(lfoOptions,1);
+    lfoType.setSelectedId(1);
+    addAndMakeVisible(lfoType);
+    lfoUnipolar.setButtonText("Unipolar");
+    lfoUnipolar.setToggleable(true);
+    lfoReset.setButtonText("Reset");
+    lfoReset.setToggleable(true);
+    addAndMakeVisible(lfoReset);
+    addAndMakeVisible(lfoUnipolar);
+    juce::StringArray lfoNumbers{"LFO1","LFO2","LFO3"};
+    lfoNumber.addItemList(lfoNumbers,1);
+    lfoNumber.setSelectedId(1);
+    lfoNumber.addListener(this);
+    lfoType.addListener(this);
+    lfoUnipolar.addListener(this);
+    lfoReset.addListener(this);
+    addAndMakeVisible(lfoNumber);
 
     setSize(530, 150);
 }
@@ -75,8 +96,10 @@ void Envelope::resized()
     constexpr int buttonHeight = 20;
     constexpr int amountSliderWidth = 20;
     constexpr int amountSliderHeight = 80;
-    constexpr int lfoKnobSize =70;
-    constexpr int lfoLabelWidth=80;
+    constexpr int lfoKnobSize =120;
+    constexpr int lfoLabelWidth=120;
+    constexpr int comboBoxWidth = 100;
+    constexpr int comboBoxHeight = 20;
     juce::Rectangle<int> area = getLocalBounds();
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
     juce::Rectangle<int> ampLabelArea = ampArea.removeFromBottom(10);
@@ -85,8 +108,8 @@ void Envelope::resized()
     juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(90).reduced(5);
     juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(10).removeFromRight(60);
     juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(40);
-    juce::Rectangle<int> lfoArea = area.removeFromLeft(150).reduced(5);
-    juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(80);
+    juce::Rectangle<int> lfoArea = area.removeFromLeft(170).reduced(5);
+    juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(100);
     juce::Rectangle<int> lfoKnobsLabel = lfoKnobsArea.removeFromBottom(10);
 
 
@@ -139,6 +162,13 @@ void Envelope::resized()
     lfoKnobs.performLayout(lfoKnobsArea);
     lfoFreqLabel.setBounds(lfoKnobsLabel);
 
+    juce::FlexBox lfoControls;
+    lfoControls.flexDirection = juce::FlexBox::Direction::column;
+    addItemToFlexBox(lfoControls,lfoNumber,comboBoxWidth,comboBoxHeight,margin);
+    addItemToFlexBox(lfoControls,lfoType,comboBoxWidth,comboBoxHeight,margin);
+    addItemToFlexBox(lfoControls,lfoReset,buttonWidth,buttonHeight,margin);
+    addItemToFlexBox(lfoControls,lfoUnipolar,buttonWidth,buttonHeight,margin);
+    lfoControls.performLayout(lfoArea);
 
 }
 
@@ -155,19 +185,38 @@ void Envelope::buttonClicked(juce::Button* button)
 {
     bool state = true;
     bool state2= true;
+    bool state3= true;
     if(button==&modEnvType)
     {
         if(!button->getToggleState())
+        {
             button->setButtonText("Env 2");
+            changeEnvelopes(2);
+        }
+
         else if(button->getToggleState())
+        {
             button->setButtonText("Env 1");
+            changeEnvelopes(1);
+        }
+
         state= button->getToggleState();
         button->setToggleState(!state,juce::dontSendNotification);
     }
     if(button==&loopEnvelope)
     {
-        state= button->getToggleState();
-        button->setToggleState(!state,juce::dontSendNotification);
+        state3 = button->getToggleState();
+        button->setToggleState(!state3,juce::dontSendNotification);
+    }
+    if(button==&lfoReset)
+    {
+        state3 = button->getToggleState();
+        button->setToggleState(!state3,juce::dontSendNotification);
+    }
+    if(button==&lfoUnipolar)
+    {
+        state3 = button->getToggleState();
+        button->setToggleState(!state3,juce::dontSendNotification);
     }
 }
 
@@ -193,4 +242,79 @@ void Envelope::makeSlider(juce::Slider& slider, juce::Label& label)
     label.setFont(12.0f);
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
+}
+
+void Envelope::setUpLFOAttachments(juce::StringArray& id)
+{
+    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[0],lfoDepth);
+    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[1],lfoFreq);
+    lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[2],lfoUnipolar);
+    lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[3],lfoReset);
+    lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,id[4],lfoType);
+}
+
+void Envelope::setUpLFOKnobs(juce::StringArray& id)
+{
+    lfoDepth.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
+    lfoFreq.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
+    lfoUnipolar.setToggleState(audioProcessor.state.getRawParameterValue(id[2])->load(),juce::dontSendNotification);
+    lfoReset.setToggleState(audioProcessor.state.getRawParameterValue(id[3])->load(),juce::dontSendNotification);
+    lfoType.setSelectedId(audioProcessor.state.getRawParameterValue(id[4])->load()+1);
+
+}
+
+void Envelope::setUpModAttachments(juce::StringArray& id)
+{
+    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[0],attackMod);
+    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[1],decayMod);
+    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[2],sustainMod);
+    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[3],releaseMod);
+    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[4],modAmount);
+    loopEnvelopeAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[5],loopEnvelope);
+}
+
+void Envelope::setUpModSliders(juce::StringArray& id)
+{
+    attackMod.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
+    decayMod.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
+    sustainMod.setValue(audioProcessor.state.getRawParameterValue(id[2])->load());
+    releaseMod.setValue(audioProcessor.state.getRawParameterValue(id[3])->load());
+    modAmount.setValue(audioProcessor.state.getRawParameterValue(id[4])->load());
+    loopEnvelope.setToggleState(audioProcessor.state.getRawParameterValue(id[5])->load(),juce::dontSendNotification);
+}
+
+void Envelope::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
+{
+    if(comboBoxThatHasChanged==&lfoNumber)
+    {
+        if(lfoNumber.getSelectedId()==1)
+        {
+        setUpLFOKnobs(LFO1IDs);
+        setUpLFOAttachments(LFO1IDs);
+        }
+        if(lfoNumber.getSelectedId()==2)
+        {
+            setUpLFOKnobs(LFO2IDs);
+            setUpLFOAttachments(LFO2IDs);
+        }
+        if(lfoNumber.getSelectedId()==3)
+        {
+            setUpLFOKnobs(LFO3IDs);
+            setUpLFOAttachments(LFO3IDs);
+        }
+    }
+}
+
+void Envelope::changeEnvelopes(const int envelope)
+{
+    if(envelope==1)
+    {
+        setUpModSliders(envelope2IDs);
+        setUpModAttachments(envelope2IDs);
+    }
+    else if(envelope==2)
+    {
+        setUpModSliders(envelope3IDs);
+        setUpModAttachments(envelope3IDs);
+    }
 }

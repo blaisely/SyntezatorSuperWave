@@ -12,13 +12,15 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "SharedData.h"
 
 //==============================================================================
 /*
 */
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
-class Envelope  : public juce::Component, private juce::Slider::Listener, public juce::Button::Listener
+typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
+class Envelope  : public juce::Component, private juce::Slider::Listener, public juce::Button::Listener, public juce::ComboBox::Listener
 {
 public:
     template<typename T>
@@ -35,11 +37,19 @@ public:
     void buttonClicked(juce::Button*) override;
     void makeKnob(juce::Slider& slider, juce::Label& label);
     void makeSlider(juce::Slider& slider,juce::Label& label);
+    void setUpLFOAttachments(juce::StringArray& id);
+    void setUpLFOKnobs(juce::StringArray& id);
+    void setUpModAttachments(juce::StringArray& id);
+    void setUpModSliders(juce::StringArray& id);
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+    void changeEnvelopes(int envelope);
     
 
 private:
     juce::TextButton modEnvType;
     juce::TextButton loopEnvelope;
+    juce::TextButton lfoUnipolar;
+    juce::TextButton lfoReset;
     juce::Slider attackAmp;
     juce::Slider attackMod;
     juce::Slider decayAmp;
@@ -51,6 +61,8 @@ private:
     juce::Slider modAmount;
     juce::Slider lfoDepth;
     juce::Slider lfoFreq;
+    juce::ComboBox lfoType;
+    juce::ComboBox lfoNumber;
     juce::Label attackAmpLabel{"Attack","A"};
     juce::Label attackModLabel{"Attack","A"};
     juce::Label decayAmpLabel{"Decay","D"};
@@ -73,7 +85,17 @@ private:
     std::unique_ptr<SliderAttachment> modAmountAttach;
     std::unique_ptr<SliderAttachment> lfoDepthAttach;
     std::unique_ptr<SliderAttachment> lfoFreqAttach;
+    std::unique_ptr<ComboBoxAttachment> lfoTypeAttach;
     std::unique_ptr<ButtonAttachment> loopEnvelopeAttach;
+    std::unique_ptr<ButtonAttachment> lfoUnipolarAttach;
+    std::unique_ptr<ButtonAttachment> lfoResetAttach;
+
+    juce::StringArray envelope2IDs{"attackOsc2","decayOsc2","sustainOsc2","releaseOsc2","filterEnvelope","loopEnvelope"};
+    juce::StringArray envelope3IDs{"attackOsc3","decayOsc3","sustainOsc3","releaseOsc3","filterEnvelope2","loopEnvelope2"};
+    juce::StringArray LFO1IDs{"lfodepth","lfofreq","lfo1Unipolar","lfoReset","lfoType"};
+    juce::StringArray LFO2IDs{"lfo2depth","lfo2freq","lfo2Unipolar","lfoReset2","lfo2Type"};
+    juce::StringArray LFO3IDs{"lfo3depth","lfo3freq","lfo3Unipolar","lfoReset3","lfo3Type"};
+
 
 
     SimpleSynthAudioProcessor& audioProcessor;

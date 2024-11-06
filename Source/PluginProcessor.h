@@ -63,12 +63,13 @@ public:
         attackEnv2{0.0f},decayEnv2{0.0f},sustainEnv2{0.0f},releaseEnv2{0.0f},envelopeAmount{0.0f},attackEnv3{0.0f},decayEnv3{0.0f},sustainEnv3{0.0f},
         releaseEnv3{0.0f},panOsc1{0.0f},panOsc2{0.0f},gainOVR{0.0f},
         lfo2freq{0.0f},lfo2depth{0.0f},modIntensity1{0.f},modIntensity2{0.f},modIntensity3{0.f},modIntensity4{0.f},pulseWidthOsc1{0.0f},
-        pulseWidthOsc2{0.0f},filterVelocity{0.0f},lfo3freq{0.0f},lfo3depth{0.0f};
+        pulseWidthOsc2{0.0f},filterVelocity{0.0f},lfo3freq{0.0f},lfo3depth{0.0f},envelopeAmount2{0.f};
         
         int octaveosc1{ 0 }, octaveosc2{ 0 }, coarseosc1{0}, coarseosc2{ 0},filterOn{0},filterDrive{0},commonEnvelope{0},
         lfoReset{0},lfoType{0},reversedEnvelope{0},detuneosc1{0},detuneosc2{0},lfo2Type{0},modSource1{0},modSource2{0},modSource3{0},
         modSource4{0},modDestination1{0},modDestination2{0},modDestination3{0},modDestination4{0},loopModEnvelope{0},
-        lfo1Unipolar{0},lfo2Unipolar{0},filterKeytrack{0},filterKeytrackOffset{0},lfo3Type{0},lfo3Unipolar{0},loopModEnvelope2{0};
+        lfo1Unipolar{0},lfo2Unipolar{0},filterKeytrack{0},filterKeytrackOffset{0},lfo3Type{0},lfo3Unipolar{0},loopModEnvelope2{0},
+        lfoReset2{0},lfoReset3{0};
     };
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();

@@ -61,7 +61,7 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     Gain_osc2_label.setFont(10.f);
     panOsc1Label.setFont(10.f);
     panOsc2Label.setFont(10.f);
-    setSize(530, 275);
+    setSize(530, 295);
 }
 
 oscGUI::~oscGUI()

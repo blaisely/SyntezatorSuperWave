@@ -52,9 +52,11 @@ private:
     std::unique_ptr<SliderAttachment> keyTrackOffsetAttach;
     std::unique_ptr<ButtonAttachment> filterEmuAttach;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> filterKeytrackAttach;
+    std::unique_ptr<ComboBoxAttachment> filterTypeAttachment;
     juce::TextButton filterEmu;
     juce::ComboBox filterType;
     SimpleSynthAudioProcessor& audioProcessor;
+    juce::StringArray filterTypes{"LPF","HPF","BPF"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (filterGUI)
 };
 template <typename T>

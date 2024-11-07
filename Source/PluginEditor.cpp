@@ -11,16 +11,18 @@
 
 //==============================================================================
 SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), filterGui(p), oscGui(p), envelopeGui(p)
+    : AudioProcessorEditor (&p), audioProcessor (p), filterGui(p), oscGui(p), envelopeGui(p),matrixGui(p),presetGui(p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (850, 465);
+    setSize (840, 500);
 
 
     addAndMakeVisible(oscGui);
     addAndMakeVisible(envelopeGui);
     addAndMakeVisible(filterGui);
+    addAndMakeVisible(matrixGui);
+    addAndMakeVisible(presetGui);
 
    
 }
@@ -46,15 +48,23 @@ void SimpleSynthAudioProcessorEditor::paint (juce::Graphics& g)
 void SimpleSynthAudioProcessorEditor::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
-    juce::Rectangle<int> topSection = area.removeFromTop(275).removeFromLeft(530);
-    juce::Rectangle<int> bottomSection = area.removeFromBottom(190).removeFromLeft(530);
-    juce::Rectangle<int> controlsSection  = bottomSection.removeFromTop(150);
-    juce::Rectangle<int> leftSection = area.removeFromTop(275).removeFromLeft(320);
+    juce::Rectangle<int> top = area.removeFromTop(295);
+    juce::Rectangle<int> topSection = top.removeFromLeft(530);
+    juce::Rectangle<int> leftSection = top.removeFromRight(300);
+    juce::Rectangle<int> bottomSection = area.removeFromBottom(200);
+    juce::Rectangle<int> matrixSection = bottomSection.removeFromRight(300);
+    juce::Rectangle<int> leftBottomSection = bottomSection.removeFromLeft(530);
+    juce::Rectangle<int> controlsSection  = leftBottomSection.removeFromTop(160);
+    juce::Rectangle<int> presetSection = leftBottomSection;
+
+
     
 
-    oscGui.setBounds(topSection.reduced(5));
-    envelopeGui.setBounds(controlsSection.reduced(5));
-    filterGui.setBounds(area.reduced(5));
+    oscGui.setBounds(topSection.reduced(15));
+    envelopeGui.setBounds(controlsSection.reduced(15,0));
+    filterGui.setBounds(leftSection.reduced(5).reduced(20,0));
+    matrixGui.setBounds(matrixSection.reduced(5));
+    presetGui.setBounds(leftBottomSection.reduced(10,5));
 
 }
 

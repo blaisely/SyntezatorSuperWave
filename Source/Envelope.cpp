@@ -71,7 +71,7 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     lfoReset.addListener(this);
     addAndMakeVisible(lfoNumber);
 
-    setSize(530, 150);
+    setSize(530, 160);
 }
 
 Envelope::~Envelope()
@@ -100,7 +100,7 @@ void Envelope::resized()
     constexpr int lfoLabelWidth=120;
     constexpr int comboBoxWidth = 100;
     constexpr int comboBoxHeight = 20;
-    juce::Rectangle<int> area = getLocalBounds();
+    juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
     juce::Rectangle<int> ampLabelArea = ampArea.removeFromBottom(10);
     juce::Rectangle<int> modEnvelope = area.removeFromLeft(122).reduced(5);

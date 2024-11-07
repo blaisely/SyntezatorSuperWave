@@ -13,6 +13,8 @@
 #include "oscGUI.h"
 #include "filterGUI.h"
 #include "Envelope.h"
+#include "modMatrixGUI.h"
+#include "presetGUI.h"
 //==============================================================================
 /**
 */
@@ -35,6 +37,8 @@ private:
     oscGUI oscGui;
     filterGUI filterGui;
     Envelope envelopeGui;
+    modMatrixGUI matrixGui;
+    presetGUI presetGui;
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSynthAudioProcessorEditor)
 };

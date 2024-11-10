@@ -184,8 +184,6 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto chainSettings = getChainSettings(state);
-    DBG("Env1 Loop" + std::to_string(chainSettings.loopModEnvelope));
-    DBG("Env2 Loop" + std::to_string(chainSettings.loopModEnvelope2));
 
     syncStates(tree,chainSettings);
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {

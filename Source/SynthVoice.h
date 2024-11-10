@@ -104,7 +104,7 @@ public:
 
 	void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
 	{
-
+		ladder.reset();
 		synthBuffer.setSize(2, samplesPerBlock, true, true, true);
 		synthBuffer.clear();
 		inverseSampleRate = 1.0f / sampleRate;

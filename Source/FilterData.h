@@ -150,7 +150,6 @@ public:
 			modulatedCutoff = currentCutoff;
 
 		filterCutOff.setTargetValue(modulatedCutoff);
-
 		double fc = filterCutOff.getNextValue();
 		double Q = filterResonance.getNextValue();
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
@@ -209,7 +208,7 @@ private:
 		vaFilterAlgorithm filterAlgorithm = vaFilterAlgorithm::kSVF_LP;	///< va filter algorithm
 		double fc = 1000.0;						///< va filter fc
 		double Q = 0.707;						///< va filter Q
-		double filterOutputGain_dB = 0.0;		///< va filter gain (normally unused)
+		double filterOutputGain_dB = 5.0;		///< va filter gain (normally unused)
 		bool enableGainComp = true;			///< enable gain compensation (see book)
 		bool matchAnalogNyquistLPF = true;		///< match analog gain at Nyquist
 		bool selfOscillate = true;				///< enable selfOscillation
@@ -232,6 +231,8 @@ public:
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
 		resonance = juce::jmap(static_cast<float>(tree[IDs::Resonance])/10.0f,0.0f,10.0f,0.0f,1.0f);
+		if(resonance<=0)
+				resonance=0.1f;
 		driveAmount = juce::jmap(static_cast<float>(tree[IDs::FilterDrive]),1.f,100.f,1.f,10.f);
 		if(keyTrack)
 		{
@@ -241,29 +242,27 @@ public:
 		}
 		else if(!keyTrack)
 			setCutoffFrequencyHz(cutOffFrequency);
-
 		setResonance(resonance);
 		setDrive(driveAmount);
 		type = static_cast<int>(tree[IDs::FilterT]);
 		switch(type)
 		{
 		case 0:
-			setMode(Mode::LPF12);
+			setMode(Mode::LPF24);
 			break;
 		case 1:
-			setMode(Mode::BPF12);
+			setMode(Mode::BPF24);
 			break;
 		case 2:
-			setMode(Mode::HPF12);
+			setMode(Mode::HPF24);
 			break;
 		default:
-			setMode(Mode::LPF12);
+			setMode(Mode::LPF24);
 			break;
 		}
 	}
 	float processAudioSample(const float& x,const int& channel)
 	{
-		updateSmoothers();
 		return processSample(x,channel);
 	}
 	float* getModCutOff()
@@ -294,6 +293,11 @@ public:
 		float modRes = modValue[kRESONANCE];
 		modRes = std::clamp(resonance+modRes,0.f,1.f);
 		setResonance(modRes);
+
+	}
+	void updateSmoothing()
+	{
+		updateSmoothers();
 	}
 
 private:

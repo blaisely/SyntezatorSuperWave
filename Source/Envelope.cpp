@@ -191,12 +191,10 @@ void Envelope::buttonClicked(juce::Button* button)
         bool newToggleState = !button->getToggleState();
         button->setToggleState(newToggleState, juce::dontSendNotification);
 
-        // Update ValueTree parameter for LoopEnvelope directly
         if(envelope==1)
             audioProcessor.state.getParameter("loopEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
         if(envelope==2)
             audioProcessor.state.getParameter("loopEnvelope2")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
-        DBG("Loop Envelope State: " + std::to_string(newToggleState));
     }
     if(button==&modEnvType)
     {

@@ -82,7 +82,7 @@ public:
 		modEnv.noteOff();
 		modEnv2.noteOff();
 		resetLFO();
-		if(commonEnvelope)
+		if(!env1OSC2)
 		{
 			if (! allowTailOff || ! ampEnv.isActive() )
 				clearCurrentNote();
@@ -104,7 +104,6 @@ public:
 
 	void prepareToPlay(double sampleRate, int samplesPerBlock, int outputChannels)
 	{
-		ladder.reset();
 		synthBuffer.setSize(2, samplesPerBlock, true, true, true);
 		synthBuffer.clear();
 		inverseSampleRate = 1.0f / sampleRate;
@@ -248,7 +247,7 @@ public:
 
 		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
 		envelopeAmount2 = static_cast<float>(state[IDs::FilterEnvelopeAmount2])/100.f;
-		commonEnvelope = state[IDs::CommonEnvelope];
+		env1OSC2 = state[IDs::CommonEnvelope];
 		loopEnvelope = state[IDs::LoopEnvelope];
 		loopEnvelope2 = state[IDs::LoopEnvelope2];
 	}
@@ -327,6 +326,7 @@ public:
         {
         	vaSVF.calculateFilterCoeffs();
         	ladder.updateModulation();
+        	ladder.updateSmoothing();
 			updatePan();
             float channelLeft = 0.0f;
             float channelRight = 0.0f;
@@ -342,7 +342,7 @@ public:
 			loopModEnvelope1();
         	loopModEnvelope2();
 
-			if(commonEnvelope)
+			if(!env1OSC2)
 			{
 				channelLeft += osc2Output * nextAmpSample * panLeft[1];
 				channelRight += osc2Output * nextAmpSample * panRight[1];
@@ -392,7 +392,7 @@ public:
     {
         outputBuffer.addFrom(channel, startSample, swBuffer, channel, 0, numSamples);
     }
-		if(commonEnvelope)
+		if(env1OSC2)
 		{
 			if (!ampEnv.isActive()&&!amp2Env.isActive())
 			{
@@ -531,7 +531,7 @@ private:
 	float panMod1{0.0f};
 	float panMod2{0.0f};
 	bool SVFEnabled;
-	bool commonEnvelope;
+	bool env1OSC2;
 	bool lfoReset;
 	bool loopEnvelope = false;
 	bool loopEnvelope2 = false;

@@ -51,6 +51,7 @@ private:
     juce::TextButton loopEnvelope;
     juce::TextButton lfoUnipolar;
     juce::TextButton lfoReset;
+    juce::TextButton sharedAmp;
     juce::Slider attackAmp;
     juce::Slider attackMod;
     juce::Slider decayAmp;
@@ -90,6 +91,7 @@ private:
     std::unique_ptr<ButtonAttachment> loopEnvelopeAttach;
     std::unique_ptr<ButtonAttachment> lfoUnipolarAttach;
     std::unique_ptr<ButtonAttachment> lfoResetAttach;
+    std::unique_ptr<ButtonAttachment> sharedAmpAttach;
 
     juce::StringArray envelope2IDs{"attackOsc2","decayOsc2","sustainOsc2","releaseOsc2","filterEnvelope","loopEnvelope"};
     juce::StringArray envelope3IDs{"attackOsc3","decayOsc3","sustainOsc3","releaseOsc3","filterEnvelope2","loopEnvelope2"};

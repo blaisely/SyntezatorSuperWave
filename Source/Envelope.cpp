@@ -42,6 +42,7 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfofreq",lfoFreq);
     lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfo1Unipolar",lfoUnipolar);
     lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfoReset",lfoReset);
+    sharedAmpAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"commonEnvelope",sharedAmp);
     lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoType",lfoType);
     addAndMakeVisible(modEnvType);
     modEnvType.setToggleable(true);
@@ -69,6 +70,10 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     lfoUnipolar.addListener(this);
     lfoReset.addListener(this);
     addAndMakeVisible(lfoNumber);
+    addAndMakeVisible(sharedAmp);
+    sharedAmp.setToggleable(true);
+    sharedAmp.setButtonText("Env1->OSC2");
+    sharedAmp.addListener(this);
 
     setSize(530, 160);
 }
@@ -149,6 +154,7 @@ void Envelope::resized()
     modControls.alignContent = juce::FlexBox::AlignContent::spaceAround;
     addItemToFlexBoxWithAlign(modControls,modEnvType,buttonWidth,buttonHeight,1);
     addItemToFlexBoxWithAlign(modControls,loopEnvelope,buttonWidth,buttonHeight,1);
+    addItemToFlexBox(modControls,sharedAmp,buttonWidth,buttonHeight+10,1);
     modControls.performLayout(envelopeButtonsArea);
     modAmount.setBounds(amountSliderArea);
     modAmountLabel.setBounds(envelopeButtonsLabelArea);
@@ -225,6 +231,12 @@ void Envelope::buttonClicked(juce::Button* button)
     {
         state3 = button->getToggleState();
         button->setToggleState(!state3,juce::dontSendNotification);
+    }
+    if(button==&sharedAmp)
+    {
+        bool newToggleState = !button->getToggleState();
+        button->setToggleState(newToggleState, juce::dontSendNotification);
+        audioProcessor.state.getParameter("commonEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
     }
 }
 

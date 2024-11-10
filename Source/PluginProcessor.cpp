@@ -434,7 +434,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset", "LFO Reset", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset2", "LFO2 Reset", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfoReset3", "LFO3 Reset", 0));
-    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Shared Envelope for OSCs", 1));
+    layout.add(std::make_unique<juce::AudioParameterBool>("commonEnvelope", "Env2->OSC2", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope", "Loop Mod Envelope1", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("loopEnvelope2", "Loop Mod Envelope2", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo1Unipolar", "LFO1 Unipolar", 0));

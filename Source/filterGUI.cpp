@@ -30,6 +30,7 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     filterEmu.addListener(this);
     filterEmu.setButtonText("SVF");
     filterEmu.setToggleable(true);
+    filterEmu.setToggleState(0,juce::dontSendNotification);
     addAndMakeVisible(filterKeytracking);
     filterKeytracking.addListener(this);
     filterKeytracking.setButtonText("KeyTrack");
@@ -107,8 +108,9 @@ void filterGUI::buttonClicked(juce::Button* button)
     }
     if(button==&filterKeytracking)
     {
-        state = button->getToggleState();
-        button->setToggleState(!state,juce::dontSendNotification);
+        bool newToggleState = !button->getToggleState();
+        button->setToggleState(newToggleState, juce::dontSendNotification);
+        audioProcessor.state.getParameter("filterKeytrackEnable")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
     }
 }
 

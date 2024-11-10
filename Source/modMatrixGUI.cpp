@@ -15,11 +15,13 @@ modMatrixGUI::modMatrixGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeSlider(intens3);
     makeSlider(intens4);
     makeSlider(intens5);
+    
     setUpComboBox(source1,sources);
     setUpComboBox(source2,sources);
     setUpComboBox(source3,sources);
     setUpComboBox(source4,sources);
     setUpComboBox(source5,sources);
+
     setUpComboBox(dest1,destinations);
     setUpComboBox(dest2,destinations);
     setUpComboBox(dest3,destinations);
@@ -30,17 +32,19 @@ modMatrixGUI::modMatrixGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     intens2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity2",intens2);
     intens3Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity3",intens3);
     intens4Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity4",intens4);
-    //intens5Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity1",intens1);
+    intens5Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity5",intens5);
+
     source1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource1",source1);
     source2Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource2",source2);
     source3Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource3",source3);
     source4Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource4",source4);
-   // source1Attach = std::make_unique<<ComboBoxAttachment>(audioProcessor.state,"modSource1",source1);
+    source5Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource5",source5);
+
     dest1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination1",dest1);
     dest2Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination2",dest2);
     dest3Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination3",dest3);
     dest4Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination4",dest4);
-    //dest1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination1",dest1);
+    dest5Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination5",dest5);
 
 
 

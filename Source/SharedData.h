@@ -81,14 +81,17 @@ namespace IDs{
     ID ModSource2("Mod Source2");
     ID ModSource3("Mod Source3");
     ID ModSource4("Mod Source4");
+    ID ModSource5("Mod Source5");
     ID ModDestination1("Mod Destination1");
     ID ModDestination2("Mod Destination2");
     ID ModDestination3("Mod Destination3");
     ID ModDestination4("Mod Destination4");
+    ID ModDestination5("Mod Destination5");
     ID ModIntensity1("Mod Intensity1");
     ID ModIntensity2("Mod Intensity2");
     ID ModIntensity3("Mod Intensity3");
     ID ModIntensity4("Mod Intensity4");
+    ID ModIntensity5("Mod Intensity5");
     ID LoopEnvelope("Loop Mod Envelope");
     ID LoopEnvelope2("Loop Mod Envelope2");
     ID PulseWidthOSC1("Pulse Width OSC1");

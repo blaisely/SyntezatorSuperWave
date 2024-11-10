@@ -99,6 +99,10 @@ void filterGUI::buttonClicked(juce::Button* button)
     if(button==&filterEmu)
     {
         state = button->getToggleState();
+        if(!button->getToggleState())
+                button->setButtonText("Ladder");
+        if(button->getToggleState())
+                button->setButtonText("SVF");
         button->setToggleState(!state,juce::dontSendNotification);
     }
     if(button==&filterKeytracking)

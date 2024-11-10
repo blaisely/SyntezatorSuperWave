@@ -46,6 +46,7 @@ public:
     
 
 private:
+    int envelope {1};
     juce::TextButton modEnvType;
     juce::TextButton loopEnvelope;
     juce::TextButton lfoUnipolar;

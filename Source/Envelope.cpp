@@ -43,7 +43,6 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfo1Unipolar",lfoUnipolar);
     lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfoReset",lfoReset);
     lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoType",lfoType);
-
     addAndMakeVisible(modEnvType);
     modEnvType.setToggleable(true);
     modEnvType.setButtonText("Env 1");
@@ -184,30 +183,41 @@ void Envelope::buttonStateChanged(juce::Button* button)
 void Envelope::buttonClicked(juce::Button* button)
 {
     bool state = true;
-    bool state2= true;
-    bool state3= true;
+    bool state2 = true;
+    bool state3 = true;
+
+    if(button == &loopEnvelope)
+    {
+        bool newToggleState = !button->getToggleState();
+        button->setToggleState(newToggleState, juce::dontSendNotification);
+
+        // Update ValueTree parameter for LoopEnvelope directly
+        if(envelope==1)
+            audioProcessor.state.getParameter("loopEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
+        if(envelope==2)
+            audioProcessor.state.getParameter("loopEnvelope2")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
+        DBG("Loop Envelope State: " + std::to_string(newToggleState));
+    }
     if(button==&modEnvType)
     {
         if(!button->getToggleState())
         {
             button->setButtonText("Env 2");
             changeEnvelopes(2);
+            envelope = 2;
         }
 
         else if(button->getToggleState())
         {
             button->setButtonText("Env 1");
             changeEnvelopes(1);
+            envelope = 1;
         }
 
         state= button->getToggleState();
         button->setToggleState(!state,juce::dontSendNotification);
     }
-    if(button==&loopEnvelope)
-    {
-        state3 = button->getToggleState();
-        button->setToggleState(!state3,juce::dontSendNotification);
-    }
+
     if(button==&lfoReset)
     {
         state3 = button->getToggleState();

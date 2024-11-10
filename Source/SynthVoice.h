@@ -182,11 +182,15 @@ public:
 		routing[3].modSource = state[IDs::ModSource4];
 		routing[3].modIntensity = static_cast<float>(state[IDs::ModIntensity4])/100.f;
 
+		routing[4].modDest = state[IDs::ModDestination5];
+		routing[4].modSource = state[IDs::ModSource5];
+		routing[4].modIntensity = static_cast<float>(state[IDs::ModIntensity5])/100.f;
+
 		setModRouting();
 	}
 	void setModRouting()
 	{
-    for (auto i = 0; i < 4; i++) // 4 modulation slots
+    for (auto i = 0; i < 5; i++) // 5 modulation slots
     {
         bool hasSourceChanged = oldRouting[i].modSource != routing[i].modSource;
         bool hasDestChanged = oldRouting[i].modDest != routing[i].modDest;
@@ -505,8 +509,8 @@ private:
 	int midiNote{0};
 	bool filterKeytrack{false};
 	int filterKeytrackOffset{0};
-	std::array<modRouting,4> routing;
-	std::array<modRouting,4> oldRouting;
+	std::array<modRouting,5> routing;
+	std::array<modRouting,5> oldRouting;
 	float nextAmpSample{0.f};
 	float nextAmp2Sample{0.f};
 	juce::SmoothedValue<float> panOSC1{0.0f};

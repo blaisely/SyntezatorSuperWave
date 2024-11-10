@@ -184,7 +184,8 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto chainSettings = getChainSettings(state);
-    DBG(chainSettings.loopModEnvelope);
+    DBG("Env1 Loop" + std::to_string(chainSettings.loopModEnvelope));
+    DBG("Env2 Loop" + std::to_string(chainSettings.loopModEnvelope2));
 
     syncStates(tree,chainSettings);
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
@@ -403,6 +404,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     2, attributesModDestination4));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity4","Mod Intensity 4",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
+
+    auto attributesModDestination5 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 5");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination5", "Mod Destination 5",
+    juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+    "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
+    0, attributesModDestination5));
+    auto attributesModSource5 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 5");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("modSource5", "Mod Source 5",
+    juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
+    2, attributesModDestination5));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity5","Mod Intensity 5",
+        juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
     //SuperSaw params
     layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "Detune Amount",
         juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));
@@ -493,8 +507,11 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.modSource3 = apvts.getRawParameterValue("modSource3")->load();
     settings.modIntensity3 = apvts.getRawParameterValue("modIntensity3")->load();
     settings.modDestination4 = apvts.getRawParameterValue("modDestination4")->load();
+    settings.modDestination5 = apvts.getRawParameterValue("modDestination5")->load();
     settings.modSource4 = apvts.getRawParameterValue("modSource4")->load();
+    settings.modSource5 = apvts.getRawParameterValue("modSource5")->load();
     settings.modIntensity4 = apvts.getRawParameterValue("modIntensity4")->load();
+    settings.modIntensity5 = apvts.getRawParameterValue("modIntensity5")->load();
     settings.loopModEnvelope = apvts.getRawParameterValue("loopEnvelope")->load();
     settings.loopModEnvelope2 = apvts.getRawParameterValue("loopEnvelope2")->load();
     settings.pulseWidthOsc1 = apvts.getRawParameterValue("pulseWidthOsc1")->load();
@@ -623,8 +640,11 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::ModSource3,s.modSource3,nullptr);
     tree.setProperty(IDs::ModIntensity3,s.modIntensity3,nullptr);
     tree.setProperty(IDs::ModDestination4,s.modDestination4,nullptr);
+    tree.setProperty(IDs::ModDestination5,s.modDestination5,nullptr);
     tree.setProperty(IDs::ModSource4,s.modSource4,nullptr);
+    tree.setProperty(IDs::ModSource5,s.modSource5,nullptr);
     tree.setProperty(IDs::ModIntensity4,s.modIntensity4,nullptr);
+    tree.setProperty(IDs::ModIntensity5,s.modIntensity5,nullptr);
     tree.setProperty(IDs::LoopEnvelope,s.loopModEnvelope,nullptr);
     tree.setProperty(IDs::PulseWidthOSC1,s.pulseWidthOsc1,nullptr);
     tree.setProperty(IDs::PulseWidthOSC2,s.pulseWidthOsc2,nullptr);

@@ -38,7 +38,7 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(filterLabel);
     addAndMakeVisible(filterType);
     filterType.addItemList(filterTypes,1);
-    filterType.setSelectedId(1);
+    filterType.setSelectedId(audioProcessor.state.getRawParameterValue("filterType")->load()+1);
 
     setSize(320, 220);
 }

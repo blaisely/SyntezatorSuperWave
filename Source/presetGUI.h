@@ -9,7 +9,7 @@
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;
-class presetGUI  : public juce::Component, private juce::ComboBox::Listener, private juce::Slider::Listener, private juce::Button::Listener
+class presetGUI  : public juce::Component, private juce::ComboBox::Listener, private juce::Slider::Listener, private juce::Button::Listener, public juce::Timer
 {
 public:
     template<typename T>
@@ -19,6 +19,7 @@ public:
 
     void paint (juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
     void comboBoxChanged(juce::ComboBox* box) override;
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
@@ -27,8 +28,10 @@ public:
 
 private:
     juce::Slider gain;
+    juce::TextButton init;
     juce::Label gainLabel{"Gain","GAIN"};
     std::unique_ptr<SliderAttachment> gainAttach;
+    std::unique_ptr<ButtonAttachment> initAttach;
     SimpleSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (presetGUI)
 };

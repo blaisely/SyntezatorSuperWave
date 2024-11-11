@@ -184,8 +184,12 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto chainSettings = getChainSettings(state);
-
     syncStates(tree,chainSettings);
+    resetSynth = tree[IDs::Reset];
+    DBG("Reset Synth: "+ std::to_string(resetSynth));
+    if(resetSynth)
+        reset();
+    state.getParameter("reset")->setValueNotifyingHost(0);
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
 
         buffer.clear(i, 0, buffer.getNumSamples());
@@ -238,6 +242,22 @@ void SimpleSynthAudioProcessor::setStateInformation (const void* data, int sizeI
 {
 }
 
+void SimpleSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTreeState& s)
+{
+    juce::ValueTree state = s.copyState();  // grab a copy of the current parameters Value Tree
+    std::unique_ptr<juce::XmlElement> tempXml (state.createXml());  // convert parameters Value Tree to an XML object
+
+    // iterate through each "PARAM" element in XML, and overwrite values with their defaults
+    forEachXmlChildElementWithTagName (*tempXml, child, "PARAM")
+    {
+        float defaultValue = s.getParameter(child->getStringAttribute("id"))->getDefaultValue();
+        child->setAttribute("value", defaultValue);
+    }
+
+    s.replaceState (juce::ValueTree::fromXml (*tempXml));
+
+}
+
 //==============================================================================
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
@@ -254,6 +274,7 @@ void SimpleSynthAudioProcessor::reset() {
     }
     pluginGain.reset();
     DCOffset.reset();
+    resetAllParameters(state);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::createParameterLayout() {
@@ -354,7 +375,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 1");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination1", "Mod Destination 1",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
     0, attributesModDestination1));
     auto attributesModSource1 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 1");
@@ -367,7 +388,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination2 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 2");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination2", "Mod Destination 2",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
     0, attributesModDestination2));
     auto attributesModSource2 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 2");
@@ -380,7 +401,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination3 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 3");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination3", "Mod Destination 3",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
     0, attributesModDestination3));
     auto attributesModSource3 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 3");
@@ -393,7 +414,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination4 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 4");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination4", "Mod Destination 4",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
     0, attributesModDestination4));
     auto attributesModSource4 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 4");
@@ -406,7 +427,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     auto attributesModDestination5 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 5");
     layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination5", "Mod Destination 5",
     juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
-        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO1 Frequency","LFO2 Frequency","OSC1 PWM",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
     0, attributesModDestination5));
     auto attributesModSource5 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 5");
@@ -440,6 +461,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo1Unipolar", "LFO1 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo2Unipolar", "LFO2 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo3Unipolar", "LFO3 Unipolar", 0));
+    layout.add(std::make_unique<juce::AudioParameterBool>("reset", "Init", 0));
 
 
     return layout;
@@ -519,6 +541,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.lfo3Unipolar = apvts.getRawParameterValue("lfo3Unipolar")->load();
     settings.filterKeytrack = apvts.getRawParameterValue("filterKeytrackEnable")->load();
     settings.filterKeytrackOffset = apvts.getRawParameterValue("filterKeytrackOffset")->load();
+    settings.reset = apvts.getRawParameterValue("reset")->load();
 
 
     return settings;
@@ -644,6 +667,7 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::ModIntensity4,s.modIntensity4,nullptr);
     tree.setProperty(IDs::ModIntensity5,s.modIntensity5,nullptr);
     tree.setProperty(IDs::LoopEnvelope,s.loopModEnvelope,nullptr);
+    tree.setProperty(IDs::LoopEnvelope2,s.loopModEnvelope2,nullptr);
     tree.setProperty(IDs::PulseWidthOSC1,s.pulseWidthOsc1,nullptr);
     tree.setProperty(IDs::PulseWidthOSC2,s.pulseWidthOsc2,nullptr);
     tree.setProperty(IDs::LFO1Unipolar,s.lfo1Unipolar,nullptr);
@@ -651,4 +675,5 @@ void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& 
     tree.setProperty(IDs::LFO3Unipolar,s.lfo3Unipolar,nullptr);
     tree.setProperty(IDs::FilterKeytrackEnable,s.filterKeytrack,nullptr);
     tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
+    tree.setProperty(IDs::Reset,s.reset,nullptr);
 }

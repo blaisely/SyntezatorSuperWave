@@ -132,7 +132,9 @@ public:
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_AMT,lfoGenerator1.getModAmount());
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO1_FREQ,lfoGenerator1.getModFrequency());
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_AMT,lfoGenerator2.getModAmount());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO3_AMT,lfoGenerator3.getModAmount());
 		modMatrix.addDestination(ModMatrix::modDestination::kLFO2_FREQ,lfoGenerator2.getModFrequency());
+		modMatrix.addDestination(ModMatrix::modDestination::kLFO3_FREQ,lfoGenerator3.getModFrequency());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PWM,oscSW.getModPWM());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC1_TYPE,oscSW.getModOscType());
 		modMatrix.addDestination(ModMatrix::modDestination::kOSC2_TYPE,oscVA.getModOscType());
@@ -294,7 +296,9 @@ public:
 		bool lfo1Unipolar = state[IDs::LFO1Unipolar];
 		bool lfo2Unipolar = state[IDs::LFO2Unipolar];
 		bool lfo3Unipolar = state[IDs::LFO3Unipolar];
-		lfoReset = state[IDs::LFOReset];
+		lfo1Reset = state[IDs::LFOReset];
+		lfo2Reset = state[IDs::LFOReset2];
+		lfo3Reset = state[IDs::LFOReset3];
 
 		lfoGenerator1.setParameters(depthLfo1,freqLfo1,typeLfo1,lfo1Unipolar);
 		lfoGenerator2.setParameters(depthLfo2,freqLfo2,typeLfo2,lfo2Unipolar);
@@ -481,12 +485,12 @@ public:
 	}
 	void resetLFO()
 	{
-		if(lfoReset)
-		{
+		if(lfo1Reset)
 			lfoGenerator1.reset();
+		if(lfo2Reset)
 			lfoGenerator2.reset();
+		if(lfo3Reset)
 			lfoGenerator3.reset();
-		}
 	}
 	void resetOscillators()
 	{
@@ -532,7 +536,9 @@ private:
 	float panMod2{0.0f};
 	bool SVFEnabled;
 	bool env1OSC2;
-	bool lfoReset;
+	bool lfo1Reset;
+	bool lfo2Reset;
+	bool lfo3Reset;
 	bool loopEnvelope = false;
 	bool loopEnvelope2 = false;
 	float oldFrequency{ 0.0f };

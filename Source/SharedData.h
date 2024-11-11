@@ -101,6 +101,6 @@ namespace IDs{
     ID LFO3Unipolar("LFO3 Unipolar");
     ID FilterKeytrackEnable("Filter Keytrack Enable");
     ID FilterKeytrackOffset("Filter Keytrack Offset");
-
+    ID Reset("Reset Synth");
 
 };

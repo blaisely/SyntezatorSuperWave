@@ -38,10 +38,19 @@ inline double hyperbolicTangent(double xn, double saturation)
 }
 inline double arctangentSaturation(double x, double drive)
 {
-    drive = std::max(1.0, drive);
+    drive = std::max(0.0, drive); // Ensure drive can start at 0
+    double adjustedDrive = drive / 10.0; // Scale drive for smoother control
 
-    double adjustedDrive = (drive - 1.0) / 9.0;
-    return atan(pow(adjustedDrive, 1.2) * x) / atan(adjustedDrive);
+    // Apply saturation with dynamic scaling
+    double saturatedSignal = atan(pow(adjustedDrive, 1.2) * x) / atan(adjustedDrive);
+
+    // Blend with normalization based on the drive level
+    double blend = (1.0 - adjustedDrive) * x + adjustedDrive * saturatedSignal;
+
+    // Apply normalization to avoid loudness increase
+    double normalizationFactor = 1.0 / (1.0 + (adjustedDrive*2)); // Reduce output as drive increases
+
+    return blend * normalizationFactor;
 }
 inline float softClip (const float x)
 {

@@ -72,10 +72,36 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     panOsc1Label.setFont(10.f);
     panOsc2Label.setFont(10.f);
     setSize(530, 295);
+    
+    waveTypeOSC1.setLookAndFeel(&dial);
+    waveTypeOSC2.setLookAndFeel(&dial);
+    PWOSC1.setLookAndFeel(&dial);
+    PWOSC2.setLookAndFeel(&dial);
+    octave_osc1.setLookAndFeel(&dial);
+    octave_osc2.setLookAndFeel(&dial);
+    coarse_osc1.setLookAndFeel(&dial);
+    coarse_osc2.setLookAndFeel(&dial);
+    semiDetune_osc1.setLookAndFeel(&dial);
+    semiDetune_osc2.setLookAndFeel(&dial);
+    detune.setLookAndFeel(&dial);
+    detuneMix.setLookAndFeel(&dial);
+    
 }
 
 oscGUI::~oscGUI()
 {
+    waveTypeOSC1.setLookAndFeel(nullptr);
+    waveTypeOSC2.setLookAndFeel(nullptr);
+    PWOSC1.setLookAndFeel(nullptr);
+    PWOSC2.setLookAndFeel(nullptr);
+    octave_osc1.setLookAndFeel(nullptr);
+    octave_osc2.setLookAndFeel(nullptr);
+    coarse_osc1.setLookAndFeel(nullptr);
+    coarse_osc2.setLookAndFeel(nullptr);
+    semiDetune_osc1.setLookAndFeel(nullptr);
+    semiDetune_osc2.setLookAndFeel(nullptr);
+    detune.setLookAndFeel(nullptr);
+    detuneMix.setLookAndFeel(nullptr);
 }
 
 void oscGUI::paint (juce::Graphics& g)
@@ -112,9 +138,7 @@ void oscGUI::resized()
     juce::Rectangle<int> bottomArea = totalArea.removeFromBottom(137).reduced(5).reduced(10,0);
 
     juce::Rectangle<int> topLabelArea = topArea.removeFromTop(30).expanded(5);
-    juce::Rectangle<int> topKnobNameArea = topArea.removeFromBottom(15);
     juce::Rectangle<int> bottomLabelArea = bottomArea.removeFromTop(30).expanded(5);
-    juce::Rectangle<int> bottomKnobNameArea = bottomArea.removeFromBottom(15);
 
     juce::FlexBox topLabel;
     topLabel.flexDirection = juce::FlexBox::Direction::row;
@@ -125,6 +149,9 @@ void oscGUI::resized()
     addItemToFlexBox(topLabel,panOsc1Label,oscLabelWidth,oscLabelHeight,knobsMargin);
     topLabel.performLayout(topLabelArea);
 
+    juce::FlexBox topSection;
+    topSection.flexDirection = juce::FlexBox::Direction::column;
+
     juce::FlexBox osc1Knobs;
     osc1Knobs.flexDirection = juce::FlexBox::Direction::row;
     addItemToFlexBox(osc1Knobs,waveTypeOSC1,knobSize,knobSize,knobsMargin);
@@ -134,7 +161,7 @@ void oscGUI::resized()
     addItemToFlexBox(osc1Knobs,octave_osc1,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,coarse_osc1,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,semiDetune_osc1,knobSize,knobSize,knobsMargin);
-    osc1Knobs.performLayout(topArea);
+
 
     juce::FlexBox osc1Labels;
     osc1Labels.flexDirection = juce::FlexBox::Direction::row;
@@ -145,9 +172,15 @@ void oscGUI::resized()
     addItemToFlexBox(osc1Labels,octave_osc1_label,knobLabelWidth,knobLabelHeight,1);
     addItemToFlexBox(osc1Labels,coarse_osc1_label,knobLabelWidth,knobLabelHeight,1);
     addItemToFlexBox(osc1Labels,semiDetune_osc1_label,knobLabelWidth,knobLabelHeight,1);
-    osc1Labels.performLayout(topKnobNameArea);
+
+    topSection.items.add(juce::FlexItem(osc1Knobs).withFlex(1).withHeight(60));
+    topSection.items.add(juce::FlexItem(osc1Labels).withFlex(1).withHeight(15));
+    topSection.performLayout(topArea);
 
     OSC2.setBounds(bottomLabelArea);
+
+    juce::FlexBox bottomSection;
+    bottomSection.flexDirection = juce::FlexBox::Direction::column;
     juce::FlexBox osc2Knobs;
     osc2Knobs.flexDirection = juce::FlexBox::Direction::row;
     addItemToFlexBox(osc2Knobs,waveTypeOSC2,knobSize,knobSize,knobsMargin);
@@ -155,7 +188,7 @@ void oscGUI::resized()
     addItemToFlexBox(osc2Knobs,octave_osc2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,coarse_osc2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,semiDetune_osc2,knobSize,knobSize,knobsMargin);
-    osc2Knobs.performLayout(bottomArea);
+
 
     juce::FlexBox osc2Labels;
     osc2Labels.flexDirection = juce::FlexBox::Direction::row;
@@ -164,7 +197,10 @@ void oscGUI::resized()
     addItemToFlexBox(osc2Labels,octave_osc2_label,knobLabelWidth,knobLabelHeight,1);
     addItemToFlexBox(osc2Labels,coarse_osc2_label,knobLabelWidth,knobLabelHeight,1);
     addItemToFlexBox(osc2Labels,semiDetune_osc2_label,knobLabelWidth,knobLabelHeight,1);
-    osc2Labels.performLayout(bottomKnobNameArea);
+
+    bottomSection.items.add(juce::FlexItem(osc2Knobs).withFlex(1).withHeight(60));
+    bottomSection.items.add(juce::FlexItem(osc2Labels).withFlex(1).withHeight(15));
+    bottomSection.performLayout(bottomArea);
 
     juce::FlexBox bottomLabel;
     bottomLabel.flexDirection = juce::FlexBox::Direction::row;

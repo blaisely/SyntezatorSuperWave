@@ -58,13 +58,13 @@ void SimpleSynthAudioProcessorEditor::resized()
     juce::Rectangle<int> presetSection = leftBottomSection;
 
 
-    
+
 
     oscGui.setBounds(topSection.reduced(15));
     envelopeGui.setBounds(controlsSection.reduced(15,0));
     filterGui.setBounds(leftSection.reduced(5).reduced(20,0));
     matrixGui.setBounds(matrixSection.reduced(5));
-    presetGui.setBounds(leftBottomSection.reduced(10,5));
+    presetGui.setBounds(leftBottomSection.reduced(10,0));
 
 }
 

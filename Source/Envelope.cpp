@@ -88,12 +88,17 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(modEnvType);
 
 
-
+    lfoDepth.setLookAndFeel(&dial);
+    lfoFreq.setLookAndFeel(&dial);
     setSize(530, 160);
 }
 
 Envelope::~Envelope()
-= default;
+{
+    lfoDepth.setLookAndFeel(nullptr);
+    lfoFreq.setLookAndFeel(nullptr);
+}
+
 
 void Envelope::paint (juce::Graphics& g)
 {
@@ -116,7 +121,7 @@ void Envelope::resized()
     constexpr int amountSliderHeight = 80;
     constexpr int lfoKnobSize =120;
     constexpr int lfoLabelWidth=120;
-    constexpr int comboBoxWidth = 100;
+    constexpr int comboBoxWidth = 110;
     constexpr int comboBoxHeight = 20;
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
@@ -125,7 +130,7 @@ void Envelope::resized()
     juce::Rectangle<int> modLabelArea = modEnvelope.removeFromBottom(10);
     juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(90).reduced(5);
     juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(10).removeFromRight(60);
-    juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(40);
+    juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(30);
     juce::Rectangle<int> lfoArea = area.removeFromLeft(170).reduced(5);
     juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(100);
     juce::Rectangle<int> lfoKnobsLabel = lfoKnobsArea.removeFromBottom(10);

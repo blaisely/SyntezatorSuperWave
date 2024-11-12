@@ -11,6 +11,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+
+#include "customLook.h"
 #include "PluginProcessor.h"
 #include "SharedData.h"
 
@@ -46,6 +48,7 @@ public:
     
 
 private:
+    customLookAndFeel dial;
     int lfo{1};
     int envelope {1};
     juce::TextButton modEnvType;

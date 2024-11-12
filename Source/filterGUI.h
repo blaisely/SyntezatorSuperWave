@@ -11,6 +11,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+
+#include "customLook.h"
 #include "PluginProcessor.h"
 
 //==============================================================================
@@ -36,6 +38,7 @@ public:
     void makeSlider(juce::Slider& slider,juce::Label& label);
 
 private:
+    customLookAndFeel dial;
     juce::Slider filterCutOff;
     juce::Slider filterResonance;
     juce::Slider filterDrive;

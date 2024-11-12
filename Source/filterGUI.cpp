@@ -43,10 +43,17 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
 
     setSize(320, 220);
+
+    filterCutOff.setLookAndFeel(&dial);
+    filterResonance.setLookAndFeel(&dial);
+    filterDrive.setLookAndFeel(&dial);
 }
 
 filterGUI::~filterGUI()
 {
+    filterCutOff.setLookAndFeel(nullptr);
+    filterResonance.setLookAndFeel(nullptr);
+    filterDrive.setLookAndFeel(nullptr);
 }
 
 void filterGUI::paint (juce::Graphics& g)

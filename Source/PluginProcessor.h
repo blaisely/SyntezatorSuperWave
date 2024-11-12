@@ -69,7 +69,7 @@ public:
         lfoReset{0},lfoType{0},reversedEnvelope{0},detuneosc1{0},detuneosc2{0},lfo2Type{0},modSource1{0},modSource2{0},modSource3{0},
         modSource4{0},modSource5{0},modDestination1{0},modDestination2{0},modDestination3{0},modDestination4{0},modDestination5{0},loopModEnvelope{0},
         lfo1Unipolar{0},lfo2Unipolar{0},filterKeytrack{0},filterKeytrackOffset{0},lfo3Type{0},lfo3Unipolar{0},loopModEnvelope2{0},
-        lfoReset2{0},lfoReset3{0},reset{0};
+        lfoReset2{0},lfoReset3{0},reset{0},lfoNumber{1};
     };
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();

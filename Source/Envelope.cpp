@@ -27,6 +27,46 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeSlider(modAmount,modAmountLabel);
     makeKnob(lfoDepth,lfoDepthLabel);
     makeKnob(lfoFreq,lfoFreqLabel);
+
+    juce::StringArray lfoOptions{"Sine","Square","Saw","Sample&Hold"};
+    lfoType.addItemList(lfoOptions,1);
+    lfoType.addListener(this);
+    addAndMakeVisible(lfoType);
+
+    modEnvType.setToggleable(true);
+    modEnvType.setClickingTogglesState(true);
+    modEnvType.setButtonText("Env 1");
+    modEnvType.addListener(this);
+
+    loopEnvelope.setButtonText("Loop");
+    loopEnvelope.setClickingTogglesState(true);
+    loopEnvelope.setToggleable(true);
+    loopEnvelope.addListener(this);
+    addAndMakeVisible(loopEnvelope);
+
+    lfoUnipolar.setButtonText("Unipolar");
+    lfoUnipolar.setToggleable(true);
+    lfoUnipolar.setClickingTogglesState(true);
+    lfoUnipolar.addListener(this);
+    addAndMakeVisible(lfoUnipolar);
+
+    lfoReset.setButtonText("Reset");
+    lfoReset.setClickingTogglesState(true);
+    lfoReset.setToggleable(true);
+    lfoReset.addListener(this);
+    addAndMakeVisible(lfoReset);
+
+    juce::StringArray lfoNumbers{"LFO1","LFO2","LFO3"};
+    lfoNumber.addItemList(lfoNumbers,1);
+    lfoNumber.addListener(this);
+    addAndMakeVisible(lfoNumber);
+
+    addAndMakeVisible(sharedAmp);
+    sharedAmp.setToggleable(true);
+    sharedAmp.setButtonText("Env1->OSC2");
+    sharedAmp.setClickingTogglesState(true);
+    sharedAmp.addListener(this);
+
     attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attackAmp);
     decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decayAmp);
     sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "sustain", sustainAmp);
@@ -44,36 +84,10 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfoReset",lfoReset);
     sharedAmpAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"commonEnvelope",sharedAmp);
     lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoType",lfoType);
+    lfoNumberAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoNumber",lfoNumber);
     addAndMakeVisible(modEnvType);
-    modEnvType.setToggleable(true);
-    modEnvType.setButtonText("Env 1");
-    modEnvType.addListener(this);
-    loopEnvelope.setButtonText("Loop");
-    loopEnvelope.setToggleable(true);
-    loopEnvelope.addListener(this);
-    addAndMakeVisible(loopEnvelope);
-    juce::StringArray lfoOptions{"Sine","Square","Saw","Sample&Hold"};
-    lfoType.addItemList(lfoOptions,1);
-    lfoType.setSelectedId(1);
-    addAndMakeVisible(lfoType);
-    lfoUnipolar.setButtonText("Unipolar");
-    lfoUnipolar.setToggleable(true);
-    lfoReset.setButtonText("Reset");
-    lfoReset.setToggleable(true);
-    addAndMakeVisible(lfoReset);
-    addAndMakeVisible(lfoUnipolar);
-    juce::StringArray lfoNumbers{"LFO1","LFO2","LFO3"};
-    lfoNumber.addItemList(lfoNumbers,1);
-    lfoNumber.setSelectedId(1);
-    lfoNumber.addListener(this);
-    lfoType.addListener(this);
-    lfoUnipolar.addListener(this);
-    lfoReset.addListener(this);
-    addAndMakeVisible(lfoNumber);
-    addAndMakeVisible(sharedAmp);
-    sharedAmp.setToggleable(true);
-    sharedAmp.setButtonText("Env1->OSC2");
-    sharedAmp.addListener(this);
+
+
 
     setSize(530, 160);
 }
@@ -194,13 +208,13 @@ void Envelope::buttonClicked(juce::Button* button)
 
     if(button == &loopEnvelope)
     {
-        bool newToggleState = !button->getToggleState();
+        /*bool newToggleState = !button->getToggleState();
         button->setToggleState(newToggleState, juce::dontSendNotification);
 
         if(envelope==1)
             audioProcessor.state.getParameter("loopEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
         if(envelope==2)
-            audioProcessor.state.getParameter("loopEnvelope2")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
+            audioProcessor.state.getParameter("loopEnvelope2")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);*/
     }
     if(button==&modEnvType)
     {
@@ -218,25 +232,20 @@ void Envelope::buttonClicked(juce::Button* button)
             envelope = 1;
         }
 
-        state= button->getToggleState();
-        button->setToggleState(!state,juce::dontSendNotification);
+        /*state= button->getToggleState();
+        button->setToggleState(!state,juce::dontSendNotification);*/
     }
 
     if(button==&lfoReset)
     {
-        state3 = button->getToggleState();
-        button->setToggleState(!state3,juce::dontSendNotification);
     }
     if(button==&lfoUnipolar)
     {
-        state3 = button->getToggleState();
-        button->setToggleState(!state3,juce::dontSendNotification);
+
     }
     if(button==&sharedAmp)
     {
-        bool newToggleState = !button->getToggleState();
-        button->setToggleState(newToggleState, juce::dontSendNotification);
-        audioProcessor.state.getParameter("commonEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
+
     }
 }
 
@@ -311,16 +320,19 @@ void Envelope::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged)
         {
         setUpLFOKnobs(LFO1IDs);
         setUpLFOAttachments(LFO1IDs);
+            lfo = 1;
         }
         if(lfoNumber.getSelectedId()==2)
         {
             setUpLFOKnobs(LFO2IDs);
             setUpLFOAttachments(LFO2IDs);
+            lfo = 2;
         }
         if(lfoNumber.getSelectedId()==3)
         {
             setUpLFOKnobs(LFO3IDs);
             setUpLFOAttachments(LFO3IDs);
+            lfo = 3;
         }
     }
 }

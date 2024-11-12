@@ -186,7 +186,7 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
     auto chainSettings = getChainSettings(state);
     syncStates(tree,chainSettings);
     resetSynth = tree[IDs::Reset];
-    DBG("Reset Synth: "+ std::to_string(resetSynth));
+    DBG("loop Envelope: "+ std::to_string(chainSettings.loopModEnvelope));
     if(resetSynth)
         reset();
     state.getParameter("reset")->setValueNotifyingHost(0);
@@ -246,12 +246,16 @@ void SimpleSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTree
 {
     juce::ValueTree state = s.copyState();  // grab a copy of the current parameters Value Tree
     std::unique_ptr<juce::XmlElement> tempXml (state.createXml());  // convert parameters Value Tree to an XML object
-
-    // iterate through each "PARAM" element in XML, and overwrite values with their defaults
-    forEachXmlChildElementWithTagName (*tempXml, child, "PARAM")
-    {
-        float defaultValue = s.getParameter(child->getStringAttribute("id"))->getDefaultValue();
-        child->setAttribute("value", defaultValue);
+    //iterate through XML elements with "PARAM" TAG
+    for (auto* child : tempXml->getChildWithTagNameIterator("PARAM")){
+        //get attribute of a parameter
+        auto* param = s.getParameter(child->getStringAttribute("id"));
+        if (param != nullptr)
+        {
+            //get default value without normalization to 0-1 range
+            float defaultValue = param->convertFrom0to1(param->getDefaultValue());
+            child->setAttribute("value", defaultValue);
+        }
     }
 
     s.replaceState (juce::ValueTree::fromXml (*tempXml));
@@ -462,6 +466,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo2Unipolar", "LFO2 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo3Unipolar", "LFO3 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("reset", "Init", 0));
+    layout.add(std::make_unique<juce::AudioParameterInt>("lfoNumber","Selected LFO",1,3,1));
 
 
     return layout;
@@ -542,6 +547,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     settings.filterKeytrack = apvts.getRawParameterValue("filterKeytrackEnable")->load();
     settings.filterKeytrackOffset = apvts.getRawParameterValue("filterKeytrackOffset")->load();
     settings.reset = apvts.getRawParameterValue("reset")->load();
+    settings.lfoNumber = apvts.getRawParameterValue("lfoNumber")->load();
 
 
     return settings;

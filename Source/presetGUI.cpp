@@ -10,6 +10,7 @@ presetGUI::presetGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeSlider(gain,gainLabel);
     addAndMakeVisible(init);
     init.setButtonText("INIT");
+    init.setClickingTogglesState(true);
     init.addListener(this);
     gainAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"gainOVR",gain);
     initAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"reset",init);
@@ -43,9 +44,6 @@ void presetGUI::resized()
 void presetGUI::timerCallback()
 {
 
-    init.setToggleState(0, juce::dontSendNotification);
-    audioProcessor.state.getParameter("reset")->setValueNotifyingHost(0);
-    stopTimer();
 }
 
 void presetGUI::comboBoxChanged(juce::ComboBox* box)
@@ -60,10 +58,7 @@ void presetGUI::buttonClicked(juce::Button* button)
 {
     if(button==&init)
     {
-        bool newToggleState = !button->getToggleState();
-        button->setToggleState(newToggleState, juce::dontSendNotification);
-        audioProcessor.state.getParameter("filterKeytrackEnable")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
-        startTimer(1000);
+
     }
 }
 

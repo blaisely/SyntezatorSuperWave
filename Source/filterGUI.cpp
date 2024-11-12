@@ -19,6 +19,20 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeKnob(filterResonance,filterResonanceLabel);
     makeKnob(filterDrive,filterDriveLabel);
     makeSlider(keyTrackOffset,offsetLabel);
+    addAndMakeVisible(filterEmu);
+    filterEmu.addListener(this);
+    filterEmu.setButtonText("SVF");
+    filterEmu.setToggleable(true);
+    filterEmu.setClickingTogglesState(true);
+    addAndMakeVisible(filterKeytracking);
+    filterKeytracking.addListener(this);
+    filterKeytracking.setButtonText("KeyTrack");
+    filterKeytracking.setClickingTogglesState(true);
+    filterKeytracking.setToggleable(true);
+    addAndMakeVisible(filterLabel);
+    addAndMakeVisible(filterType);
+    filterType.addItemList(filterTypes,1);
+
     filterCutOffAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterCutoff",filterCutOff);
     filterResonanceAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterRes",filterResonance);
     filterDriveAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterDrive",filterDrive);
@@ -26,19 +40,7 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     filterKeytrackAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterKeytrackEnable",filterKeytracking);
     filterEmuAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterbutton",filterEmu);
     filterTypeAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"filterType",filterType);
-    addAndMakeVisible(filterEmu);
-    filterEmu.addListener(this);
-    filterEmu.setButtonText("SVF");
-    filterEmu.setToggleable(true);
-    filterEmu.setToggleState(0,juce::dontSendNotification);
-    addAndMakeVisible(filterKeytracking);
-    filterKeytracking.addListener(this);
-    filterKeytracking.setButtonText("KeyTrack");
-    filterKeytracking.setToggleable(true);
-    addAndMakeVisible(filterLabel);
-    addAndMakeVisible(filterType);
-    filterType.addItemList(filterTypes,1);
-    filterType.setSelectedId(audioProcessor.state.getRawParameterValue("filterType")->load()+1);
+
 
     setSize(320, 220);
 }
@@ -99,18 +101,14 @@ void filterGUI::buttonClicked(juce::Button* button)
     bool state = true;
     if(button==&filterEmu)
     {
-        state = button->getToggleState();
         if(!button->getToggleState())
                 button->setButtonText("Ladder");
         if(button->getToggleState())
                 button->setButtonText("SVF");
-        button->setToggleState(!state,juce::dontSendNotification);
     }
     if(button==&filterKeytracking)
     {
-        bool newToggleState = !button->getToggleState();
-        button->setToggleState(newToggleState, juce::dontSendNotification);
-        audioProcessor.state.getParameter("filterKeytrackEnable")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
+
     }
 }
 

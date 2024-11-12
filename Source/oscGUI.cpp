@@ -55,6 +55,16 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     makeKnob(PWOSC2,"pulseWidthOsc2",PWMLabel2);
     PWOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc2",PWOSC2);
 
+    //TODO incorporate into a separate Slider class
+    /*PWOSC1.onDragStart = [this]()
+    {
+        PWOSC1.setTextBoxStyle(juce::Slider::TextBoxAbove, true, 40.0f, 20.0f);
+
+    };
+    PWOSC1.onDragEnd = [this]()
+    {
+        PWOSC1.setTextBoxStyle(juce::Slider::NoTextBox, true, 20.0f, 10.0f);
+    };*/
     addAndMakeVisible(OSC1);
     addAndMakeVisible(OSC2);
     Gain_osc1_label.setFont(10.f);
@@ -180,7 +190,7 @@ void oscGUI::sliderValueChanged(juce::Slider* slider)
 void oscGUI::makeKnob(juce::Slider& slider, juce::String ID, juce::Label& label)
 {
     slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
+    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 20.0f, 10.0f);
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);

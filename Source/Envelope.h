@@ -46,6 +46,7 @@ public:
     
 
 private:
+    int lfo{1};
     int envelope {1};
     juce::TextButton modEnvType;
     juce::TextButton loopEnvelope;
@@ -92,6 +93,7 @@ private:
     std::unique_ptr<ButtonAttachment> lfoUnipolarAttach;
     std::unique_ptr<ButtonAttachment> lfoResetAttach;
     std::unique_ptr<ButtonAttachment> sharedAmpAttach;
+    std::unique_ptr<ComboBoxAttachment> lfoNumberAttach;
 
     juce::StringArray envelope2IDs{"attackOsc2","decayOsc2","sustainOsc2","releaseOsc2","filterEnvelope","loopEnvelope"};
     juce::StringArray envelope3IDs{"attackOsc3","decayOsc3","sustainOsc3","releaseOsc3","filterEnvelope2","loopEnvelope2"};

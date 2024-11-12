@@ -64,7 +64,7 @@ private:
     std::unique_ptr<SliderAttachment> intens3Attach;
     std::unique_ptr<SliderAttachment> intens4Attach;
     std::unique_ptr<SliderAttachment> intens5Attach;
-    juce::StringArray destinations{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
+    juce::StringArray destinations{ "No connection","Filter CutOff","Filter Resonance","Detune Mix","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
         "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"};
     juce::StringArray sources{"LFO 1","LFO2","LFO3","AMP","Env1","Env2"};

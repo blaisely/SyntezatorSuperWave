@@ -38,7 +38,9 @@ public:
     void makeSlider(juce::Slider& slider,juce::Label& label);
 
 private:
-    customLookAndFeel dial;
+    customLookAndFeel customLook;
+    filterEmuLookAndFeel emuLook;
+    filterLabel labelLook;
     juce::Slider filterCutOff;
     juce::Slider filterResonance;
     juce::Slider filterDrive;

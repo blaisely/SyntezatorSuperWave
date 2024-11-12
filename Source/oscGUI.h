@@ -37,7 +37,7 @@ public:
 
 private:
     //juce::novationDial dial;
-    customLookAndFeel dial;
+    customLookAndFeel customLook;
     juce::Label Gain_osc1_label{ "GAIN","GAIN" };
     juce::Label panOsc1Label{ "Pan","PAN" };
     juce::Label panOsc2Label{ "Pan","PAN" };

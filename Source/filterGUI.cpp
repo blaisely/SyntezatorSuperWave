@@ -44,9 +44,12 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     setSize(320, 220);
 
-    filterCutOff.setLookAndFeel(&dial);
-    filterResonance.setLookAndFeel(&dial);
-    filterDrive.setLookAndFeel(&dial);
+    filterCutOff.setLookAndFeel(&customLook);
+    filterResonance.setLookAndFeel(&customLook);
+    filterDrive.setLookAndFeel(&customLook);
+    filterEmu.setLookAndFeel(&emuLook);
+    filterKeytracking.setLookAndFeel(&customLook);
+    filterLabel.setLookAndFeel(&labelLook);
 }
 
 filterGUI::~filterGUI()
@@ -54,6 +57,9 @@ filterGUI::~filterGUI()
     filterCutOff.setLookAndFeel(nullptr);
     filterResonance.setLookAndFeel(nullptr);
     filterDrive.setLookAndFeel(nullptr);
+    filterEmu.setLookAndFeel(nullptr);
+    filterKeytracking.setLookAndFeel(nullptr);
+    filterLabel.setLookAndFeel(nullptr);
 }
 
 void filterGUI::paint (juce::Graphics& g)
@@ -64,16 +70,17 @@ void filterGUI::resized()
 {
     constexpr int knobSize = 80;
     constexpr int margin =1;
+    constexpr int buttonMargin = 5;
     constexpr int labelWidth = 80;
     constexpr int labelHeight = 15;
     constexpr int buttonWidth = 50;
     constexpr int buttonHeight = 20;
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
-    juce::Rectangle<int> titleArea = area.removeFromTop(20).reduced(5);
+    juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
     juce::Rectangle<int> filterSelection = area.removeFromTop(30);
     juce::Rectangle<int> leftSection = area.removeFromLeft(110);
     juce::Rectangle<int> rightSection = area.removeFromLeft(110);
-    filterLabel.setBounds(titleArea.withSizeKeepingCentre(65,20));
+    filterLabel.setBounds(titleArea.withSizeKeepingCentre(65,40));
     filterType.setBounds(filterSelection.withSizeKeepingCentre(80,30));
     juce::FlexBox left;
     left.flexDirection = juce::FlexBox::Direction::column;
@@ -87,8 +94,8 @@ void filterGUI::resized()
     right.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(right,filterDrive,knobSize,knobSize,margin);
     addItemToFlexBox(right,filterDriveLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(right,filterEmu,buttonWidth,buttonHeight,margin);
-    addItemToFlexBox(right,filterKeytracking,buttonWidth,buttonHeight,margin);
+    addItemToFlexBox(right,filterEmu,buttonWidth,buttonHeight,buttonMargin);
+    addItemToFlexBox(right,filterKeytracking,buttonWidth,buttonHeight,buttonMargin);
     addItemToFlexBox(right,keyTrackOffset,knobSize,buttonHeight,margin);
     addItemToFlexBox(right,offsetLabel,labelWidth,labelHeight,margin);
     right.performLayout(rightSection);
@@ -126,7 +133,7 @@ void filterGUI::makeKnob(juce::Slider& slider,juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(12.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }
@@ -138,7 +145,7 @@ void filterGUI::makeSlider(juce::Slider& slider, juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(12.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }

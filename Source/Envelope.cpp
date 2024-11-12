@@ -16,10 +16,10 @@
 //==============================================================================
 Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 {
-   makeSlider(attackAmp,attackAmpLabel);
-   makeSlider(decayAmp,decayAmpLabel);
-   makeSlider(sustainAmp,sustainAmpLabel);
-   makeSlider(releaseAmp,releaseAmpLabel);
+    makeSlider(attackAmp,attackAmpLabel);
+    makeSlider(decayAmp,decayAmpLabel);
+    makeSlider(sustainAmp,sustainAmpLabel);
+    makeSlider(releaseAmp,releaseAmpLabel);
     makeSlider(attackMod,attackModLabel);
     makeSlider(decayMod,decayModLabel);
     makeSlider(sustainMod,sustainModLabel);
@@ -88,8 +88,13 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(modEnvType);
 
 
-    lfoDepth.setLookAndFeel(&dial);
-    lfoFreq.setLookAndFeel(&dial);
+    lfoDepth.setLookAndFeel(&customLook);
+    lfoFreq.setLookAndFeel(&customLook);
+    lfoReset.setLookAndFeel(&customLook);
+    loopEnvelope.setLookAndFeel(&customLook);
+    sharedAmp.setLookAndFeel(&customLook);
+    modEnvType.setLookAndFeel(&customLook);
+    lfoUnipolar.setLookAndFeel(&customLook);
     setSize(530, 160);
 }
 
@@ -97,6 +102,11 @@ Envelope::~Envelope()
 {
     lfoDepth.setLookAndFeel(nullptr);
     lfoFreq.setLookAndFeel(nullptr);
+    lfoReset.setLookAndFeel(nullptr);
+    loopEnvelope.setLookAndFeel(nullptr);
+    sharedAmp.setLookAndFeel(nullptr);
+    modEnvType.setLookAndFeel(nullptr);
+    lfoUnipolar.setLookAndFeel(nullptr);
 }
 
 
@@ -113,6 +123,7 @@ void Envelope::resized()
     constexpr int sliderWidth = 25;
     constexpr int sliderHeight = 115;
     constexpr int margin  = 1;
+    constexpr int buttonMargin  = 5;
     constexpr int labelWidth = 25;
     constexpr int labelHeight = 10;
     constexpr int buttonWidth = 40;
@@ -171,9 +182,9 @@ void Envelope::resized()
     juce::FlexBox modControls;
     modControls.flexDirection = juce::FlexBox::Direction::column;
     modControls.alignContent = juce::FlexBox::AlignContent::spaceAround;
-    addItemToFlexBoxWithAlign(modControls,modEnvType,buttonWidth,buttonHeight,1);
-    addItemToFlexBoxWithAlign(modControls,loopEnvelope,buttonWidth,buttonHeight,1);
-    addItemToFlexBox(modControls,sharedAmp,buttonWidth,buttonHeight+10,1);
+    addItemToFlexBoxWithAlign(modControls,modEnvType,buttonWidth,buttonHeight,buttonMargin);
+    addItemToFlexBoxWithAlign(modControls,loopEnvelope,buttonWidth,buttonHeight,buttonMargin);
+    addItemToFlexBox(modControls,sharedAmp,buttonWidth,buttonHeight+10,buttonMargin);
     modControls.performLayout(envelopeButtonsArea);
     modAmount.setBounds(amountSliderArea);
     modAmountLabel.setBounds(envelopeButtonsLabelArea);
@@ -190,8 +201,8 @@ void Envelope::resized()
     lfoControls.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(lfoControls,lfoNumber,comboBoxWidth,comboBoxHeight,margin);
     addItemToFlexBox(lfoControls,lfoType,comboBoxWidth,comboBoxHeight,margin);
-    addItemToFlexBox(lfoControls,lfoReset,buttonWidth,buttonHeight,margin);
-    addItemToFlexBox(lfoControls,lfoUnipolar,buttonWidth,buttonHeight,margin);
+    addItemToFlexBox(lfoControls,lfoReset,comboBoxWidth,buttonHeight,buttonMargin);
+    addItemToFlexBox(lfoControls,lfoUnipolar,comboBoxWidth,buttonHeight,buttonMargin);
     lfoControls.performLayout(lfoArea);
 
 }
@@ -261,7 +272,7 @@ void Envelope::makeKnob(juce::Slider& slider,juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(12.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }
@@ -273,7 +284,7 @@ void Envelope::makeSlider(juce::Slider& slider, juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(12.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }

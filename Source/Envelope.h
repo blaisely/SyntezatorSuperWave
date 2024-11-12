@@ -48,7 +48,7 @@ public:
     
 
 private:
-    customLookAndFeel dial;
+    customLookAndFeel customLook;
     int lfo{1};
     int envelope {1};
     juce::TextButton modEnvType;

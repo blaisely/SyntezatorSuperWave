@@ -73,19 +73,22 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     panOsc2Label.setFont(10.f);
     setSize(530, 295);
     
-    waveTypeOSC1.setLookAndFeel(&dial);
-    waveTypeOSC2.setLookAndFeel(&dial);
-    PWOSC1.setLookAndFeel(&dial);
-    PWOSC2.setLookAndFeel(&dial);
-    octave_osc1.setLookAndFeel(&dial);
-    octave_osc2.setLookAndFeel(&dial);
-    coarse_osc1.setLookAndFeel(&dial);
-    coarse_osc2.setLookAndFeel(&dial);
-    semiDetune_osc1.setLookAndFeel(&dial);
-    semiDetune_osc2.setLookAndFeel(&dial);
-    detune.setLookAndFeel(&dial);
-    detuneMix.setLookAndFeel(&dial);
-    
+    waveTypeOSC1.setLookAndFeel(&customLook);
+    waveTypeOSC2.setLookAndFeel(&customLook);
+    PWOSC1.setLookAndFeel(&customLook);
+    PWOSC2.setLookAndFeel(&customLook);
+    octave_osc1.setLookAndFeel(&customLook);
+    octave_osc2.setLookAndFeel(&customLook);
+    coarse_osc1.setLookAndFeel(&customLook);
+    coarse_osc2.setLookAndFeel(&customLook);
+    semiDetune_osc1.setLookAndFeel(&customLook);
+    semiDetune_osc2.setLookAndFeel(&customLook);
+    detune.setLookAndFeel(&customLook);
+    detuneMix.setLookAndFeel(&customLook);
+    OSC1.setLookAndFeel(&customLook);
+    OSC2.setLookAndFeel(&customLook);
+
+
 }
 
 oscGUI::~oscGUI()
@@ -102,6 +105,8 @@ oscGUI::~oscGUI()
     semiDetune_osc2.setLookAndFeel(nullptr);
     detune.setLookAndFeel(nullptr);
     detuneMix.setLookAndFeel(nullptr);
+    OSC1.setLookAndFeel(nullptr);
+    OSC2.setLookAndFeel(nullptr);
 }
 
 void oscGUI::paint (juce::Graphics& g)
@@ -230,7 +235,7 @@ void oscGUI::makeKnob(juce::Slider& slider, juce::String ID, juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(15.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }
@@ -242,7 +247,7 @@ void oscGUI::makeSlider(juce::Slider& slider, juce::Label& label)
     addAndMakeVisible(&slider);
     slider.addListener(this);
     label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(15.0f);
+    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
     label.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(label);
 }

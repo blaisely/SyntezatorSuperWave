@@ -35,7 +35,7 @@ SimpleSynthAudioProcessorEditor::~SimpleSynthAudioProcessorEditor()
 void SimpleSynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(juce::Colour(0xffC9C7EE));
+    g.fillAll(juce::Colour(0xffD1CAF1));
     juce::Rectangle<int> area = getLocalBounds();
 
     /*juce::Rectangle<int> bottomSection = area.removeFromBottom(150);

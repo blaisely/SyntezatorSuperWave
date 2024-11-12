@@ -13,7 +13,7 @@
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {
     auto outline = slider.findColour(juce::Slider::rotarySliderOutlineColourId);
-    auto fill = juce::Colour(0x80DFB8EC);
+    auto fill = juce::Colour(0xCCDFB8EC);
 
 
     auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);
@@ -131,4 +131,217 @@ void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
 
     //g.setColour(slider.findColour(juce::Slider::thumbColourId));
     //g.fillEllipse(juce::Rectangle<float>(thumbWidth, thumbWidth).withCentre(thumbPoint));
+}
+
+void customLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
+    const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
+    auto cornerSize = 6.0f;
+    auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+
+    auto buttonColor = juce::Colour(0xffFCF1F1);
+    auto buttonDownColor = juce::Colour(0xff5F5959);
+    auto baseColour = buttonColor;
+    if(button.getToggleState())
+        baseColour = buttonDownColor;
+    /*if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+        baseColour = buttonDownColor.contrasting (shouldDrawButtonAsDown ? 0.05f : 0.01f);*/
+
+
+    g.setColour (baseColour);
+
+    auto flatOnLeft   = button.isConnectedOnLeft();
+    auto flatOnRight  = button.isConnectedOnRight();
+    auto flatOnTop    = button.isConnectedOnTop();
+    auto flatOnBottom = button.isConnectedOnBottom();
+
+    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+    {
+        Path path;
+        path.addRoundedRectangle (bounds.getX(), bounds.getY(),
+                                  bounds.getWidth(), bounds.getHeight(),
+                                  cornerSize, cornerSize,
+                                  ! (flatOnLeft  || flatOnTop),
+                                  ! (flatOnRight || flatOnTop),
+                                  ! (flatOnLeft  || flatOnBottom),
+                                  ! (flatOnRight || flatOnBottom));
+
+        g.fillPath (path);
+
+        g.setColour (baseColour);
+        g.strokePath (path, PathStrokeType (1.0f));
+    }
+    else
+    {
+        g.fillRoundedRectangle (bounds, cornerSize);
+
+        g.setColour (baseColour);
+        g.drawRoundedRectangle (bounds, cornerSize, 1.0f);
+    }
+}
+
+void customLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button,
+    bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
+    Font font (getTextButtonFont (button, button.getHeight()));
+    Font customFont("Montserrat",12,0);
+    auto fontColourOn = juce::Colour(0xff312F2F);
+    auto fontColourOff = juce::Colours::whitesmoke;
+    g.setFont (customFont);
+    g.setColour (button.getToggleState() ? fontColourOff
+                                                            : fontColourOn
+                       .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f));
+
+    const int yIndent = jmin (4, button.proportionOfHeight (0.3f));
+    const int cornerSize = jmin (button.getHeight(), button.getWidth()) / 2;
+
+    const int fontHeight = roundToInt (font.getHeight() * 0.6f);
+    const int leftIndent  = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+    const int rightIndent = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+    const int textWidth = button.getWidth() - leftIndent - rightIndent;
+
+    if (textWidth > 0)
+        g.drawFittedText (button.getButtonText(),
+                          leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
+                          Justification::centred, 2);
+}
+
+void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
+{
+    using namespace juce;
+    juce::Rectangle<int> area = label.getLocalBounds().reduced(0,5);
+    g.setColour(juce::Colour(0xffD1CAF1));
+    g.fillRoundedRectangle(area.toFloat(),6);
+    auto fontColor = juce::Colour(0xff312F2F);
+
+    if (! label.isBeingEdited())
+    {
+        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        const Font font (getLabelFont (label));
+
+        g.setColour (fontColor);
+        g.setFont (font);
+
+        auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds());
+
+        g.drawFittedText (label.getText(), textArea, label.getJustificationType(),
+                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          label.getMinimumHorizontalScale());
+
+        g.setColour (label.findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+    }
+    else if (label.isEnabled())
+    {
+        g.setColour (label.findColour (Label::outlineColourId));
+    }
+
+    g.drawRect (label.getLocalBounds());
+}
+
+//======================================================================================================================
+//filter emu button
+void filterEmuLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
+    const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
+    auto cornerSize = 6.0f;
+    auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+
+    auto buttonColor = juce::Colour(0xffFCF1F1);
+    auto buttonDownColor = juce::Colour(0xff5F5959);
+    auto baseColour = buttonColor;
+
+    g.setColour (baseColour);
+
+    auto flatOnLeft   = button.isConnectedOnLeft();
+    auto flatOnRight  = button.isConnectedOnRight();
+    auto flatOnTop    = button.isConnectedOnTop();
+    auto flatOnBottom = button.isConnectedOnBottom();
+
+    if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+    {
+        Path path;
+        path.addRoundedRectangle (bounds.getX(), bounds.getY(),
+                                  bounds.getWidth(), bounds.getHeight(),
+                                  cornerSize, cornerSize,
+                                  ! (flatOnLeft  || flatOnTop),
+                                  ! (flatOnRight || flatOnTop),
+                                  ! (flatOnLeft  || flatOnBottom),
+                                  ! (flatOnRight || flatOnBottom));
+
+        g.fillPath (path);
+
+        g.setColour (baseColour);
+        g.strokePath (path, PathStrokeType (1.0f));
+    }
+    else
+    {
+        g.fillRoundedRectangle (bounds, cornerSize);
+
+        g.setColour (baseColour);
+        g.drawRoundedRectangle (bounds, cornerSize, 1.0f);
+    }
+}
+
+void filterEmuLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button,
+                                          bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+{
+    using namespace juce;
+    Font font (getTextButtonFont (button, button.getHeight()));
+    Font customFont("Montserrat",12,0);
+    auto fontColourOn = juce::Colour(0xff312F2F);
+    auto fontColourOff = juce::Colours::whitesmoke;
+    g.setFont (customFont);
+    g.setColour (button.getToggleState() ? fontColourOn
+                                                            : fontColourOn
+                       .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f));
+
+    const int yIndent = jmin (4, button.proportionOfHeight (0.3f));
+    const int cornerSize = jmin (button.getHeight(), button.getWidth()) / 2;
+
+    const int fontHeight = roundToInt (font.getHeight() * 0.6f);
+    const int leftIndent  = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+    const int rightIndent = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+    const int textWidth = button.getWidth() - leftIndent - rightIndent;
+
+    if (textWidth > 0)
+        g.drawFittedText (button.getButtonText(),
+                          leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
+                          Justification::centred, 2);
+}
+
+//======================================================================================================================
+//Filter Label
+void filterLabel::drawLabel(juce::Graphics& g, juce::Label& label)
+{
+    using namespace juce;
+    juce::Rectangle<int> area = label.getLocalBounds().reduced(0,5);
+    g.setColour(juce::Colour(0xff949FD6));
+    g.fillRoundedRectangle(area.toFloat(),6);
+    auto fontColor = juce::Colour(0xff312F2F);
+
+    if (! label.isBeingEdited())
+    {
+        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        const Font font (getLabelFont (label));
+
+        g.setColour (fontColor);
+        g.setFont (font);
+
+        auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds());
+
+        g.drawFittedText (label.getText(), textArea, label.getJustificationType(),
+                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          label.getMinimumHorizontalScale());
+
+        g.setColour (label.findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+    }
+    else if (label.isEnabled())
+    {
+        g.setColour (label.findColour (Label::outlineColourId));
+    }
+
+    g.drawRect (label.getLocalBounds());
 }

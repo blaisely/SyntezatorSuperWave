@@ -13,12 +13,13 @@
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
+filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p),filterCutOff("CutOff",1,true),filterResonance("Resonance",2,true),
+filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
 {
-    makeKnob(filterCutOff,filterCutOffLabel);
-    makeKnob(filterResonance,filterResonanceLabel);
-    makeKnob(filterDrive,filterDriveLabel);
-    makeSlider(keyTrackOffset,offsetLabel);
+    addAndMakeVisible(filterCutOff);
+    addAndMakeVisible(filterResonance);
+    addAndMakeVisible(filterDrive);
+    addAndMakeVisible(keyTrackOffset);
     addAndMakeVisible(filterEmu);
     filterEmu.addListener(this);
     filterEmu.setButtonText("SVF");
@@ -33,10 +34,10 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(filterType);
     filterType.addItemList(filterTypes,1);
 
-    filterCutOffAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterCutoff",filterCutOff);
-    filterResonanceAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterRes",filterResonance);
-    filterDriveAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterDrive",filterDrive);
-    keyTrackOffsetAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterKeytrackOffset",keyTrackOffset);
+    filterCutOffAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterCutoff",filterCutOff.slider);
+    filterResonanceAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterRes",filterResonance.slider);
+    filterDriveAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterDrive",filterDrive.slider);
+    keyTrackOffsetAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"filterKeytrackOffset",keyTrackOffset.slider);
     filterKeytrackAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterKeytrackEnable",filterKeytracking);
     filterEmuAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"filterbutton",filterEmu);
     filterTypeAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"filterType",filterType);
@@ -44,9 +45,9 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
     setSize(320, 220);
 
-    filterCutOff.setLookAndFeel(&customLook);
-    filterResonance.setLookAndFeel(&customLook);
-    filterDrive.setLookAndFeel(&customLook);
+    filterCutOff.slider.setLookAndFeel(&customLook);
+    filterResonance.slider.setLookAndFeel(&customLook);
+    filterDrive.slider.setLookAndFeel(&customLook);
     filterEmu.setLookAndFeel(&emuLook);
     filterKeytracking.setLookAndFeel(&customLook);
     filterLabel.setLookAndFeel(&labelLook);
@@ -54,7 +55,7 @@ filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
 filterGUI::~filterGUI()
 {
-    filterCutOff.setLookAndFeel(nullptr);
+    filterCutOff.slider.setLookAndFeel(nullptr);
     filterResonance.setLookAndFeel(nullptr);
     filterDrive.setLookAndFeel(nullptr);
     filterEmu.setLookAndFeel(nullptr);
@@ -68,13 +69,14 @@ void filterGUI::paint (juce::Graphics& g)
 
 void filterGUI::resized()
 {
-    constexpr int knobSize = 80;
+    constexpr int knobSize = 90;
     constexpr int margin =1;
     constexpr int buttonMargin = 5;
     constexpr int labelWidth = 80;
     constexpr int labelHeight = 15;
     constexpr int buttonWidth = 50;
     constexpr int buttonHeight = 20;
+    constexpr int horizontalSliderHeight = 30;
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
     juce::Rectangle<int> filterSelection = area.removeFromTop(30);
@@ -85,19 +87,16 @@ void filterGUI::resized()
     juce::FlexBox left;
     left.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(left,filterCutOff,knobSize,knobSize,margin);
-    addItemToFlexBox(left,filterCutOffLabel,labelWidth,labelHeight,margin);
     addItemToFlexBox(left,filterResonance,knobSize,knobSize,margin);
-    addItemToFlexBox(left,filterResonanceLabel,labelWidth,labelHeight,margin);
     left.performLayout(leftSection);
 
     juce::FlexBox right;
     right.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(right,filterDrive,knobSize,knobSize,margin);
-    addItemToFlexBox(right,filterDriveLabel,labelWidth,labelHeight,margin);
+
     addItemToFlexBox(right,filterEmu,buttonWidth,buttonHeight,buttonMargin);
     addItemToFlexBox(right,filterKeytracking,buttonWidth,buttonHeight,buttonMargin);
-    addItemToFlexBox(right,keyTrackOffset,knobSize,buttonHeight,margin);
-    addItemToFlexBox(right,offsetLabel,labelWidth,labelHeight,margin);
+    addItemToFlexBox(right,keyTrackOffset,knobSize,horizontalSliderHeight,margin);
     right.performLayout(rightSection);
 
 }
@@ -126,27 +125,4 @@ void filterGUI::buttonClicked(juce::Button* button)
     }
 }
 
-void filterGUI::makeKnob(juce::Slider& slider,juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
-
-void filterGUI::makeSlider(juce::Slider& slider, juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
 

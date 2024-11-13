@@ -14,6 +14,7 @@
 
 #include "customLook.h"
 #include "PluginProcessor.h"
+#include "helpersUI.h"
 
 //==============================================================================
 
@@ -34,22 +35,16 @@ public:
     void comboBoxChanged(juce::ComboBox* box) override;
     void sliderValueChanged(juce::Slider* slider) override;
     void buttonClicked(juce::Button* button) override;
-    void makeKnob(juce::Slider& slider,juce::Label& label);
-    void makeSlider(juce::Slider& slider,juce::Label& label);
-
 private:
     customLookAndFeel customLook;
     filterEmuLookAndFeel emuLook;
     filterLabel labelLook;
-    juce::Slider filterCutOff;
-    juce::Slider filterResonance;
-    juce::Slider filterDrive;
+
+    customKnob filterCutOff;
+    customKnob filterResonance;
+    customKnob filterDrive;
     juce::TextButton filterKeytracking;
-    juce::Slider keyTrackOffset;
-    juce::Label filterCutOffLabel{"CutOff","CutOff"};
-    juce::Label filterResonanceLabel{"Resonance","Resonance"};
-    juce::Label filterDriveLabel{"Drive","Drive"};
-    juce::Label offsetLabel{"Offset","Offset"};
+    customSlider keyTrackOffset;
     juce::Label filterLabel{"FILTER","FILTER"};
     std::unique_ptr<SliderAttachment> filterCutOffAttach;
     std::unique_ptr<SliderAttachment> filterResonanceAttach;
@@ -69,3 +64,5 @@ void filterGUI::addItemToFlexBox(juce::FlexBox& fb, T& item, const int& w, const
 {
     fb.items.add(juce::FlexItem(item).withMaxHeight(h).withMaxWidth(w).withMargin(m).withFlex(1));
 }
+
+

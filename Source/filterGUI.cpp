@@ -30,6 +30,7 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
     filterKeytracking.setButtonText("KeyTrack");
     filterKeytracking.setClickingTogglesState(true);
     filterKeytracking.setToggleable(true);
+    filterLabel.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(filterLabel);
     addAndMakeVisible(filterType);
     filterType.addItemList(filterTypes,1);
@@ -45,9 +46,6 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
 
     setSize(320, 220);
 
-    filterCutOff.slider.setLookAndFeel(&customLook);
-    filterResonance.slider.setLookAndFeel(&customLook);
-    filterDrive.slider.setLookAndFeel(&customLook);
     filterEmu.setLookAndFeel(&emuLook);
     filterKeytracking.setLookAndFeel(&customLook);
     filterLabel.setLookAndFeel(&labelLook);
@@ -55,9 +53,6 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
 
 filterGUI::~filterGUI()
 {
-    filterCutOff.slider.setLookAndFeel(nullptr);
-    filterResonance.setLookAndFeel(nullptr);
-    filterDrive.setLookAndFeel(nullptr);
     filterEmu.setLookAndFeel(nullptr);
     filterKeytracking.setLookAndFeel(nullptr);
     filterLabel.setLookAndFeel(nullptr);

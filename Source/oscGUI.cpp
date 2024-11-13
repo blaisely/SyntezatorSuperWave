@@ -60,42 +60,18 @@ PWOSC1("PW",0,true),PWOSC2("PW",0,true)
     addAndMakeVisible(PWOSC2);
     PWOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc2",PWOSC2.slider);
 
+    OSC1.setJustificationType(juce::Justification::centred);
+    OSC2.setJustificationType(juce::Justification::centred);
     addAndMakeVisible(OSC1);
     addAndMakeVisible(OSC2);
     setSize(530, 295);
-    
-    waveTypeOSC1.slider.setLookAndFeel(&customLook);
-    waveTypeOSC2.slider.setLookAndFeel(&customLook);
-    PWOSC1.slider.setLookAndFeel(&customLook);
-    PWOSC2.slider.setLookAndFeel(&customLook);
-    octave_osc1.slider.setLookAndFeel(&customLook);
-    octave_osc2.slider.setLookAndFeel(&customLook);
-    coarse_osc1.slider.setLookAndFeel(&customLook);
-    coarse_osc2.slider.setLookAndFeel(&customLook);
-    semiDetune_osc1.slider.setLookAndFeel(&customLook);
-    semiDetune_osc2.slider.setLookAndFeel(&customLook);
-    detune.slider.setLookAndFeel(&customLook);
-    detuneMix.slider.setLookAndFeel(&customLook);
+
     OSC1.setLookAndFeel(&customLook);
     OSC2.setLookAndFeel(&customLook);
-
-
 }
 
 oscGUI::~oscGUI()
 {
-    waveTypeOSC1.slider.setLookAndFeel(nullptr);
-    waveTypeOSC2.slider.setLookAndFeel(nullptr);
-    PWOSC1.slider.setLookAndFeel(nullptr);
-    PWOSC2.slider.setLookAndFeel(nullptr);
-    octave_osc1.slider.setLookAndFeel(nullptr);
-    octave_osc2.slider.setLookAndFeel(nullptr);
-    coarse_osc1.slider.setLookAndFeel(nullptr);
-    coarse_osc2.slider.setLookAndFeel(nullptr);
-    semiDetune_osc1.slider.setLookAndFeel(nullptr);
-    semiDetune_osc2.slider.setLookAndFeel(nullptr);
-    detune.slider.setLookAndFeel(nullptr);
-    detuneMix.slider.setLookAndFeel(nullptr);
     OSC1.setLookAndFeel(nullptr);
     OSC2.setLookAndFeel(nullptr);
 }
@@ -120,7 +96,7 @@ void oscGUI::paint (juce::Graphics& g)
 void oscGUI::resized()
 {
     constexpr int knobsMargin = 1;
-    constexpr int knobSize = 90;
+    constexpr int knobSize = 80;
     constexpr int oscLabelWidth = 50;
     constexpr int oscLabelHeight = 30;
     constexpr int sliderWidth = 125;

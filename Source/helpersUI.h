@@ -4,6 +4,7 @@
 #pragma once
 #include <JuceHeader.h>
 #include "helpers.h"
+#include "customLook.h"
 
 class customKnob : public juce::Component, public juce::Slider::Listener
 {
@@ -23,10 +24,13 @@ public:
         slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
         slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
         slider.addListener(this);
-
+        slider.setLookAndFeel(&customLook);
         setPrefix();
     }
-    customKnob::~customKnob() override= default;
+    customKnob::~customKnob()
+    {
+        slider.setLookAndFeel(nullptr);
+    };
 
     void paint(juce::Graphics& g) override
     {
@@ -37,8 +41,8 @@ public:
     {
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
-        juce::Rectangle<int> labelArea = area.removeFromBottom(15);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 15));
+        juce::Rectangle<int> labelArea = area.removeFromBottom(12);
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 12));
         slider.setBounds(area);
     }
 
@@ -47,7 +51,15 @@ public:
         if(integer)
             sliderValue= juce::String((int)slider.getValue())+suffix;
         if(!integer)
-            sliderValue= juce::String(roundTwoDec(slider.getValue()))+suffix;
+        {
+            auto maxValue = slider.getMaximum();
+            float sliderV=0;
+            if(maxValue>=1.f)
+                sliderV = slider.getValue()*100.f;
+            else
+                sliderV = slider.getValue();
+            sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
+        }
         label.setText(sliderValue,juce::dontSendNotification);
     }
 
@@ -80,6 +92,7 @@ private:
     int suffixNumber;
     juce::String suffix;
     bool integer;
+    customLookAndFeel customLook;
 
 
 };
@@ -108,7 +121,7 @@ public:
             slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
             slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
         }
-
+        slider.setLookAndFeel(&customLook);
 
         setPrefix();
     }
@@ -116,15 +129,15 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-
+        slider.setLookAndFeel(nullptr);
     }
 
     void resized() override
     {
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
-        juce::Rectangle<int> labelArea = area.removeFromBottom(15);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 15));
+        juce::Rectangle<int> labelArea = area.removeFromBottom(12);
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 12));
         slider.setBounds(area);
     }
 
@@ -133,7 +146,17 @@ public:
         if(integer)
             sliderValue= juce::String((int)slider.getValue())+suffix;
         if(!integer)
-            sliderValue= juce::String(roundTwoDec(slider.getValue()))+suffix;
+        {
+            auto maxValue = slider.getMaximum();
+            float sliderV=0;
+            if(maxValue>=1.f)
+                sliderV = slider.getValue()*100.f;
+            else
+                sliderV = slider.getValue();
+            sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
+        }
+
+
         label.setText(sliderValue,juce::dontSendNotification);
     }
 
@@ -141,6 +164,7 @@ public:
     {
         label.setText(sliderValue,juce::dontSendNotification);
     }
+
 
     void sliderDragEnded(juce::Slider*slider) override
     {
@@ -166,5 +190,6 @@ private:
     int suffixNumber;
     bool integer;
     juce::String suffix;
+    customLookAndFeel customLook;
 
 };

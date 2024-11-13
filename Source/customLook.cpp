@@ -213,8 +213,8 @@ void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     using namespace juce;
     juce::Rectangle<int> area = label.getLocalBounds().reduced(0,5);
     g.setColour(juce::Colour(0xffD1CAF1));
-    g.fillRoundedRectangle(area.toFloat(),6);
-    auto fontColor = juce::Colour(0xff312F2F);
+    g.fillRoundedRectangle(area.toFloat(),8);
+    auto fontColor = juce::Colours::white;
 
     if (! label.isBeingEdited())
     {
@@ -238,6 +238,13 @@ void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     }
 
     g.drawRect (label.getLocalBounds());
+}
+
+void customLookAndFeel::drawLinearSlider(juce::Graphics& graphics, int x, int y, int width, int height, float sliderPos,
+    float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle slider_style, juce::Slider& slider)
+{
+    LookAndFeel_V4::drawLinearSlider(graphics, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider_style,
+                                     slider);
 }
 
 //======================================================================================================================
@@ -319,8 +326,8 @@ void filterLabel::drawLabel(juce::Graphics& g, juce::Label& label)
     using namespace juce;
     juce::Rectangle<int> area = label.getLocalBounds().reduced(0,5);
     g.setColour(juce::Colour(0xff949FD6));
-    g.fillRoundedRectangle(area.toFloat(),6);
-    auto fontColor = juce::Colour(0xff312F2F);
+    g.fillRoundedRectangle(area.toFloat(),8);
+    auto fontColor = juce::Colours::white;
 
     if (! label.isBeingEdited())
     {

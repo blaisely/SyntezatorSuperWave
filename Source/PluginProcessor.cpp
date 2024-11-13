@@ -305,8 +305,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     layout.add(std::make_unique<juce::AudioParameterInt>("filterDrive", "filterDrive", 1,100,1,
         juce::AudioParameterIntAttributes().withLabel("%")));
     //Gain Params
-    layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc1", "GainOsc1", 0.0f, 1.0f, 0.7f));
-    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", -1.0f, 1.0f, 0.f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>(
+    "gain_osc1",
+    "GainOsc1",
+    juce::NormalisableRange<float>{0.0f,1.f},0.6f));
+
+    layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc1", "Pan OSC 1", juce::NormalisableRange<float>{-1.f,1.f},0.f,
+    juce::AudioParameterFloatAttributes()
+    .withStringFromValueFunction([](float x, float) { return juce::String(x * 100.0f) + " %"; })));
     layout.add(std::make_unique<juce::AudioParameterFloat>("gain_osc2", "GainOsc2", 0.0f, 1.0f, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("panOsc2", "Pan OSC 2", -1.0f, 1.0f, 0.f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterEnvelope", "Filter Envelope Amount", -100.0f, 100.0f, 0.0f));

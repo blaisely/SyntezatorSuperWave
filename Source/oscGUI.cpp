@@ -16,75 +16,66 @@
 #include "juce_core/unit_tests/juce_UnitTestCategories.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
+oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p), Gain_osc1("GAIN",0,false,true),Gain_osc2("GAIN",0,false,true),
+detune("DETUNE",2,false),detuneMix("MIX",2,false),octave_osc1("OCTAVE",0,true),
+octave_osc2("OCTAVE",0,true),coarse_osc1("COARSE",3,true),coarse_osc2("COARSE",3,true),
+semiDetune_osc1("SEMI",0,true),semiDetune_osc2("SEMI",0,true),panOsc1("PAN",2,false,true),
+panOsc2("PAN",2,false,true),waveTypeOSC1("WAVE",0,false),waveTypeOSC2("WAVE",0,false),
+PWOSC1("PW",0,true),PWOSC2("PW",0,true)
 {
     addAndMakeVisible(preset);
     preset.addItem("1",1);
     preset.setJustificationType(juce::Justification::centred);
 
-    makeSlider(Gain_osc1,Gain_osc1_label);
-    Gain_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc1", Gain_osc1);
-    makeSlider(Gain_osc2,Gain_osc2_label);
-    Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc2", Gain_osc2);
-    makeKnob(detune,"detuneSuper",detuneLabel);
-    detuneAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "detuneSuper", detune);
-    makeKnob(detuneMix,"volumeSuper",detuneMixLabel);
-    volumeAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "volumeSuper", detuneMix);
-    makeKnob(octave_osc1,  "octave_osc1", octave_osc1_label);
-    octave_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc1", octave_osc1);
-    makeKnob(octave_osc2, "octave_osc2", octave_osc2_label);
-    octave_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc2", octave_osc2);
-    makeKnob(coarse_osc1, "octave_osc1", coarse_osc1_label);
-    coarse_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc1", coarse_osc1);
-    makeKnob(coarse_osc2, "coarse_osc2", coarse_osc2_label);
-    coarse_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc2", coarse_osc2);
-    makeKnob(semiDetune_osc1, "detune_osc1",semiDetune_osc1_label);
-    semiDetune_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "detune_osc1",semiDetune_osc1);
-    makeKnob(semiDetune_osc2, "detune_osc2",semiDetune_osc2_label);
-    semiDetune_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "detune_osc2",semiDetune_osc2);
-    makeSlider(panOsc1,panOsc1Label);
-    panOsc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc1",panOsc1);
-    makeSlider(panOsc2,panOsc2Label);
-    panOsc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc2",panOsc2);
-    makeKnob(waveTypeOSC1,"oscType_osc1",waveTypeLabel1);
-    waveTypeOSC1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"oscType_osc1",waveTypeOSC1);
-    makeKnob(waveTypeOSC2,"oscType_osc2",waveTypeLabel2);
-    waveTypeOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"oscType_osc2",waveTypeOSC2);
-    makeKnob(PWOSC1,"pulseWidthOsc1",PWMLabel1);
-    PWOSC1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc1",PWOSC1);
-    makeKnob(PWOSC2,"pulseWidthOsc2",PWMLabel2);
-    PWOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc2",PWOSC2);
+    addAndMakeVisible(Gain_osc1);
+    Gain_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc1", Gain_osc1.slider);
+    addAndMakeVisible(Gain_osc2);
+    Gain_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc2", Gain_osc2.slider);
+    addAndMakeVisible(detune);
+    detuneAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "detuneSuper", detune.slider);
+    addAndMakeVisible(detuneMix);
+    volumeAttach = std::make_unique<SliderAttachment>(audioProcessor.state, "volumeSuper", detuneMix.slider);
+    addAndMakeVisible(octave_osc1);
+    octave_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc1", octave_osc1.slider);
+    addAndMakeVisible(octave_osc2);
+    octave_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "octave_osc2", octave_osc2.slider);
+    addAndMakeVisible(coarse_osc1);
+    coarse_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "detune_osc1", coarse_osc1.slider);
+    addAndMakeVisible(coarse_osc2);
+    coarse_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "detune_osc2", coarse_osc2.slider);
+    addAndMakeVisible(semiDetune_osc1);
+    semiDetune_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc1",semiDetune_osc1.slider);
+    addAndMakeVisible(semiDetune_osc2);
+    semiDetune_osc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "coarse_osc2",semiDetune_osc2.slider);
+    addAndMakeVisible(panOsc1);
+    panOsc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc1",panOsc1.slider);
+    addAndMakeVisible(panOsc2);
+    panOsc2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"panOsc2",panOsc2.slider);
+    addAndMakeVisible(waveTypeOSC1);
+    waveTypeOSC1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"oscType_osc1",waveTypeOSC1.slider);
+    addAndMakeVisible(waveTypeOSC2);
+    waveTypeOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"oscType_osc2",waveTypeOSC2.slider);
+    addAndMakeVisible(PWOSC1);
+    PWOSC1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc1",PWOSC1.slider);
+    addAndMakeVisible(PWOSC2);
+    PWOSC2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"pulseWidthOsc2",PWOSC2.slider);
 
-    //TODO incorporate into a separate Slider class
-    /*PWOSC1.onDragStart = [this]()
-    {
-        PWOSC1.setTextBoxStyle(juce::Slider::TextBoxAbove, true, 40.0f, 20.0f);
-
-    };
-    PWOSC1.onDragEnd = [this]()
-    {
-        PWOSC1.setTextBoxStyle(juce::Slider::NoTextBox, true, 20.0f, 10.0f);
-    };*/
     addAndMakeVisible(OSC1);
     addAndMakeVisible(OSC2);
-    Gain_osc1_label.setFont(10.f);
-    Gain_osc2_label.setFont(10.f);
-    panOsc1Label.setFont(10.f);
-    panOsc2Label.setFont(10.f);
     setSize(530, 295);
     
-    waveTypeOSC1.setLookAndFeel(&customLook);
-    waveTypeOSC2.setLookAndFeel(&customLook);
-    PWOSC1.setLookAndFeel(&customLook);
-    PWOSC2.setLookAndFeel(&customLook);
-    octave_osc1.setLookAndFeel(&customLook);
-    octave_osc2.setLookAndFeel(&customLook);
-    coarse_osc1.setLookAndFeel(&customLook);
-    coarse_osc2.setLookAndFeel(&customLook);
-    semiDetune_osc1.setLookAndFeel(&customLook);
-    semiDetune_osc2.setLookAndFeel(&customLook);
-    detune.setLookAndFeel(&customLook);
-    detuneMix.setLookAndFeel(&customLook);
+    waveTypeOSC1.slider.setLookAndFeel(&customLook);
+    waveTypeOSC2.slider.setLookAndFeel(&customLook);
+    PWOSC1.slider.setLookAndFeel(&customLook);
+    PWOSC2.slider.setLookAndFeel(&customLook);
+    octave_osc1.slider.setLookAndFeel(&customLook);
+    octave_osc2.slider.setLookAndFeel(&customLook);
+    coarse_osc1.slider.setLookAndFeel(&customLook);
+    coarse_osc2.slider.setLookAndFeel(&customLook);
+    semiDetune_osc1.slider.setLookAndFeel(&customLook);
+    semiDetune_osc2.slider.setLookAndFeel(&customLook);
+    detune.slider.setLookAndFeel(&customLook);
+    detuneMix.slider.setLookAndFeel(&customLook);
     OSC1.setLookAndFeel(&customLook);
     OSC2.setLookAndFeel(&customLook);
 
@@ -93,18 +84,18 @@ oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
 
 oscGUI::~oscGUI()
 {
-    waveTypeOSC1.setLookAndFeel(nullptr);
-    waveTypeOSC2.setLookAndFeel(nullptr);
-    PWOSC1.setLookAndFeel(nullptr);
-    PWOSC2.setLookAndFeel(nullptr);
-    octave_osc1.setLookAndFeel(nullptr);
-    octave_osc2.setLookAndFeel(nullptr);
-    coarse_osc1.setLookAndFeel(nullptr);
-    coarse_osc2.setLookAndFeel(nullptr);
-    semiDetune_osc1.setLookAndFeel(nullptr);
-    semiDetune_osc2.setLookAndFeel(nullptr);
-    detune.setLookAndFeel(nullptr);
-    detuneMix.setLookAndFeel(nullptr);
+    waveTypeOSC1.slider.setLookAndFeel(nullptr);
+    waveTypeOSC2.slider.setLookAndFeel(nullptr);
+    PWOSC1.slider.setLookAndFeel(nullptr);
+    PWOSC2.slider.setLookAndFeel(nullptr);
+    octave_osc1.slider.setLookAndFeel(nullptr);
+    octave_osc2.slider.setLookAndFeel(nullptr);
+    coarse_osc1.slider.setLookAndFeel(nullptr);
+    coarse_osc2.slider.setLookAndFeel(nullptr);
+    semiDetune_osc1.slider.setLookAndFeel(nullptr);
+    semiDetune_osc2.slider.setLookAndFeel(nullptr);
+    detune.slider.setLookAndFeel(nullptr);
+    detuneMix.slider.setLookAndFeel(nullptr);
     OSC1.setLookAndFeel(nullptr);
     OSC2.setLookAndFeel(nullptr);
 }
@@ -129,7 +120,7 @@ void oscGUI::paint (juce::Graphics& g)
 void oscGUI::resized()
 {
     constexpr int knobsMargin = 1;
-    constexpr int knobSize = 65;
+    constexpr int knobSize = 90;
     constexpr int oscLabelWidth = 50;
     constexpr int oscLabelHeight = 30;
     constexpr int sliderWidth = 125;
@@ -149,9 +140,7 @@ void oscGUI::resized()
     topLabel.flexDirection = juce::FlexBox::Direction::row;
     addItemToFlexBox(topLabel,OSC1,oscLabelWidth,oscLabelHeight,knobsMargin);
     addItemToFlexBox(topLabel,Gain_osc1,sliderWidth,sliderHeight,knobsMargin);
-    addItemToFlexBox(topLabel,Gain_osc1_label,oscLabelWidth,oscLabelHeight,knobsMargin);
     addItemToFlexBox(topLabel,panOsc1,sliderWidth,sliderHeight,knobsMargin);
-    addItemToFlexBox(topLabel,panOsc1Label,oscLabelWidth,oscLabelHeight,knobsMargin);
     topLabel.performLayout(topLabelArea);
 
     juce::FlexBox topSection;
@@ -167,19 +156,7 @@ void oscGUI::resized()
     addItemToFlexBox(osc1Knobs,coarse_osc1,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,semiDetune_osc1,knobSize,knobSize,knobsMargin);
 
-
-    juce::FlexBox osc1Labels;
-    osc1Labels.flexDirection = juce::FlexBox::Direction::row;
-    addItemToFlexBox(osc1Labels,waveTypeLabel1,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,PWMLabel1,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,detuneLabel,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,detuneMixLabel,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,octave_osc1_label,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,coarse_osc1_label,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc1Labels,semiDetune_osc1_label,knobLabelWidth,knobLabelHeight,1);
-
-    topSection.items.add(juce::FlexItem(osc1Knobs).withFlex(1).withHeight(60));
-    topSection.items.add(juce::FlexItem(osc1Labels).withFlex(1).withHeight(15));
+    topSection.items.add(juce::FlexItem(osc1Knobs).withFlex(1).withHeight(knobSize));
     topSection.performLayout(topArea);
 
     OSC2.setBounds(bottomLabelArea);
@@ -194,26 +171,14 @@ void oscGUI::resized()
     addItemToFlexBox(osc2Knobs,coarse_osc2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,semiDetune_osc2,knobSize,knobSize,knobsMargin);
 
-
-    juce::FlexBox osc2Labels;
-    osc2Labels.flexDirection = juce::FlexBox::Direction::row;
-    addItemToFlexBox(osc2Labels,waveTypeLabel2,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc2Labels,PWMLabel2,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc2Labels,octave_osc2_label,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc2Labels,coarse_osc2_label,knobLabelWidth,knobLabelHeight,1);
-    addItemToFlexBox(osc2Labels,semiDetune_osc2_label,knobLabelWidth,knobLabelHeight,1);
-
-    bottomSection.items.add(juce::FlexItem(osc2Knobs).withFlex(1).withHeight(60));
-    bottomSection.items.add(juce::FlexItem(osc2Labels).withFlex(1).withHeight(15));
+    bottomSection.items.add(juce::FlexItem(osc2Knobs).withFlex(1).withHeight(knobSize));
     bottomSection.performLayout(bottomArea);
 
     juce::FlexBox bottomLabel;
     bottomLabel.flexDirection = juce::FlexBox::Direction::row;
     addItemToFlexBox(bottomLabel,OSC2,oscLabelWidth,oscLabelHeight,knobsMargin);
     addItemToFlexBox(bottomLabel,Gain_osc2,sliderWidth,sliderHeight,knobsMargin);
-    addItemToFlexBox(bottomLabel,Gain_osc2_label,oscLabelWidth,oscLabelHeight,knobsMargin);
     addItemToFlexBox(bottomLabel,panOsc2,sliderWidth,sliderHeight,knobsMargin);
-    addItemToFlexBox(bottomLabel,panOsc2Label,oscLabelWidth,oscLabelHeight,knobsMargin);
     bottomLabel.performLayout(bottomLabelArea);
 
 
@@ -228,27 +193,5 @@ void oscGUI::sliderValueChanged(juce::Slider* slider)
 {
 }
 
-void oscGUI::makeKnob(juce::Slider& slider, juce::String ID, juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 20.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
 
-void oscGUI::makeSlider(juce::Slider& slider, juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::LinearHorizontal);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
 

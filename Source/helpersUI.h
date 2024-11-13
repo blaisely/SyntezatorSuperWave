@@ -1,6 +1,7 @@
 //
 // Created by blaze on 13.11.2024.
 //
+#pragma once
 #include <JuceHeader.h>
 #include "helpers.h"
 
@@ -34,6 +35,7 @@ public:
 
     void resized() override
     {
+        label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
         juce::Rectangle<int> labelArea = area.removeFromBottom(15);
         label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 15));
@@ -66,6 +68,8 @@ public:
                 suffix ="Hz";
         if(suffixNumber==2)
             suffix ="%";
+        if(suffixNumber==3)
+            suffix ="ct";
     }
 
     juce::Slider slider;
@@ -117,6 +121,7 @@ public:
 
     void resized() override
     {
+        label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
         juce::Rectangle<int> labelArea = area.removeFromBottom(15);
         label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 15));
@@ -149,6 +154,8 @@ public:
                 suffix ="Hz";
         if(suffixNumber==2)
             suffix ="%";
+        if(suffixNumber==3)
+            suffix ="ct";
     }
 
     juce::Slider slider;

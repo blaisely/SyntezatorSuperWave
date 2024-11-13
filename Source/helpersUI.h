@@ -54,7 +54,7 @@ public:
         {
             auto maxValue = slider.getMaximum();
             float sliderV=0;
-            if(maxValue>=1.f)
+            if(maxValue<=1.f)
                 sliderV = slider.getValue()*100.f;
             else
                 sliderV = slider.getValue();
@@ -125,11 +125,14 @@ public:
 
         setPrefix();
     }
-    customSlider::~customSlider() override= default;
+    customSlider::~customSlider()
+    {
+        slider.setLookAndFeel(nullptr);
+    };
 
     void paint(juce::Graphics& g) override
     {
-        slider.setLookAndFeel(nullptr);
+
     }
 
     void resized() override
@@ -149,7 +152,7 @@ public:
         {
             auto maxValue = slider.getMaximum();
             float sliderV=0;
-            if(maxValue>=1.f)
+            if(maxValue<=1.f)
                 sliderV = slider.getValue()*100.f;
             else
                 sliderV = slider.getValue();

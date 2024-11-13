@@ -10,6 +10,8 @@
 
 #include "customLook.h"
 
+#include <juce_gui_basics/detail/juce_LookAndFeelHelpers.h>
+
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {
     auto outline = slider.findColour(juce::Slider::rotarySliderOutlineColourId);
@@ -240,16 +242,254 @@ void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     g.drawRect (label.getLocalBounds());
 }
 
-void customLookAndFeel::drawLinearSlider(juce::Graphics& graphics, int x, int y, int width, int height, float sliderPos,
-    float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle slider_style, juce::Slider& slider)
+void customLookAndFeel::drawLinearSlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+    float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle style, juce::Slider& slider)
 {
-    LookAndFeel_V4::drawLinearSlider(graphics, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, slider_style,
-                                     slider);
+    using namespace juce;
+    if (slider.isBar())
+    {
+        g.setColour (slider.findColour (Slider::trackColourId));
+        g.fillRect (slider.isHorizontal() ? Rectangle<float> (static_cast<float> (x), (float) y + 0.5f, sliderPos - (float) x, (float) height - 1.0f)
+                                          : Rectangle<float> ((float) x + 0.5f, sliderPos, (float) width - 1.0f, (float) y + ((float) height - sliderPos)));
+
+        drawLinearSliderOutline (g, x, y, width, height, style, slider);
+    }
+    else
+    {
+        auto isTwoVal   = (style == Slider::SliderStyle::TwoValueVertical   || style == Slider::SliderStyle::TwoValueHorizontal);
+        auto isThreeVal = (style == Slider::SliderStyle::ThreeValueVertical || style == Slider::SliderStyle::ThreeValueHorizontal);
+
+        auto trackWidth = jmin (6.0f, slider.isHorizontal() ? (float) height * 0.25f : (float) width * 0.25f);
+
+        Point<float> startPoint (slider.isHorizontal() ? (float) x : (float) x + (float) width * 0.5f,
+                                 slider.isHorizontal() ? (float) y + (float) height * 0.5f : (float) (height + y));
+
+        Point<float> endPoint (slider.isHorizontal() ? (float) (width + x) : startPoint.x,
+                               slider.isHorizontal() ? startPoint.y : (float) y);
+
+        Path backgroundTrack;
+        backgroundTrack.startNewSubPath (startPoint);
+        backgroundTrack.lineTo (endPoint);
+        g.setColour (slider.findColour (Slider::backgroundColourId));
+        g.strokePath (backgroundTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
+
+        Path valueTrack;
+        Point<float> minPoint, maxPoint, thumbPoint;
+
+        if (isTwoVal || isThreeVal)
+        {
+            minPoint = { slider.isHorizontal() ? minSliderPos : (float) width * 0.5f,
+                         slider.isHorizontal() ? (float) height * 0.5f : minSliderPos };
+
+            if (isThreeVal)
+                thumbPoint = { slider.isHorizontal() ? sliderPos : (float) width * 0.5f,
+                               slider.isHorizontal() ? (float) height * 0.5f : sliderPos };
+
+            maxPoint = { slider.isHorizontal() ? maxSliderPos : (float) width * 0.5f,
+                         slider.isHorizontal() ? (float) height * 0.5f : maxSliderPos };
+        }
+        else
+        {
+            auto kx = slider.isHorizontal() ? sliderPos : ((float) x + (float) width * 0.5f);
+            auto ky = slider.isHorizontal() ? ((float) y + (float) height * 0.5f) : sliderPos;
+
+            minPoint = startPoint;
+            maxPoint = { kx, ky };
+        }
+
+        auto thumbWidth = getSliderThumbRadius (slider);
+
+        //This is how a valueTrack path start is determined
+
+        //valueTrack.startNewSubPath (minPoint);
+        //valueTrack.lineTo (isThreeVal ? thumbPoint : maxPoint);
+        Point<float> midPoint;
+        if(slider.isHorizontal())
+            midPoint = {maxSliderPos,height/2.f};
+        else
+            midPoint = {width*0.5f,maxSliderPos};
+
+        valueTrack.startNewSubPath(midPoint);
+        valueTrack.lineTo(maxPoint);
+        g.setColour (juce::Colour(0xffDFB8EC));
+        g.strokePath (valueTrack, { trackWidth, PathStrokeType::curved, PathStrokeType::rounded });
+
+        //Slider's thumb color
+        if (! isTwoVal)
+        {
+            g.setColour (juce::Colours::pink);
+            g.fillEllipse (Rectangle<float> (static_cast<float> (thumbWidth), static_cast<float> (thumbWidth)).withCentre (isThreeVal ? thumbPoint : maxPoint));
+        }
+
+        if (isTwoVal || isThreeVal)
+        {
+            auto sr = jmin (trackWidth, (slider.isHorizontal() ? (float) height : (float) width) * 0.4f);
+            auto pointerColour = juce::Colours::pink;
+
+            if (slider.isHorizontal())
+            {
+                drawPointer (g, minSliderPos - sr,
+                             jmax (0.0f, (float) y + (float) height * 0.5f - trackWidth * 2.0f),
+                             trackWidth * 2.0f, pointerColour, 2);
+
+                drawPointer (g, maxSliderPos - trackWidth,
+                             jmin ((float) (y + height) - trackWidth * 2.0f, (float) y + (float) height * 0.5f),
+                             trackWidth * 2.0f, pointerColour, 4);
+            }
+            else
+            {
+                drawPointer (g, jmax (0.0f, (float) x + (float) width * 0.5f - trackWidth * 2.0f),
+                             minSliderPos - trackWidth,
+                             trackWidth * 2.0f, pointerColour, 1);
+
+                drawPointer (g, jmin ((float) (x + width) - trackWidth * 2.0f, (float) x + (float) width * 0.5f), maxSliderPos - sr,
+                             trackWidth * 2.0f, pointerColour, 3);
+            }
+        }
+
+        if (slider.isBar())
+            drawLinearSliderOutline (g, x, y, width, height, style, slider);
+    }
+}
+
+void customLookAndFeel::drawLinearSliderOutline(juce::Graphics& g, int x, int y, int width, int height,
+    juce::Slider::SliderStyle slider_style, juce::Slider& slider)
+{
+    using namespace juce;
+    if (slider.getTextBoxPosition() == Slider::NoTextBox)
+    {
+        g.setColour (slider.findColour (Slider::textBoxOutlineColourId));
+        g.drawRect (0, 0, slider.getWidth(), slider.getHeight(), 1);
+    }
+}
+
+void customLookAndFeel::drawLinearSliderThumb(juce::Graphics& g, int x, int y, int width, int height,
+    float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle style,
+    juce::Slider& slider)
+{
+    using namespace juce;
+     auto sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
+
+    /*auto knobColour = detail::LookAndFeelHelpers::createBaseColour (slider.findColour (Slider::thumbColourId),
+                                                                    slider.hasKeyboardFocus (false) && slider.isEnabled(),
+                                                                    slider.isMouseOverOrDragging() && slider.isEnabled(),
+                                                                    slider.isMouseButtonDown() && slider.isEnabled());*/
+    auto knobColour = juce::Colours::pink;
+    const float outlineThickness = slider.isEnabled() ? 0.8f : 0.3f;
+
+    if (style == Slider::LinearHorizontal || style == Slider::LinearVertical)
+    {
+        float kx, ky;
+
+        if (style == Slider::LinearVertical)
+        {
+            kx = (float) x + (float) width * 0.5f;
+            ky = sliderPos;
+        }
+        else
+        {
+            kx = sliderPos;
+            ky = (float) y + (float) height * 0.5f;
+        }
+
+        drawGlassSphere (g,
+                         kx - sliderRadius,
+                         ky - sliderRadius,
+                         sliderRadius * 2.0f,
+                         knobColour, outlineThickness);
+    }
+    else
+    {
+        if (style == Slider::ThreeValueVertical)
+        {
+            drawGlassSphere (g, (float) x + (float) width * 0.5f - sliderRadius,
+                             sliderPos - sliderRadius,
+                             sliderRadius * 2.0f,
+                             knobColour, outlineThickness);
+        }
+        else if (style == Slider::ThreeValueHorizontal)
+        {
+            drawGlassSphere (g,sliderPos - sliderRadius,
+                             (float) y + (float) height * 0.5f - sliderRadius,
+                             sliderRadius * 2.0f,
+                             knobColour, outlineThickness);
+        }
+
+        if (style == Slider::TwoValueVertical || style == Slider::ThreeValueVertical)
+        {
+            auto sr = jmin (sliderRadius, (float) width * 0.4f);
+
+            drawGlassPointer (g, jmax (0.0f, (float) x + (float) width * 0.5f - sliderRadius * 2.0f),
+                              minSliderPos - sliderRadius,
+                              sliderRadius * 2.0f, knobColour, outlineThickness, 1);
+
+            drawGlassPointer (g,
+                              jmin ((float) x + (float) width - sliderRadius * 2.0f,
+                                    (float) x + (float) width * 0.5f),
+                              maxSliderPos - sr,
+                              sliderRadius * 2.0f,
+                              knobColour,
+                              outlineThickness,
+                              3);
+        }
+        else if (style == Slider::TwoValueHorizontal || style == Slider::ThreeValueHorizontal)
+        {
+            auto sr = jmin (sliderRadius, (float) height * 0.4f);
+
+            drawGlassPointer (g, minSliderPos - sr,
+                              jmax (0.0f, (float) y + (float) height * 0.5f - sliderRadius * 2.0f),
+                              sliderRadius * 2.0f, knobColour, outlineThickness, 2);
+
+            drawGlassPointer (g,
+                              maxSliderPos - sliderRadius,
+                              jmin ((float) y + (float) height - sliderRadius * 2.0f,
+                                    (float) y + (float) height * 0.5f),
+                              sliderRadius * 2.0f,
+                              knobColour,
+                              outlineThickness,
+                              4);
+        }
+    }
+}
+
+void customLookAndFeel::drawLinearSliderBackground(juce::Graphics& g, int x, int y, int width, int height,
+    float sliderPos, float minSliderPos, float maxSliderPos, juce::Slider::SliderStyle style,
+    juce::Slider& slider)
+{
+    using namespace juce;
+    const float sliderRadius = (float) (getSliderThumbRadius (slider) - 2);
+
+    const Colour trackColour (slider.findColour (Slider::trackColourId));
+    const Colour gradCol1 (trackColour.overlaidWith (Colour (slider.isEnabled() ? 0x13000000 : 0x09000000)));
+    const Colour gradCol2 (trackColour.overlaidWith (Colour (0x06000000)));
+    Path indent;
+
+    if (slider.isHorizontal())
+    {
+        auto iy = (float) y + (float) height * 0.5f - sliderRadius * 0.5f;
+
+        g.setGradientFill (ColourGradient::vertical (gradCol1, iy, gradCol2, iy + sliderRadius));
+
+        indent.addRoundedRectangle ((float) x - sliderRadius * 0.5f, iy, (float) width + sliderRadius, sliderRadius, 5.0f);
+    }
+    else
+    {
+        auto ix = (float) x + (float) width * 0.5f - sliderRadius * 0.5f;
+
+        g.setGradientFill (ColourGradient::horizontal (gradCol1, ix, gradCol2, ix + sliderRadius));
+
+        indent.addRoundedRectangle (ix, (float) y - sliderRadius * 0.5f, sliderRadius, (float) height + sliderRadius, 5.0f);
+    }
+
+    g.fillPath (indent);
+
+    g.setColour (trackColour.contrasting (0.5f));
+    g.strokePath (indent, PathStrokeType (0.5f));
 }
 
 //======================================================================================================================
 //filter emu button
-void filterEmuLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& button,
+void notToggleButtonLook::drawButtonBackground(juce::Graphics& g, juce::Button& button,
     const juce::Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
 {
     using namespace juce;
@@ -292,7 +532,7 @@ void filterEmuLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button&
     }
 }
 
-void filterEmuLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& button,
+void notToggleButtonLook::drawButtonText(juce::Graphics& g, juce::TextButton& button,
                                           bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
 {
     using namespace juce;

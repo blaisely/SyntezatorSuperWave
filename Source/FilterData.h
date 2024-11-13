@@ -31,8 +31,9 @@ public:
 		integrator_zLeft[1] = 0.0;
 		integrator_zRight[0] = 0.0;
 		integrator_zRight[1] = 0.0;
-		filterResonance.reset(sampleRate,0.001f);
-		filterCutOff.reset(sampleRate,0.001f);
+		resonanceSmooth.reset(sampleRate,0.001f);
+		cutOffSmooth.reset(sampleRate,0.001f);
+		driveSmooth.reset(sampleRate,0.001f);
 		return true;
 	}
 	void setParameters(bool keyTrack, int keyTrackOffset, int currentMidiPitch)
@@ -59,7 +60,7 @@ public:
 				vaFilterParameters.selfOscillate = true;
 
 			vaFilterParameters.filterDrive =juce::jmap(static_cast<float>(tree[IDs::FilterDrive]),1.f,2.f);
-
+			driveSmooth.setTargetValue(vaFilterParameters.filterDrive);
 			int filterType = (tree[IDs::FilterT]);
 			switch(filterType)
 			{
@@ -85,7 +86,7 @@ public:
 
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 		bool matchAnalogNyquistLPF = vaFilterParameters.matchAnalogNyquistLPF;
-		double filterDrive = vaFilterParameters.filterDrive;
+
 
 		if (vaFilterParameters.enableGainComp)
 		{
@@ -139,7 +140,7 @@ public:
 		modulatedResonance = currentResonance + modulatedResonance;
 		if(modulatedResonance==10.f)
 			vaFilterParameters.selfOscillate = true;
-		filterResonance.setTargetValue(juce::jlimit(0.1f, 10.0f, modulatedResonance));
+		resonanceSmooth.setTargetValue(juce::jlimit(0.1f, 10.0f, modulatedResonance));
 		if (!juce::approximatelyEqual(modValue[kCUTOFF],0.00f))
 		{
 			modulatedCutoff = modValue[kCUTOFF] * 2.5f;
@@ -149,9 +150,10 @@ public:
 		else
 			modulatedCutoff = currentCutoff;
 
-		filterCutOff.setTargetValue(modulatedCutoff);
-		double fc = filterCutOff.getNextValue();
-		double Q = filterResonance.getNextValue();
+		cutOffSmooth.setTargetValue(modulatedCutoff);
+		double fc = cutOffSmooth.getNextValue();
+		double Q = resonanceSmooth.getNextValue();
+		filterDrive = driveSmooth.getNextValue();
 		vaFilterAlgorithm filterAlgorithm = vaFilterParameters.filterAlgorithm;
 
 		// Filter coefficient calculations remain the same
@@ -197,10 +199,12 @@ private:
 	double alpha = 0.0;
 	double rho =0.0;
 	double beta = 0.0;
+	double filterDrive =0.0f;
 	double analogMatchSigma = 0.0;
 	double kTwoPi = juce::MathConstants<double>::twoPi;
-	juce::SmoothedValue<float> filterResonance {0.0f};
-	juce::SmoothedValue<float> filterCutOff{0.0f};
+	juce::SmoothedValue<float> resonanceSmooth {0.0f};
+	juce::SmoothedValue<float> cutOffSmooth{0.0f};
+	juce::SmoothedValue<float> driveSmooth{0.0f};
 
 
 	struct ZVAFilterParameters
@@ -227,6 +231,10 @@ public:
 	setEnabled(true);
 	}
 	~MOOGFilter()=default;
+	void prepareSmoother(const float sampleRate)
+	{
+		driveSmooth.reset(sampleRate,0.001f);
+	}
 	void setParameters(bool keyTrack, int keyTrackOffset, int currentMidiPitch)
 	{
 		cutOffFrequency = tree[IDs::Cutoff];
@@ -243,6 +251,7 @@ public:
 		else if(!keyTrack)
 			setCutoffFrequencyHz(cutOffFrequency);
 		setResonance(resonance);
+		driveSmooth.setTargetValue(driveAmount);
 		setDrive(driveAmount);
 		type = static_cast<int>(tree[IDs::FilterT]);
 		switch(type)
@@ -293,6 +302,7 @@ public:
 		float modRes = modValue[kRESONANCE];
 		modRes = std::clamp(resonance+modRes,0.f,1.f);
 		setResonance(modRes);
+		setDrive(driveSmooth.getNextValue());
 
 	}
 	void updateSmoothing()
@@ -303,6 +313,8 @@ public:
 private:
 	enum{kCUTOFF,kRESONANCE,kNumDest};
 	std::array<float,kNumDest> modValue {0.0f};
+	juce::SmoothedValue<float> driveSmooth{0.0f};
+	float filterDrive{0.0f};
 	float cutOffFrequency{};
 	float resonance{};
 	int type{};

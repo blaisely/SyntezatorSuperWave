@@ -15,6 +15,7 @@
 #include "customLook.h"
 #include "PluginProcessor.h"
 #include "SharedData.h"
+#include "helpersUI.h"
 
 //==============================================================================
 /*
@@ -37,8 +38,6 @@ public:
     void sliderValueChanged(juce::Slider* slider);
     void buttonStateChanged(juce::Button*) override;
     void buttonClicked(juce::Button*) override;
-    void makeKnob(juce::Slider& slider, juce::Label& label);
-    void makeSlider(juce::Slider& slider,juce::Label& label);
     void setUpLFOAttachments(juce::StringArray& id);
     void setUpLFOKnobs(juce::StringArray& id);
     void setUpModAttachments(juce::StringArray& id);
@@ -49,6 +48,7 @@ public:
 
 private:
     customLookAndFeel customLook;
+    notToggleButtonLook noToggleLook;
     int lfo{1};
     int envelope {1};
     juce::TextButton modEnvType;
@@ -56,27 +56,19 @@ private:
     juce::TextButton lfoUnipolar;
     juce::TextButton lfoReset;
     juce::TextButton sharedAmp;
-    juce::Slider attackAmp;
-    juce::Slider attackMod;
-    juce::Slider decayAmp;
-    juce::Slider decayMod;
-    juce::Slider sustainAmp;
-    juce::Slider sustainMod;
-    juce::Slider releaseAmp;
-    juce::Slider releaseMod;
-    juce::Slider modAmount;
-    juce::Slider lfoDepth;
-    juce::Slider lfoFreq;
+    customSlider attackAmp;
+    customSlider attackMod;
+    customSlider decayAmp;
+    customSlider decayMod;
+    customSlider sustainAmp;
+    customSlider sustainMod;
+    customSlider releaseAmp;
+    customSlider releaseMod;
+    customSlider modAmount;
+    customKnob lfoDepth;
+    customKnob lfoFreq;
     juce::ComboBox lfoType;
     juce::ComboBox lfoNumber;
-    juce::Label attackAmpLabel{"Attack","A"};
-    juce::Label attackModLabel{"Attack","A"};
-    juce::Label decayAmpLabel{"Decay","D"};
-    juce::Label decayModLabel{"Decay","D"};
-    juce::Label sustainAmpLabel{"Sustain","S"};
-    juce::Label sustainModLabel{"Sustain","S"};
-    juce::Label releaseAmpLabel{"Release","R"};
-    juce::Label releaseModLabel{"Release","R"};
     juce::Label modAmountLabel{"amt","Amount"};
     juce::Label lfoDepthLabel{"Depth", "Depth"};
     juce::Label lfoFreqLabel{"Freq", "Freq"};

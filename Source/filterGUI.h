@@ -37,7 +37,7 @@ public:
     void buttonClicked(juce::Button* button) override;
 private:
     customLookAndFeel customLook;
-    filterEmuLookAndFeel emuLook;
+    notToggleButtonLook emuLook;
     filterLabel labelLook;
 
     customKnob filterCutOff;

@@ -14,19 +14,25 @@
 #include "Envelope.h"
 
 //==============================================================================
-Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
+Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p),attackAmp("A",2,true,false),
+decayAmp("D",2,true,false),sustainAmp("S",2,true,false),releaseAmp("R",2,true,false),
+attackMod("A",2,true,false),
+decayMod("D",2,true,false),sustainMod("S",2,true,false),releaseMod("R",2,true,false),
+lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false)
 {
-    makeSlider(attackAmp,attackAmpLabel);
-    makeSlider(decayAmp,decayAmpLabel);
-    makeSlider(sustainAmp,sustainAmpLabel);
-    makeSlider(releaseAmp,releaseAmpLabel);
-    makeSlider(attackMod,attackModLabel);
-    makeSlider(decayMod,decayModLabel);
-    makeSlider(sustainMod,sustainModLabel);
-    makeSlider(releaseMod,releaseModLabel);
-    makeSlider(modAmount,modAmountLabel);
-    makeKnob(lfoDepth,lfoDepthLabel);
-    makeKnob(lfoFreq,lfoFreqLabel);
+
+    addAndMakeVisible(attackAmp);
+    addAndMakeVisible(decayAmp);
+    addAndMakeVisible(sustainAmp);
+    addAndMakeVisible(releaseAmp);
+    addAndMakeVisible(attackMod);
+    addAndMakeVisible(decayMod);
+    addAndMakeVisible(sustainMod);
+    addAndMakeVisible(releaseMod);
+    addAndMakeVisible(modAmount);
+    addAndMakeVisible(lfoDepth);
+    addAndMakeVisible(lfoFreq);
+
 
     juce::StringArray lfoOptions{"Sine","Square","Saw","Sample&Hold"};
     lfoType.addItemList(lfoOptions,1);
@@ -67,19 +73,19 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     sharedAmp.setClickingTogglesState(true);
     sharedAmp.addListener(this);
 
-    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attackAmp);
-    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decayAmp);
-    sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "sustain", sustainAmp);
-    releaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "release", releaseAmp);
+    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attackAmp.slider);
+    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decayAmp.slider);
+    sustainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "sustain", sustainAmp.slider);
+    releaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "release", releaseAmp.slider);
 
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"attackOsc2",attackMod);
-    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"decayOsc2",decayMod);
-    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"sustainOsc2",sustainMod);
-    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"releaseOsc2",releaseMod);
-    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"filterEnvelope",modAmount);
+    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"attackOsc2",attackMod.slider);
+    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"decayOsc2",decayMod.slider);
+    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"sustainOsc2",sustainMod.slider);
+    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"releaseOsc2",releaseMod.slider);
+    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,"filterEnvelope",modAmount.slider);
     loopEnvelopeAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"loopEnvelope",loopEnvelope);
-    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfodepth",lfoDepth);
-    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfofreq",lfoFreq);
+    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfodepth",lfoDepth.slider);
+    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"lfofreq",lfoFreq.slider);
     lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfo1Unipolar",lfoUnipolar);
     lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"lfoReset",lfoReset);
     sharedAmpAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"commonEnvelope",sharedAmp);
@@ -88,20 +94,18 @@ Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     addAndMakeVisible(modEnvType);
 
 
-    lfoDepth.setLookAndFeel(&customLook);
-    lfoFreq.setLookAndFeel(&customLook);
+
     lfoReset.setLookAndFeel(&customLook);
     loopEnvelope.setLookAndFeel(&customLook);
     sharedAmp.setLookAndFeel(&customLook);
-    modEnvType.setLookAndFeel(&customLook);
+    modEnvType.setLookAndFeel(&noToggleLook);
     lfoUnipolar.setLookAndFeel(&customLook);
     setSize(530, 160);
 }
 
 Envelope::~Envelope()
 {
-    lfoDepth.setLookAndFeel(nullptr);
-    lfoFreq.setLookAndFeel(nullptr);
+
     lfoReset.setLookAndFeel(nullptr);
     loopEnvelope.setLookAndFeel(nullptr);
     sharedAmp.setLookAndFeel(nullptr);
@@ -136,15 +140,12 @@ void Envelope::resized()
     constexpr int comboBoxHeight = 20;
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
-    juce::Rectangle<int> ampLabelArea = ampArea.removeFromBottom(10);
     juce::Rectangle<int> modEnvelope = area.removeFromLeft(122).reduced(5);
-    juce::Rectangle<int> modLabelArea = modEnvelope.removeFromBottom(10);
     juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(90).reduced(5);
     juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(10).removeFromRight(60);
     juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(30);
     juce::Rectangle<int> lfoArea = area.removeFromLeft(170).reduced(5);
     juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(100);
-    juce::Rectangle<int> lfoKnobsLabel = lfoKnobsArea.removeFromBottom(10);
 
 
     juce::FlexBox amp;
@@ -155,14 +156,6 @@ void Envelope::resized()
     addItemToFlexBox(amp,releaseAmp,sliderWidth,sliderHeight,margin);
     amp.performLayout(ampArea);
 
-    juce::FlexBox ampLabels;
-    ampLabels.flexDirection = juce::FlexBox::Direction::row;
-    addItemToFlexBox(ampLabels,attackAmpLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(ampLabels,decayAmpLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(ampLabels,sustainAmpLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(ampLabels,releaseAmpLabel,labelWidth,labelHeight,margin);
-    ampLabels.performLayout(ampLabelArea);
-
     juce::FlexBox mod;
     mod.flexDirection = juce::FlexBox::Direction::row;
     addItemToFlexBox(mod,attackMod,sliderWidth,sliderHeight,margin);
@@ -171,13 +164,6 @@ void Envelope::resized()
     addItemToFlexBox(mod,releaseMod,sliderWidth,sliderHeight,margin);
     mod.performLayout(modEnvelope);
 
-    juce::FlexBox modLabels;
-    modLabels.flexDirection = juce::FlexBox::Direction::row;
-    addItemToFlexBox(modLabels,attackModLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(modLabels,decayModLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(modLabels,sustainModLabel,labelWidth,labelHeight,margin);
-    addItemToFlexBox(modLabels,releaseModLabel,labelWidth,labelHeight,margin);
-    modLabels.performLayout(modLabelArea);
 
     juce::FlexBox modControls;
     modControls.flexDirection = juce::FlexBox::Direction::column;
@@ -195,7 +181,6 @@ void Envelope::resized()
     addItemToFlexBox(lfoKnobs,lfoDepthLabel,lfoLabelWidth,labelHeight,margin);
     addItemToFlexBox(lfoKnobs,lfoFreq,lfoKnobSize,lfoKnobSize,margin);
     lfoKnobs.performLayout(lfoKnobsArea);
-    lfoFreqLabel.setBounds(lfoKnobsLabel);
 
     juce::FlexBox lfoControls;
     lfoControls.flexDirection = juce::FlexBox::Direction::column;
@@ -265,34 +250,11 @@ void Envelope::buttonClicked(juce::Button* button)
     }
 }
 
-void Envelope::makeKnob(juce::Slider& slider,juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::Rotary);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
-
-void Envelope::makeSlider(juce::Slider& slider, juce::Label& label)
-{
-    slider.setSliderStyle(juce::Slider::SliderStyle::LinearVertical);
-    slider.setTextBoxStyle(juce::Slider::NoTextBox, true, 5.0f, 10.0f);
-    addAndMakeVisible(&slider);
-    slider.addListener(this);
-    label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
-    label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
-    label.setJustificationType(juce::Justification::centred);
-    addAndMakeVisible(label);
-}
 
 void Envelope::setUpLFOAttachments(juce::StringArray& id)
 {
-    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[0],lfoDepth);
-    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[1],lfoFreq);
+    lfoDepthAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[0],lfoDepth.slider);
+    lfoFreqAttach = std::make_unique<SliderAttachment>(audioProcessor.state,id[1],lfoFreq.slider);
     lfoUnipolarAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[2],lfoUnipolar);
     lfoResetAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[3],lfoReset);
     lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,id[4],lfoType);
@@ -300,8 +262,8 @@ void Envelope::setUpLFOAttachments(juce::StringArray& id)
 
 void Envelope::setUpLFOKnobs(juce::StringArray& id)
 {
-    lfoDepth.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
-    lfoFreq.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
+    lfoDepth.slider.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
+    lfoFreq.slider.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
     lfoUnipolar.setToggleState(audioProcessor.state.getRawParameterValue(id[2])->load(),juce::dontSendNotification);
     lfoReset.setToggleState(audioProcessor.state.getRawParameterValue(id[3])->load(),juce::dontSendNotification);
     lfoType.setSelectedId(audioProcessor.state.getRawParameterValue(id[4])->load()+1);
@@ -310,21 +272,21 @@ void Envelope::setUpLFOKnobs(juce::StringArray& id)
 
 void Envelope::setUpModAttachments(juce::StringArray& id)
 {
-    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[0],attackMod);
-    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[1],decayMod);
-    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[2],sustainMod);
-    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[3],releaseMod);
-    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[4],modAmount);
+    attackModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[0],attackMod.slider);
+    decayModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[1],decayMod.slider);
+    sustainModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[2],sustainMod.slider);
+    releaseModAttachment=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[3],releaseMod.slider);
+    modAmountAttach=std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state,id[4],modAmount.slider);
     loopEnvelopeAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,id[5],loopEnvelope);
 }
 
 void Envelope::setUpModSliders(juce::StringArray& id)
 {
-    attackMod.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
-    decayMod.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
-    sustainMod.setValue(audioProcessor.state.getRawParameterValue(id[2])->load());
-    releaseMod.setValue(audioProcessor.state.getRawParameterValue(id[3])->load());
-    modAmount.setValue(audioProcessor.state.getRawParameterValue(id[4])->load());
+    attackMod.slider.setValue(audioProcessor.state.getRawParameterValue(id[0])->load());
+    decayMod.slider.setValue(audioProcessor.state.getRawParameterValue(id[1])->load());
+    sustainMod.slider.setValue(audioProcessor.state.getRawParameterValue(id[2])->load());
+    releaseMod.slider.setValue(audioProcessor.state.getRawParameterValue(id[3])->load());
+    modAmount.slider.setValue(audioProcessor.state.getRawParameterValue(id[4])->load());
     loopEnvelope.setToggleState(audioProcessor.state.getRawParameterValue(id[5])->load(),juce::dontSendNotification);
 }
 

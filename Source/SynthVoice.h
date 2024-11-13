@@ -111,6 +111,7 @@ public:
 		level.prepare(spec);
 		hiPassKeytrack.prepare(spec);
 		ladder.prepare(spec);
+		ladder.prepareSmoother(sampleRate);
 		level.setGainLinear(0.5f);
 		lfoGenerator1.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
 		lfoGenerator2.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);

@@ -34,7 +34,7 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-
+        label.setText(labelText,juce::dontSendNotification);
     }
 
     void resized() override
@@ -132,7 +132,7 @@ public:
 
     void paint(juce::Graphics& g) override
     {
-
+        label.setText(labelText,juce::dontSendNotification);
     }
 
     void resized() override

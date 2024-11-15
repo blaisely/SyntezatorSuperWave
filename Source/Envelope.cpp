@@ -100,7 +100,7 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
     sharedAmp.setLookAndFeel(&customLook);
     modEnvType.setLookAndFeel(&noToggleLook);
     lfoUnipolar.setLookAndFeel(&customLook);
-    setSize(530, 160);
+    setSize(550, 160);
 }
 
 Envelope::~Envelope()
@@ -116,9 +116,30 @@ Envelope::~Envelope()
 
 void Envelope::paint (juce::Graphics& g)
 {
-    juce::Rectangle<int> area = getLocalBounds();
-    g.setColour(juce::Colour(0xff312F2F));
-    g.fillRoundedRectangle(area.toFloat(),6);
+    g.setColour(juce::Colour(0xff949FD6));
+    g.fillRoundedRectangle(getLocalBounds().toFloat(),8);
+    juce::Rectangle<int> totalArea = getLocalBounds();
+
+    juce::Rectangle<int> area = getLocalBounds().reduced(5);
+    juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
+    juce::Rectangle<int> modEnvelope = area.removeFromLeft(217).reduced(5);
+    juce::Rectangle<int> lfoArea = area.removeFromLeft(150).reduced(5);
+
+    g.setColour(juce::Colour(0x54DBD9F4));
+    g.fillRoundedRectangle(ampArea.toFloat().expanded(2.5f),8);
+    g.fillRoundedRectangle(modEnvelope.toFloat().expanded(2.5f),8);
+    g.fillRoundedRectangle(lfoArea.toFloat().expanded(2.5f),8);
+
+    juce::Rectangle<int> ampLabel = ampArea.removeFromBottom(15).removeFromRight(40).reduced(2);
+    juce::Rectangle<int> modLabel = modEnvelope.removeFromBottom(15).removeFromRight(40).reduced(2);
+    juce::Rectangle<int> lfoLabel = lfoArea.removeFromBottom(15).removeFromRight(40).reduced(2);
+    g.setFont(juce::Font(juce::FontOptions("Montserrat",12,1)));
+    g.setColour(juce::Colours::white);
+    g.drawText("AMP",ampLabel,juce::Justification::centred);
+    g.drawText("MOD",modLabel,juce::Justification::centred);
+    g.drawText("LFO",lfoLabel,juce::Justification::centred);
+
+
    
 }
 
@@ -141,11 +162,11 @@ void Envelope::resized()
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
     juce::Rectangle<int> modEnvelope = area.removeFromLeft(122).reduced(5);
-    juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(90).reduced(5);
-    juce::Rectangle<int> envelopeButtonsLabelArea = envelopeButtonsArea.removeFromBottom(10).removeFromRight(60);
-    juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(30);
-    juce::Rectangle<int> lfoArea = area.removeFromLeft(170).reduced(5);
-    juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(100);
+    juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(80).reduced(0,5);
+    juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(20).removeFromTop(sliderHeight);
+    juce::Rectangle<int> blank = area.removeFromLeft(5);
+    juce::Rectangle<int> lfoArea = area.removeFromLeft(150).reduced(0,5);
+    juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(80);
 
 
     juce::FlexBox amp;
@@ -172,15 +193,13 @@ void Envelope::resized()
     addItemToFlexBoxWithAlign(modControls,loopEnvelope,buttonWidth,buttonHeight,buttonMargin);
     addItemToFlexBox(modControls,sharedAmp,buttonWidth,buttonHeight+10,buttonMargin);
     modControls.performLayout(envelopeButtonsArea);
-    modAmount.setBounds(amountSliderArea);
-    modAmountLabel.setBounds(envelopeButtonsLabelArea);
+    modAmount.setBounds(amountSliderArea.withSizeKeepingCentre(50,sliderHeight));
 
     juce::FlexBox lfoKnobs;
     lfoKnobs.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(lfoKnobs,lfoDepth, lfoKnobSize,lfoKnobSize,margin);
-    addItemToFlexBox(lfoKnobs,lfoDepthLabel,lfoLabelWidth,labelHeight,margin);
     addItemToFlexBox(lfoKnobs,lfoFreq,lfoKnobSize,lfoKnobSize,margin);
-    lfoKnobs.performLayout(lfoKnobsArea);
+    lfoKnobs.performLayout(lfoKnobsArea.reduced(5,5));
 
     juce::FlexBox lfoControls;
     lfoControls.flexDirection = juce::FlexBox::Direction::column;

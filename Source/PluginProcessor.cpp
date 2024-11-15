@@ -368,7 +368,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
     ,"Sample&Hold"},
     0, attributesLFOType));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfo2depth", "LFO2 Depth",
-        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f,0.2f}, 0.0f));
+        juce::NormalisableRange<float>{ 0.0f, 100.0f, 1.f}, 0.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("lfo2freq", "LFO2 Freq",
         juce::NormalisableRange<float>{ 0.01f, 20.0f, 0.01f,0.3f},0.1f));
     auto attributesLFO2Type = juce::AudioParameterChoiceAttributes().withLabel("LFO2 Type");

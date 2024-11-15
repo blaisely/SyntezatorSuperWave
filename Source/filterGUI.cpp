@@ -48,7 +48,7 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
 
     filterEmu.setLookAndFeel(&emuLook);
     filterKeytracking.setLookAndFeel(&customLook);
-    filterLabel.setLookAndFeel(&labelLook);
+    filterLabel.setLookAndFeel(&customLook);
 }
 
 filterGUI::~filterGUI()
@@ -60,6 +60,9 @@ filterGUI::~filterGUI()
 
 void filterGUI::paint (juce::Graphics& g)
 {
+    g.setColour(juce::Colour(0xff949FD6));
+    g.fillRoundedRectangle(getLocalBounds().toFloat(),8);
+    juce::Rectangle<int> totalArea = getLocalBounds();
 }
 
 void filterGUI::resized()
@@ -72,7 +75,7 @@ void filterGUI::resized()
     constexpr int buttonWidth = 50;
     constexpr int buttonHeight = 20;
     constexpr int horizontalSliderHeight = 30;
-    juce::Rectangle<int> area = getLocalBounds().reduced(5);
+    juce::Rectangle<int> area = getLocalBounds();
     juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
     juce::Rectangle<int> filterSelection = area.removeFromTop(30);
     juce::Rectangle<int> leftSection = area.removeFromLeft(110);

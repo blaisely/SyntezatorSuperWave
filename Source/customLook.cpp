@@ -15,7 +15,7 @@
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {
     auto outline = slider.findColour(juce::Slider::rotarySliderOutlineColourId);
-    auto fill = juce::Colour(0xCCDFB8EC);
+    auto fill = juce::Colour(0xffDFB8EC);
 
 
     auto bounds = juce::Rectangle<int>(x, y, width, height).toFloat().reduced(10);

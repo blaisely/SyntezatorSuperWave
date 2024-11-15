@@ -15,7 +15,7 @@ SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAud
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (840, 500);
+    setSize (860, 500);
 
 
     addAndMakeVisible(oscGui);
@@ -62,7 +62,7 @@ void SimpleSynthAudioProcessorEditor::resized()
 
     oscGui.setBounds(topSection.reduced(15));
     envelopeGui.setBounds(controlsSection.reduced(15,0));
-    filterGui.setBounds(leftSection.reduced(5).reduced(20,0));
+    filterGui.setBounds(leftSection.reduced(10,15));
     matrixGui.setBounds(matrixSection.reduced(5));
     presetGui.setBounds(leftBottomSection.reduced(10,0));
 

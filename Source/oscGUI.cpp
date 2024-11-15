@@ -79,7 +79,7 @@ oscGUI::~oscGUI()
 void oscGUI::paint (juce::Graphics& g)
 {
     g.setColour(juce::Colour(0xff949FD6));
-    g.fillRoundedRectangle(getLocalBounds().toFloat(),6);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(),8);
     juce::Rectangle<int> totalArea = getLocalBounds();
 
     juce::Rectangle<int> topArea = totalArea.removeFromTop(137).reduced(5,2);

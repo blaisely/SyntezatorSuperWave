@@ -58,9 +58,9 @@ modMatrixGUI::~modMatrixGUI()
 
 void modMatrixGUI::paint (juce::Graphics& g)
 {
-    juce::Rectangle<int> area = getLocalBounds();
-    g.setColour(juce::Colour(0xff312F2F));
-    g.fillRoundedRectangle(area.toFloat(),6);
+    g.setColour(juce::Colour(0xff949FD6));
+    g.fillRoundedRectangle(getLocalBounds().toFloat(),8);
+    juce::Rectangle<int> totalArea = getLocalBounds();
 }
 
 void modMatrixGUI::resized()

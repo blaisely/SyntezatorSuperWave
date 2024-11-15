@@ -6,7 +6,7 @@
 #include "helpers.h"
 #include "customLook.h"
 
-class customKnob : public juce::Component, public juce::Slider::Listener, juce::Timer
+class customKnob : public juce::Component, public juce::Slider::Listener
 {
 public:
     customKnob::customKnob(juce::String&& labelText, int&& suff, bool isInt)
@@ -31,16 +31,10 @@ public:
     {
         slider.setLookAndFeel(nullptr);
     };
-    void timerCallback() override
-    {
-        label.setText(labelText,juce::dontSendNotification);
-        stopTimer();
-
-    }
 
     void paint(juce::Graphics& g) override
     {
-
+        label.setText(labelText,juce::dontSendNotification);
     }
 
     void resized() override
@@ -67,21 +61,16 @@ public:
             sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
         }
         label.setText(sliderValue,juce::dontSendNotification);
-        if(!dragStarted)
-            startTimer(50);
-
     }
 
     void sliderDragStarted(juce::Slider*slider) override
     {
         label.setText(sliderValue,juce::dontSendNotification);
-        dragStarted = true;
     }
 
     void sliderDragEnded(juce::Slider*slider) override
     {
         label.setText(labelText,juce::dontSendNotification);
-        dragStarted = false;
     }
     void setPrefix()
     {
@@ -103,12 +92,11 @@ private:
     int suffixNumber;
     juce::String suffix;
     bool integer;
-    bool dragStarted{false};
     customLookAndFeel customLook;
 
 
 };
-class customSlider : public juce::Component, public juce::Slider::Listener, juce::Timer
+class customSlider : public juce::Component, public juce::Slider::Listener
 {
 public:
     customSlider::customSlider(juce::String&& labelText, int&& suff,bool isInt, bool horizontal)
@@ -141,13 +129,10 @@ public:
     {
         slider.setLookAndFeel(nullptr);
     };
-    void timerCallback() override
-    {
-        label.setText(labelText,juce::dontSendNotification);
-        stopTimer();
-    }
+
     void paint(juce::Graphics& g) override
     {
+        label.setText(labelText,juce::dontSendNotification);
     }
 
     void resized() override
@@ -176,21 +161,17 @@ public:
 
 
         label.setText(sliderValue,juce::dontSendNotification);
-        if(!dragStarted)
-            startTimer(50);
     }
 
     void sliderDragStarted(juce::Slider*slider) override
     {
         label.setText(sliderValue,juce::dontSendNotification);
-        dragStarted = true;
     }
 
 
     void sliderDragEnded(juce::Slider*slider) override
     {
         label.setText(labelText,juce::dontSendNotification);
-        dragStarted = false;
     }
     void setPrefix()
     {
@@ -211,7 +192,6 @@ private:
     juce::Label label;
     int suffixNumber;
     bool integer;
-    bool dragStarted{false};
     juce::String suffix;
     customLookAndFeel customLook;
 

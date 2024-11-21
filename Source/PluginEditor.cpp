@@ -10,12 +10,12 @@
 #include "PluginEditor.h"
 
 //==============================================================================
-SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAudioProcessor& p)
+SuperWaveSynthAudioProcessorEditor::SuperWaveSynthAudioProcessorEditor (SuperWaveSynthAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), filterGui(p), oscGui(p), envelopeGui(p),matrixGui(p),presetGui(p)
 {
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize (860, 500);
+    setSize (840, 500);
 
 
     addAndMakeVisible(oscGui);
@@ -27,38 +27,32 @@ SimpleSynthAudioProcessorEditor::SimpleSynthAudioProcessorEditor (SimpleSynthAud
    
 }
 
-SimpleSynthAudioProcessorEditor::~SimpleSynthAudioProcessorEditor()
+SuperWaveSynthAudioProcessorEditor::~SuperWaveSynthAudioProcessorEditor()
 {
 }
 
 //==============================================================================
-void SimpleSynthAudioProcessorEditor::paint (juce::Graphics& g)
+void SuperWaveSynthAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll(juce::Colour(0xffD1CAF1));
     juce::Rectangle<int> area = getLocalBounds();
 
-    /*juce::Rectangle<int> bottomSection = area.removeFromBottom(150);
-    g.setColour(juce::Colour(0xff312F2F));
-    g.fillRoundedRectangle(bottomSection.reduced(5).toFloat(),6);*/
     g.setFont(15.0f);
    
 }
 
-void SimpleSynthAudioProcessorEditor::resized()
+void SuperWaveSynthAudioProcessorEditor::resized()
 {
     juce::Rectangle<int> area = getLocalBounds();
     juce::Rectangle<int> top = area.removeFromTop(295);
     juce::Rectangle<int> topSection = top.removeFromLeft(530);
-    juce::Rectangle<int> leftSection = top.removeFromRight(300);
+    juce::Rectangle<int> leftSection = top.removeFromLeft(300);
     juce::Rectangle<int> bottomSection = area.removeFromBottom(200);
-    juce::Rectangle<int> matrixSection = bottomSection.removeFromRight(300);
     juce::Rectangle<int> leftBottomSection = bottomSection.removeFromLeft(530);
+    juce::Rectangle<int> matrixSection = bottomSection.removeFromLeft(300);
+
     juce::Rectangle<int> controlsSection  = leftBottomSection.removeFromTop(160);
     juce::Rectangle<int> presetSection = leftBottomSection;
-
-
-
 
     oscGui.setBounds(topSection.reduced(15));
     envelopeGui.setBounds(controlsSection.reduced(15,0));

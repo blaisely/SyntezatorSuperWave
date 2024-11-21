@@ -19,11 +19,11 @@
 /**
 */
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
-class SimpleSynthAudioProcessorEditor  : public juce::AudioProcessorEditor
+class SuperWaveSynthAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
-    SimpleSynthAudioProcessorEditor (SimpleSynthAudioProcessor&);
-    ~SimpleSynthAudioProcessorEditor() override;
+    SuperWaveSynthAudioProcessorEditor (SuperWaveSynthAudioProcessor&);
+    ~SuperWaveSynthAudioProcessorEditor() override;
 
     //==============================================================================
     void paint (juce::Graphics&) override;
@@ -32,7 +32,7 @@ public:
     
 
 private:
-    SimpleSynthAudioProcessor& audioProcessor;
+    SuperWaveSynthAudioProcessor& audioProcessor;
 
     oscGUI oscGui;
     filterGUI filterGui;
@@ -40,5 +40,5 @@ private:
     modMatrixGUI matrixGui;
     presetGUI presetGui;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSynthAudioProcessorEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SuperWaveSynthAudioProcessorEditor)
 };

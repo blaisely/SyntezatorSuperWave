@@ -9,7 +9,12 @@
 */
 
 #include "customLook.h"
-
+#define colourButton juce::Colour(0xffFCF1F1)
+#define highlitedColour juce::Colour(0xffc4b1b1)
+#define boxOutline juce::Colour(0xffe3d8d8)
+#define blackFont juce::Colour(0xff312F2F)
+#define fontStyle  juce::Font customFont("Montserrat",12,0)
+#define whiteFont juce::Colours::whitesmoke
 #include <juce_gui_basics/detail/juce_LookAndFeelHelpers.h>
 
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
@@ -23,7 +28,7 @@ void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
     auto radius = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 2.0f;
     auto radiuscircle = juce::jmin(bounds.getWidth(), bounds.getHeight()) / 3.0f;
     auto toAngle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
-    auto lineW = juce::jmin(6.0f, radius * 0.5f);
+    auto lineW = juce::jmin(6.0f, radius * 0.3f);
     auto arcRadius = radius - lineW * 0.5f;
 
     juce::Path backgroundArc;
@@ -37,7 +42,7 @@ void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int wi
         true);
 
     g.setColour(outline);
-    g.strokePath(backgroundArc, juce::PathStrokeType(lineW, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
+    g.strokePath(backgroundArc, juce::PathStrokeType(lineW-1, juce::PathStrokeType::curved, juce::PathStrokeType::rounded));
 
     if (slider.isEnabled())
     {
@@ -142,7 +147,7 @@ void customLookAndFeel::drawButtonBackground(juce::Graphics& g, juce::Button& bu
     auto cornerSize = 6.0f;
     auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
 
-    auto buttonColor = juce::Colour(0xffFCF1F1);
+    auto buttonColor = colourButton;
     auto buttonDownColor = juce::Colour(0xff5F5959);
     auto baseColour = buttonColor;
     if(button.getToggleState())
@@ -487,6 +492,7 @@ void customLookAndFeel::drawLinearSliderBackground(juce::Graphics& g, int x, int
     g.strokePath (indent, PathStrokeType (0.5f));
 }
 
+
 //======================================================================================================================
 //filter emu button
 void notToggleButtonLook::drawButtonBackground(juce::Graphics& g, juce::Button& button,
@@ -527,7 +533,7 @@ void notToggleButtonLook::drawButtonBackground(juce::Graphics& g, juce::Button& 
     {
         g.fillRoundedRectangle (bounds, cornerSize);
 
-        g.setColour (baseColour);
+        g.setColour (juce::Colours::black);
         g.drawRoundedRectangle (bounds, cornerSize, 1.0f);
     }
 }
@@ -592,3 +598,179 @@ void filterLabel::drawLabel(juce::Graphics& g, juce::Label& label)
 
     g.drawRect (label.getLocalBounds());
 }
+//=====================================================================================================================
+//Combo Box Look And Feel
+void comboBoxLookAndFeel::drawComboBox(juce::Graphics& g, int width, int height, bool isButtonDown, int buttonX,
+    int buttonY, int buttonW, int buttonH, juce::ComboBox& box)
+{
+    using namespace juce;
+    auto cornerSize = 6;
+    Rectangle<int> boxBounds (0, 0, width, height);
+
+    g.setColour (colourButton);
+    g.fillRoundedRectangle (boxBounds.toFloat(), cornerSize);
+
+    //inside outline
+    g.setColour (boxOutline);
+    g.drawRoundedRectangle (boxBounds.toFloat().reduced (2.f, 2.f), cornerSize, 2.0f);
+    //outside outline
+    g.setColour (blackFont);
+    g.drawRoundedRectangle (boxBounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+
+    Rectangle<int> arrowZone (width - 20, 0, 15, height);
+    Path path;
+    path.startNewSubPath ((float) arrowZone.getX() + 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+    path.lineTo ((float) arrowZone.getCentreX(), (float) arrowZone.getCentreY() + 3.0f);
+    path.lineTo ((float) arrowZone.getRight() - 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+
+    g.setColour (blackFont.withAlpha ((box.isEnabled() ? 0.9f : 0.2f)));
+    g.strokePath (path, PathStrokeType (2.0f));
+}
+
+void comboBoxLookAndFeel::positionComboBoxText(juce::ComboBox& box, juce::Label& label)
+{
+    label.setBounds (1, 1,
+                     box.getWidth() - 20,
+                     box.getHeight() - 2);
+    juce::Font customFont("Montserrat",12,0);
+    auto fontColourOn = juce::Colour(0xff312F2F);
+    auto fontColourOff = juce::Colours::whitesmoke;
+    label.setFont (customFont);
+}
+
+void comboBoxLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
+{
+    using namespace juce;
+    g.fillAll (label.findColour (Label::backgroundColourId));
+
+    if (! label.isBeingEdited())
+    {
+        auto alpha = label.isEnabled() ? 1.0f : 0.5f;
+        const Font font ("Montserrat",12,0);
+
+        g.setColour (blackFont);
+        g.setFont (font);
+
+        auto textArea = getLabelBorderSize (label).subtractedFrom (label.getLocalBounds());
+
+        g.drawFittedText (label.getText(), textArea, label.getJustificationType(),
+                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          label.getMinimumHorizontalScale());
+
+        g.setColour (label.findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+    }
+    else if (label.isEnabled())
+    {
+        g.setColour (label.findColour (Label::outlineColourId));
+    }
+
+    g.drawRect (label.getLocalBounds());
+}
+
+void comboBoxLookAndFeel::drawPopupMenuBackground(juce::Graphics& g, int width, int height)
+{
+    using namespace juce;
+    //g.fillAll (colourButton);
+    g.setColour(colourButton);
+    g.fillRoundedRectangle(0,0,width,height,6);
+
+#if ! JUCE_MAC
+    //g.setColour (colourButton);
+    //g.drawRect (0, 0, width, height);
+#endif
+}
+
+void comboBoxLookAndFeel::drawPopupMenuItem(juce::Graphics& g, const juce::Rectangle<int>& area,
+                                            bool isSeparator, bool isActive, bool isHighlighted, bool isTicked, bool hasSubMenu, const juce::String& text,
+                                            const juce::String& shortcutKeyText, const juce::Drawable* icon, const juce::Colour* textColourToUse)
+{
+    using namespace juce;
+    if (isSeparator)
+    {
+        auto r  = area.reduced (5, 0);
+        r.removeFromTop (roundToInt (((float) r.getHeight() * 0.5f) - 0.5f));
+
+        g.setColour (boxOutline);
+        g.fillRect (r.removeFromTop (1));
+    }
+    else
+    {
+        auto textColour = blackFont;
+
+        auto r  = area.reduced (1);
+
+        if (isHighlighted && isActive)
+        {
+            g.setColour (highlitedColour);
+            g.fillRoundedRectangle(r.toFloat(),6);
+
+            g.setColour (findColour (PopupMenu::highlightedTextColourId));
+        }
+        else
+        {
+            g.setColour (textColour.withMultipliedAlpha (isActive ? 1.0f : 0.5f));
+        }
+
+        r.reduce (jmin (5, area.getWidth() / 20), 0);
+
+        auto font = getPopupMenuFont();
+
+        auto maxFontHeight = (float) r.getHeight() / 1.3f;
+
+        if (font.getHeight() > maxFontHeight)
+            font.setHeight (maxFontHeight);
+
+        g.setFont (font);
+
+        auto iconArea = r.removeFromLeft (roundToInt (maxFontHeight)).toFloat();
+
+        if (icon != nullptr)
+        {
+            icon->drawWithin (g, iconArea, RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
+            r.removeFromLeft (roundToInt (maxFontHeight * 0.5f));
+        }
+        else if (isTicked)
+        {
+            auto tick = getTickShape (1.0f);
+            g.fillPath (tick, tick.getTransformToScaleToFit (iconArea.reduced (iconArea.getWidth() / 5, 0).toFloat(), true));
+        }
+
+        if (hasSubMenu)
+        {
+            auto arrowH = 0.6f * getPopupMenuFont().getAscent();
+
+            auto x = static_cast<float> (r.removeFromRight ((int) arrowH).getX());
+            auto halfH = static_cast<float> (r.getCentreY());
+
+            Path path;
+            path.startNewSubPath (x, halfH - arrowH * 0.5f);
+            path.lineTo (x + arrowH * 0.6f, halfH);
+            path.lineTo (x, halfH + arrowH * 0.5f);
+
+            g.strokePath (path, PathStrokeType (2.0f));
+        }
+
+        r.removeFromRight (3);
+        g.drawFittedText (text, r, Justification::centredLeft, 1);
+
+        if (shortcutKeyText.isNotEmpty())
+        {
+            auto f2 = font;
+            f2.setHeight (f2.getHeight() * 0.75f);
+            f2.setHorizontalScale (0.95f);
+            g.setFont (f2);
+
+            g.drawText (shortcutKeyText, r, Justification::centredRight, true);
+        }
+    }
+}
+
+void comboBoxLookAndFeel::drawPopupMenuColumnSeparatorWithOptions(juce::Graphics& g, const juce::Rectangle<int>& bounds,
+    const juce::PopupMenu::Options& options)
+{
+    LookAndFeel_V4::drawPopupMenuColumnSeparatorWithOptions(g, bounds, options);
+}
+
+
+
+

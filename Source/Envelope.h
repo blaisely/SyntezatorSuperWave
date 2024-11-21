@@ -30,7 +30,7 @@ public:
    void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
     template<typename T>
    void addItemToFlexBoxWithAlign(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
-    Envelope(SimpleSynthAudioProcessor&);
+    Envelope(SuperWaveSynthAudioProcessor&);
     ~Envelope() override;
 
     void paint (juce::Graphics&) override;
@@ -48,6 +48,7 @@ public:
 
 private:
     customLookAndFeel customLook;
+    comboBoxLookAndFeel comboBoxLook;
     notToggleButtonLook noToggleLook;
     int lfo{1};
     int envelope {1};
@@ -96,7 +97,7 @@ private:
     juce::StringArray LFO2IDs{"lfo2depth","lfo2freq","lfo2Unipolar","lfoReset2","lfo2Type"};
     juce::StringArray LFO3IDs{"lfo3depth","lfo3freq","lfo3Unipolar","lfoReset3","lfo3Type"};
 
-    SimpleSynthAudioProcessor& audioProcessor;
+    SuperWaveSynthAudioProcessor& audioProcessor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Envelope)
 };

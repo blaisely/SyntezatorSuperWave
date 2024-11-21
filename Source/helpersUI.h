@@ -47,8 +47,8 @@ public:
     {
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
-        juce::Rectangle<int> labelArea = area.removeFromBottom(12);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 12));
+        juce::Rectangle<int> labelArea = area.removeFromBottom(14);
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 14));
         slider.setBounds(area);
     }
 
@@ -154,8 +154,8 @@ public:
     {
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
-        juce::Rectangle<int> labelArea = area.removeFromBottom(12);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 12));
+        juce::Rectangle<int> labelArea = area.removeFromBottom(14);
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 14));
         slider.setBounds(area);
     }
 

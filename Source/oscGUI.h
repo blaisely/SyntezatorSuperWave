@@ -26,7 +26,7 @@ class oscGUI  : public juce::Component,
 public:
     template<typename T>
     void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
-    explicit oscGUI(SimpleSynthAudioProcessor&);
+    explicit oscGUI(SuperWaveSynthAudioProcessor&);
     ~oscGUI() override;
 
     void paint (juce::Graphics&) override;
@@ -78,7 +78,7 @@ private:
     std::unique_ptr<SliderAttachment> waveTypeOSC2Attach;
     std::unique_ptr<SliderAttachment> PWOSC2Attach;
     juce::ValueTree tree;
-    SimpleSynthAudioProcessor& audioProcessor;
+    SuperWaveSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (oscGUI)
 };
 

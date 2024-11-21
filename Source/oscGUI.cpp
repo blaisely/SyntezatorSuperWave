@@ -16,7 +16,7 @@
 #include "juce_core/unit_tests/juce_UnitTestCategories.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-oscGUI::oscGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p), Gain_osc1("GAIN",2,false,true),Gain_osc2("GAIN",2,false,true),
+oscGUI::oscGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p), Gain_osc1("GAIN",2,false,true),Gain_osc2("GAIN",2,false,true),
 detune("DETUNE",2,false),detuneMix("MIX",2,false),octave_osc1("OCTAVE",0,true),
 octave_osc2("OCTAVE",0,true),coarse_osc1("COARSE",3,true),coarse_osc2("COARSE",3,true),
 semiDetune_osc1("SEMI",0,true),semiDetune_osc2("SEMI",0,true),panOsc1("PAN",2,false,true),

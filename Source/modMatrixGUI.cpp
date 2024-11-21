@@ -8,14 +8,16 @@
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-modMatrixGUI::modMatrixGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
+modMatrixGUI::modMatrixGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),intens1("Intensity",2,false,true),
+intens2("Intensity",2,false,true),intens3("Intensity",2,false,true),
+intens4("Intensity",2,false,true),intens5("Intensity",2,false,true)
 {
-    makeSlider(intens1);
-    makeSlider(intens2);
-    makeSlider(intens3);
-    makeSlider(intens4);
-    makeSlider(intens5);
-    
+    addAndMakeVisible(intens1);
+    addAndMakeVisible(intens2);
+    addAndMakeVisible(intens3);
+    addAndMakeVisible(intens4);
+    addAndMakeVisible(intens5);
+
     setUpComboBox(source1,sources);
     setUpComboBox(source2,sources);
     setUpComboBox(source3,sources);
@@ -28,11 +30,11 @@ modMatrixGUI::modMatrixGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     setUpComboBox(dest4,destinations);
     setUpComboBox(dest5,destinations);
 
-    intens1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity1",intens1);
-    intens2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity2",intens2);
-    intens3Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity3",intens3);
-    intens4Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity4",intens4);
-    intens5Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity5",intens5);
+    intens1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity1",intens1.slider);
+    intens2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity2",intens2.slider);
+    intens3Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity3",intens3.slider);
+    intens4Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity4",intens4.slider);
+    intens5Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity5",intens5.slider);
 
     source1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource1",source1);
     source2Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource2",source2);
@@ -46,14 +48,34 @@ modMatrixGUI::modMatrixGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p)
     dest4Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination4",dest4);
     dest5Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination5",dest5);
 
+    source1.setLookAndFeel(&comboLook);
+    source2.setLookAndFeel(&comboLook);
+    source3.setLookAndFeel(&comboLook);
+    source4.setLookAndFeel(&comboLook);
+    source5.setLookAndFeel(&comboLook);
 
+    dest1.setLookAndFeel(&comboLook);
+    dest2.setLookAndFeel(&comboLook);
+    dest3.setLookAndFeel(&comboLook);
+    dest4.setLookAndFeel(&comboLook);
+    dest5.setLookAndFeel(&comboLook);
 
     setSize(300, 200);
 }
 
 modMatrixGUI::~modMatrixGUI()
 {
+    source1.setLookAndFeel(nullptr);
+    source2.setLookAndFeel(nullptr);
+    source3.setLookAndFeel(nullptr);
+    source4.setLookAndFeel(nullptr);
+    source5.setLookAndFeel(nullptr);
 
+    dest1.setLookAndFeel(nullptr);
+    dest2.setLookAndFeel(nullptr);
+    dest3.setLookAndFeel(nullptr);
+    dest4.setLookAndFeel(nullptr);
+    dest5.setLookAndFeel(nullptr);
 }
 
 void modMatrixGUI::paint (juce::Graphics& g)
@@ -66,7 +88,7 @@ void modMatrixGUI::paint (juce::Graphics& g)
 void modMatrixGUI::resized()
 {
 
-    juce::Rectangle<int> area = getLocalBounds().reduced(5);
+    juce::Rectangle<int> area = getLocalBounds();
 
     juce::FlexBox layout;
     layout.flexDirection = juce::FlexBox::Direction::column;
@@ -134,7 +156,7 @@ void modMatrixGUI::setUpComboBox(juce::ComboBox& box,juce::StringArray& s)
     box.setSelectedId(0);
 }
 
-void modMatrixGUI::setUpLayout(juce::FlexBox& box, juce::ComboBox& item1, juce::Slider& item2, juce::ComboBox& item3)
+void modMatrixGUI::setUpLayout(juce::FlexBox& box, juce::ComboBox& item1, customSlider& item2, juce::ComboBox& item3)
 {
 
     box.flexDirection = juce::FlexBox::Direction::row;

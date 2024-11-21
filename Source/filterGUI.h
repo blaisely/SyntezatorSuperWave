@@ -27,7 +27,7 @@ class filterGUI  : public juce::Component, private juce::ComboBox::Listener, pri
 public:
     template<typename T>
     void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
-    filterGUI(SimpleSynthAudioProcessor&);
+    filterGUI(SuperWaveSynthAudioProcessor&);
     ~filterGUI() override;
 
     void paint (juce::Graphics&) override;
@@ -37,6 +37,7 @@ public:
     void buttonClicked(juce::Button* button) override;
 private:
     customLookAndFeel customLook;
+    comboBoxLookAndFeel comboBoxLook;
     notToggleButtonLook emuLook;
     filterLabel labelLook;
 
@@ -55,7 +56,7 @@ private:
     std::unique_ptr<ComboBoxAttachment> filterTypeAttachment;
     juce::TextButton filterEmu;
     juce::ComboBox filterType;
-    SimpleSynthAudioProcessor& audioProcessor;
+    SuperWaveSynthAudioProcessor& audioProcessor;
     juce::StringArray filterTypes{"LPF","HPF","BPF"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (filterGUI)
 };

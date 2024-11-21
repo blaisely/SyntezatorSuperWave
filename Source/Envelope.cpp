@@ -14,7 +14,7 @@
 #include "Envelope.h"
 
 //==============================================================================
-Envelope::Envelope(SimpleSynthAudioProcessor& p) : audioProcessor(p),attackAmp("A",2,true,false),
+Envelope::Envelope(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),attackAmp("A",2,true,false),
 decayAmp("D",2,true,false),sustainAmp("S",2,true,false),releaseAmp("R",2,true,false),
 attackMod("A",2,true,false),
 decayMod("D",2,true,false),sustainMod("S",2,true,false),releaseMod("R",2,true,false),
@@ -69,7 +69,7 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
 
     addAndMakeVisible(sharedAmp);
     sharedAmp.setToggleable(true);
-    sharedAmp.setButtonText("Env1->OSC2");
+    sharedAmp.setButtonText("Env1 -> OSC2");
     sharedAmp.setClickingTogglesState(true);
     sharedAmp.addListener(this);
 
@@ -100,6 +100,8 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
     sharedAmp.setLookAndFeel(&customLook);
     modEnvType.setLookAndFeel(&noToggleLook);
     lfoUnipolar.setLookAndFeel(&customLook);
+    lfoNumber.setLookAndFeel(&comboBoxLook);
+    lfoType.setLookAndFeel(&comboBoxLook);
     setSize(550, 160);
 }
 
@@ -111,6 +113,8 @@ Envelope::~Envelope()
     sharedAmp.setLookAndFeel(nullptr);
     modEnvType.setLookAndFeel(nullptr);
     lfoUnipolar.setLookAndFeel(nullptr);
+    lfoNumber.setLookAndFeel(nullptr);
+    lfoType.setLookAndFeel(nullptr);
 }
 
 

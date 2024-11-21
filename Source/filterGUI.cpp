@@ -13,7 +13,7 @@
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-filterGUI::filterGUI(SimpleSynthAudioProcessor& p) : audioProcessor(p),filterCutOff("CutOff",1,true),filterResonance("Resonance",2,true),
+filterGUI::filterGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),filterCutOff("CutOff",1,true),filterResonance("Resonance",2,true),
 filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
 {
     addAndMakeVisible(filterCutOff);
@@ -49,6 +49,7 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
     filterEmu.setLookAndFeel(&emuLook);
     filterKeytracking.setLookAndFeel(&customLook);
     filterLabel.setLookAndFeel(&customLook);
+    filterType.setLookAndFeel(&comboBoxLook);
 }
 
 filterGUI::~filterGUI()
@@ -56,6 +57,7 @@ filterGUI::~filterGUI()
     filterEmu.setLookAndFeel(nullptr);
     filterKeytracking.setLookAndFeel(nullptr);
     filterLabel.setLookAndFeel(nullptr);
+    filterType.setLookAndFeel(nullptr);
 }
 
 void filterGUI::paint (juce::Graphics& g)
@@ -63,6 +65,17 @@ void filterGUI::paint (juce::Graphics& g)
     g.setColour(juce::Colour(0xff949FD6));
     g.fillRoundedRectangle(getLocalBounds().toFloat(),8);
     juce::Rectangle<int> totalArea = getLocalBounds();
+    g.setColour(juce::Colour(0x54DBD9F4));
+
+    juce::Rectangle<int> area = getLocalBounds().reduced(40,0);
+    juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
+    juce::Rectangle<int> filterSelection = area.removeFromTop(20).reduced(5);
+    juce::Rectangle<int> leftSection = area.removeFromLeft(90).removeFromTop(200);
+    juce::Rectangle<int> rightSection = area.removeFromLeft(110);
+
+    g.fillRoundedRectangle(leftSection.toFloat().reduced(5),8);
+
+
 }
 
 void filterGUI::resized()
@@ -75,13 +88,13 @@ void filterGUI::resized()
     constexpr int buttonWidth = 50;
     constexpr int buttonHeight = 20;
     constexpr int horizontalSliderHeight = 30;
-    juce::Rectangle<int> area = getLocalBounds();
+    juce::Rectangle<int> area = getLocalBounds().reduced(40,0);
     juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
-    juce::Rectangle<int> filterSelection = area.removeFromTop(30);
+    juce::Rectangle<int> filterSelection = area.removeFromTop(20).reduced(5);
     juce::Rectangle<int> leftSection = area.removeFromLeft(110);
     juce::Rectangle<int> rightSection = area.removeFromLeft(110);
     filterLabel.setBounds(titleArea.withSizeKeepingCentre(65,40));
-    filterType.setBounds(filterSelection.withSizeKeepingCentre(80,30));
+    filterType.setBounds(filterSelection.withSizeKeepingCentre(80,20));
     juce::FlexBox left;
     left.flexDirection = juce::FlexBox::Direction::column;
     addItemToFlexBox(left,filterCutOff,knobSize,knobSize,margin);
@@ -90,8 +103,8 @@ void filterGUI::resized()
 
     juce::FlexBox right;
     right.flexDirection = juce::FlexBox::Direction::column;
+    right.alignItems = juce::FlexBox::AlignItems::stretch;// Center content horizontally
     addItemToFlexBox(right,filterDrive,knobSize,knobSize,margin);
-
     addItemToFlexBox(right,filterEmu,buttonWidth,buttonHeight,buttonMargin);
     addItemToFlexBox(right,filterKeytracking,buttonWidth,buttonHeight,buttonMargin);
     addItemToFlexBox(right,keyTrackOffset,knobSize,horizontalSliderHeight,margin);

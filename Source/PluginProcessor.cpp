@@ -26,7 +26,7 @@ static inline juce::NormalisableRange<FloatType> makeLogarithmicRange(FloatType 
                 );
 }
 //==============================================================================
-SimpleSynthAudioProcessor::SimpleSynthAudioProcessor()
+SuperWaveSynthAudioProcessor::SuperWaveSynthAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
                      #if ! JucePlugin_IsMidiEffect
@@ -52,17 +52,17 @@ SimpleSynthAudioProcessor::SimpleSynthAudioProcessor()
     mySynth.addSound(new SynthSound());
 }
 
-SimpleSynthAudioProcessor::~SimpleSynthAudioProcessor()
+SuperWaveSynthAudioProcessor::~SuperWaveSynthAudioProcessor()
 {
 }
 
 //==============================================================================
-const juce::String SimpleSynthAudioProcessor::getName() const
+const juce::String SuperWaveSynthAudioProcessor::getName() const
 {
     return JucePlugin_Name;
 }
 
-bool SimpleSynthAudioProcessor::acceptsMidi() const
+bool SuperWaveSynthAudioProcessor::acceptsMidi() const
 {
    #if JucePlugin_WantsMidiInput
     return true;
@@ -71,7 +71,7 @@ bool SimpleSynthAudioProcessor::acceptsMidi() const
    #endif
 }
 
-bool SimpleSynthAudioProcessor::producesMidi() const
+bool SuperWaveSynthAudioProcessor::producesMidi() const
 {
    #if JucePlugin_ProducesMidiOutput
     return true;
@@ -80,7 +80,7 @@ bool SimpleSynthAudioProcessor::producesMidi() const
    #endif
 }
 
-bool SimpleSynthAudioProcessor::isMidiEffect() const
+bool SuperWaveSynthAudioProcessor::isMidiEffect() const
 {
    #if JucePlugin_IsMidiEffect
     return true;
@@ -89,37 +89,37 @@ bool SimpleSynthAudioProcessor::isMidiEffect() const
    #endif
 }
 
-double SimpleSynthAudioProcessor::getTailLengthSeconds() const
+double SuperWaveSynthAudioProcessor::getTailLengthSeconds() const
 {
     return 0.0;
 }
 
-int SimpleSynthAudioProcessor::getNumPrograms()
+int SuperWaveSynthAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
                 // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int SimpleSynthAudioProcessor::getCurrentProgram()
+int SuperWaveSynthAudioProcessor::getCurrentProgram()
 {
     return 0;
 }
 
-void SimpleSynthAudioProcessor::setCurrentProgram (int index)
+void SuperWaveSynthAudioProcessor::setCurrentProgram (int index)
 {
 }
 
-const juce::String SimpleSynthAudioProcessor::getProgramName (int index)
+const juce::String SuperWaveSynthAudioProcessor::getProgramName (int index)
 {
     return {};
 }
 
-void SimpleSynthAudioProcessor::changeProgramName (int index, const juce::String& newName)
+void SuperWaveSynthAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
 }
 
 //==============================================================================
-void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+void SuperWaveSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
     
     juce::dsp::ProcessSpec spec;
@@ -143,13 +143,13 @@ void SimpleSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPer
     }
 }
 
-void SimpleSynthAudioProcessor::releaseResources()
+void SuperWaveSynthAudioProcessor::releaseResources()
 {
    reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool SimpleSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+bool SuperWaveSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
   #if JucePlugin_IsMidiEffect
     juce::ignoreUnused (layouts);
@@ -173,10 +173,10 @@ bool SimpleSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& layou
   #endif
 }
 #endif
-void SimpleSynthAudioProcessor::updateFilter() {
+void SuperWaveSynthAudioProcessor::updateFilter() {
     *DCOffset.state = *juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(), 20.0f);
 }
-void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
 
     juce::ScopedNoDenormals noDenormals;
@@ -221,28 +221,28 @@ void SimpleSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, 
 }
 
 //==============================================================================
-bool SimpleSynthAudioProcessor::hasEditor() const
+bool SuperWaveSynthAudioProcessor::hasEditor() const
 {
     return true; // (change this to false if you choose to not supply an editor)
 }
 
-juce::AudioProcessorEditor* SimpleSynthAudioProcessor::createEditor()
+juce::AudioProcessorEditor* SuperWaveSynthAudioProcessor::createEditor()
 {
-    return new SimpleSynthAudioProcessorEditor (*this);
+    return new SuperWaveSynthAudioProcessorEditor (*this);
     //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
-void SimpleSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
+void SuperWaveSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     
 }
 
-void SimpleSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+void SuperWaveSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
 }
 
-void SimpleSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTreeState& s)
+void SuperWaveSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTreeState& s)
 {
     juce::ValueTree state = s.copyState();  // grab a copy of the current parameters Value Tree
     std::unique_ptr<juce::XmlElement> tempXml (state.createXml());  // convert parameters Value Tree to an XML object
@@ -266,9 +266,9 @@ void SimpleSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTree
 // This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
-    return new SimpleSynthAudioProcessor();
+    return new SuperWaveSynthAudioProcessor();
 }
-void SimpleSynthAudioProcessor::reset() {
+void SuperWaveSynthAudioProcessor::reset() {
 
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
 
@@ -281,7 +281,7 @@ void SimpleSynthAudioProcessor::reset() {
     resetAllParameters(state);
 }
 
-juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::createParameterLayout() {
+juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor::createParameterLayout() {
 
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
@@ -477,9 +477,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout SimpleSynthAudioProcessor::c
 
     return layout;
 }
-SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSettings(juce::AudioProcessorValueTreeState& apvts)
+SuperWaveSynthAudioProcessor::chainSettings SuperWaveSynthAudioProcessor::getChainSettings(juce::AudioProcessorValueTreeState& apvts)
 {
-    SimpleSynthAudioProcessor::chainSettings settings;
+    SuperWaveSynthAudioProcessor::chainSettings settings;
 
     settings.cutoff = apvts.getRawParameterValue("filterCutoff")->load();
     settings.resonance = apvts.getRawParameterValue("filterRes")->load();
@@ -559,7 +559,7 @@ SimpleSynthAudioProcessor::chainSettings SimpleSynthAudioProcessor::getChainSett
     return settings;
 }
 
-juce::ValueTree SimpleSynthAudioProcessor::createValueTree()
+juce::ValueTree SuperWaveSynthAudioProcessor::createValueTree()
 {
     juce::ValueTree v(IDs::Parameters);
     juce::ValueTree Osc(IDs::Oscillator);
@@ -613,7 +613,7 @@ juce::ValueTree SimpleSynthAudioProcessor::createValueTree()
 
 }
 
-void SimpleSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& s)
+void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSettings& s)
 {
     tree.setProperty(IDs::Cutoff, s.cutoff, nullptr);
     tree.setProperty(IDs::Resonance, s.resonance, nullptr);

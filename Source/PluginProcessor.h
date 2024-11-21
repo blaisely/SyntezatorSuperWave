@@ -15,12 +15,12 @@
 //==============================================================================
 /**
 */
-class SimpleSynthAudioProcessor  : public juce::AudioProcessor
+class SuperWaveSynthAudioProcessor  : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    SimpleSynthAudioProcessor();
-    ~SimpleSynthAudioProcessor() override;
+    SuperWaveSynthAudioProcessor();
+    ~SuperWaveSynthAudioProcessor() override;
 
     //==============================================================================
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
@@ -87,5 +87,5 @@ private:
      juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SimpleSynthAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SuperWaveSynthAudioProcessor)
 };

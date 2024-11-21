@@ -5,6 +5,9 @@
 #ifndef PRESETGUI_H
 #define PRESETGUI_H
 #include <JuceHeader.h>
+
+#include "customLook.h"
+#include "helpersUI.h"
 #include "PluginProcessor.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
@@ -14,7 +17,7 @@ class presetGUI  : public juce::Component, private juce::ComboBox::Listener, pri
 public:
     template<typename T>
     void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
-    presetGUI(SimpleSynthAudioProcessor&);
+    presetGUI(SuperWaveSynthAudioProcessor&);
     ~presetGUI() override;
 
     void paint (juce::Graphics&) override;
@@ -27,12 +30,13 @@ public:
     void makeSlider(juce::Slider& slider,juce::Label& label);
 
 private:
-    juce::Slider gain;
+    customSlider gain;
+    customLookAndFeel customLook;
     juce::TextButton init;
     juce::Label gainLabel{"Gain","GAIN"};
     std::unique_ptr<SliderAttachment> gainAttach;
     std::unique_ptr<ButtonAttachment> initAttach;
-    SimpleSynthAudioProcessor& audioProcessor;
+    SuperWaveSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (presetGUI)
 };
 template <typename T>

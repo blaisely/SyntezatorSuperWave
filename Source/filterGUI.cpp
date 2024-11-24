@@ -44,7 +44,7 @@ filterDrive("Drive",2,true),keyTrackOffset("Offset",0,true,true)
     filterTypeAttachment = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"filterType",filterType);
 
 
-    setSize(320, 220);
+    setSize(220, 220);
 
     filterEmu.setLookAndFeel(&emuLook);
     filterKeytracking.setLookAndFeel(&customLook);
@@ -67,7 +67,7 @@ void filterGUI::paint (juce::Graphics& g)
     juce::Rectangle<int> totalArea = getLocalBounds();
     g.setColour(juce::Colour(0x54DBD9F4));
 
-    juce::Rectangle<int> area = getLocalBounds().reduced(40,0);
+    juce::Rectangle<int> area = getLocalBounds().reduced(5,0);
     juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
     juce::Rectangle<int> filterSelection = area.removeFromTop(20).reduced(5);
     juce::Rectangle<int> leftSection = area.removeFromLeft(90).removeFromTop(200);
@@ -88,7 +88,7 @@ void filterGUI::resized()
     constexpr int buttonWidth = 50;
     constexpr int buttonHeight = 20;
     constexpr int horizontalSliderHeight = 30;
-    juce::Rectangle<int> area = getLocalBounds().reduced(40,0);
+    juce::Rectangle<int> area = getLocalBounds().reduced(5,0);
     juce::Rectangle<int> titleArea = area.removeFromTop(40).reduced(5);
     juce::Rectangle<int> filterSelection = area.removeFromTop(20).reduced(5);
     juce::Rectangle<int> leftSection = area.removeFromLeft(110);

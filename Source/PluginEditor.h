@@ -8,6 +8,7 @@
 
 #pragma once
 
+
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 #include "oscGUI.h"
@@ -33,7 +34,7 @@ public:
 
 private:
     SuperWaveSynthAudioProcessor& audioProcessor;
-
+    juce::Image logo;
     oscGUI oscGui;
     filterGUI filterGui;
     Envelope envelopeGui;

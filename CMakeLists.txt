@@ -34,6 +34,9 @@ target_sources(SuperSawSynth PRIVATE
 source_group(TREE ${CMAKE_SOURCE_DIR}/Source PREFIX "Source Files" FILES
         ${SOURCE_FILES}
 )
+juce_add_binary_data(BinaryData SOURCES
+                  Source/graphics/SUPERWAVE_logo.png
+)
 target_compile_definitions(SuperSawSynth
         PRIVATE
         JUCE_WEB_BROWSER=0
@@ -43,6 +46,7 @@ target_compile_definitions(SuperSawSynth
 
 target_link_libraries(SuperSawSynth
         PRIVATE
+        BinaryData
         juce::juce_gui_extra
         juce::juce_audio_basics
         juce::juce_audio_devices

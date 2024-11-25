@@ -43,33 +43,6 @@ void SuperWaveSynthAudioProcessorEditor::paint (juce::Graphics& g)
     juce::AffineTransform rot;
 
     g.drawImage(logo,nameArea.toFloat(),true,false);
-
-    /*g.saveState();
-
-    // Calculate the center of the nameArea to use as the rotation pivot
-    float centerX = static_cast<float>(nameArea.getCentreX());
-    float centerY = static_cast<float>(nameArea.getCentreY());
-
-    g.setColour(juce::Colours::whitesmoke);
-    g.setFont(juce::Font(juce::FontOptions("Montserrat",20.0f,1)));
-    // Move the origin to the center of the nameArea
-    g.addTransform(juce::AffineTransform::translation(centerX, centerY));
-
-    // Rotate by 90 degrees clockwise
-    g.addTransform(juce::AffineTransform::rotation(juce::MathConstants<float>::halfPi));
-
-    // Move the origin back to its original position
-    g.addTransform(juce::AffineTransform::translation(-centerX, -centerY));
-    
-    g.setColour(juce::Colours::whitesmoke);
-    g.setFont(juce::Font(juce::FontOptions("Montserrat",20.0f,1)));
-    // Draw the text centered in the rotated nameArea
-    g.drawFittedText("SUPER WAVE", nameArea.getX(), nameArea.getY(),
-                    nameArea.getWidth(), nameArea.getHeight(), juce::Justification::topLeft, 0);
-
-
-    // Restore the previous graphics context state
-    g.restoreState();*/
    
 }
 

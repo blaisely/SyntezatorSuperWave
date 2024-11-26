@@ -94,16 +94,15 @@ void modMatrixGUI::resized()
     layout.flexDirection = juce::FlexBox::Direction::column;
 
     juce::FlexBox row1;
-    setUpLayout(row1,dest1,intens1,source1);
-    //row1.performLayout(area);
+    setUpLayout(row1,source1,intens1,dest1);
     juce::FlexBox row2;
-    setUpLayout(row2,dest2,intens2,source2);
+    setUpLayout(row2,source2,intens2,dest2);
     juce::FlexBox row3;
-    setUpLayout(row3,dest3,intens3,source3);
+    setUpLayout(row3,source3,intens3,dest3);
     juce::FlexBox row4;
-    setUpLayout(row4,dest4,intens4,source4);
+    setUpLayout(row4,source4,intens4,dest4);
     juce::FlexBox row5;
-    setUpLayout(row5,dest5,intens5,source5);
+    setUpLayout(row5,source5,intens5,dest5);
 
     layout.items.add(juce::FlexItem(row1).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row2).withFlex(1.0f));
@@ -111,7 +110,6 @@ void modMatrixGUI::resized()
     layout.items.add(juce::FlexItem(row4).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row5).withFlex(1.0f));
 
-    // Perform the layout with the correct FlexItems
     layout.performLayout(area);
 
 }

@@ -155,7 +155,7 @@ public:
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
         juce::Rectangle<int> labelArea = area.removeFromBottom(14);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 14));
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth()*2, 14));
         slider.setBounds(area);
     }
 

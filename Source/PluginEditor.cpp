@@ -13,8 +13,6 @@
 SuperWaveSynthAudioProcessorEditor::SuperWaveSynthAudioProcessorEditor (SuperWaveSynthAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), filterGui(p), oscGui(p), envelopeGui(p),matrixGui(p),presetGui(p)
 {
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
     setSize (840, 500);
     logo = juce::ImageCache::getFromMemory(BinaryData::SUPERWAVE_logo_png,BinaryData::SUPERWAVE_logo_pngSize);
     if(!logo.isValid())

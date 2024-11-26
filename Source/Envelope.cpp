@@ -14,10 +14,10 @@
 #include "Envelope.h"
 
 //==============================================================================
-Envelope::Envelope(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),attackAmp("A",2,true,false),
-decayAmp("D",2,true,false),sustainAmp("S",2,true,false),releaseAmp("R",2,true,false),
-attackMod("A",2,true,false),
-decayMod("D",2,true,false),sustainMod("S",2,true,false),releaseMod("R",2,true,false),
+Envelope::Envelope(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),attackAmp("A",2,false,false),
+decayAmp("D",2,false,false),sustainAmp("S",2,false,false),releaseAmp("R",2,false,false),
+attackMod("A",2,false,false),
+decayMod("D",2,false,false),sustainMod("S",2,false,false),releaseMod("R",2,false,false),
 lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false)
 {
 
@@ -149,7 +149,7 @@ void Envelope::paint (juce::Graphics& g)
 
 void Envelope::resized()
 {
-    constexpr int sliderWidth = 25;
+    constexpr int sliderWidth = 40;
     constexpr int sliderHeight = 115;
     constexpr int margin  = 1;
     constexpr int buttonMargin  = 5;
@@ -164,7 +164,7 @@ void Envelope::resized()
     constexpr int comboBoxWidth = 110;
     constexpr int comboBoxHeight = 20;
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
-    juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5);
+    juce::Rectangle<int> ampArea = area.removeFromLeft(122).reduced(5,5);
     juce::Rectangle<int> modEnvelope = area.removeFromLeft(122).reduced(5);
     juce::Rectangle<int> envelopeButtonsArea = area.removeFromLeft(80).reduced(0,5);
     juce::Rectangle<int> amountSliderArea = envelopeButtonsArea.removeFromRight(20).removeFromTop(sliderHeight);

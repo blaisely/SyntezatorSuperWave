@@ -286,10 +286,10 @@ juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor
     juce::AudioProcessorValueTreeState::ParameterLayout layout;
 
     auto logRange = makeLogarithmicRange(20.0f, 20480.0f);
-    juce::NormalisableRange<float> attackRange{0.0f,100.0f,1.f,0.7};
-    juce::NormalisableRange<float> decayRange{0.0f,100.0f,1.f,0.7};
+    juce::NormalisableRange<float> attackRange{0.0f,100.0f,1.f,1.2};
+    juce::NormalisableRange<float> decayRange{0.0f,100.0f,1.f,1.2};
     juce::NormalisableRange<float> sustainRange{0.0f,100.0f,1.f};
-    juce::NormalisableRange<float> releaseRange{0.0f,100.f,1.f,0.7};
+    juce::NormalisableRange<float> releaseRange{0.0f,100.f,1.f,1.2};
     layout.add(std::make_unique<juce::AudioParameterFloat>("gainOVR","Gain",0.f,1.f,0.1f));
     //Filter Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20480.0f));

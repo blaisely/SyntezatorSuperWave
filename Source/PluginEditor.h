@@ -11,11 +11,11 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
-#include "oscGUI.h"
-#include "filterGUI.h"
-#include "Envelope.h"
-#include "modMatrixGUI.h"
-#include "presetGUI.h"
+#include "gui/oscGUI.h"
+#include "gui/filterGUI.h"
+#include "gui/Envelope.h"
+#include "gui/modMatrixGUI.h"
+#include "gui/presetGUI.h"
 //==============================================================================
 /**
 */

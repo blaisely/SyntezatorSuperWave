@@ -235,11 +235,17 @@ juce::AudioProcessorEditor* SuperWaveSynthAudioProcessor::createEditor()
 //==============================================================================
 void SuperWaveSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    
+    copyXmlToBinary(*state.copyState().createXml(), destData);
+
+    DBG(state.copyState().toXmlString());
 }
 
 void SuperWaveSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
+    std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
+    if (xml.get() != nullptr && xml->hasTagName(state.state.getType())) {
+        state.replaceState(juce::ValueTree::fromXml(*xml));
+    }
 }
 
 void SuperWaveSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTreeState& s)

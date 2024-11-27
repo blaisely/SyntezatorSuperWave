@@ -8,12 +8,12 @@
   ==============================================================================
 */
 
-#include <JuceHeader.h>
+#include <../../JuceLibraryCode/JuceHeader.h>
 
 #include <memory>
 #include "oscGUI.h"
 
-#include "juce_core/unit_tests/juce_UnitTestCategories.h"
+#include "../../JUCE/modules/juce_core/unit_tests/juce_UnitTestCategories.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
 oscGUI::oscGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p), Gain_osc1("GAIN",2,true,true),Gain_osc2("GAIN",2,true,true),

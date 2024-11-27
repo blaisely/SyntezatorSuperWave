@@ -23,6 +23,8 @@ target_include_directories(SuperSawSynth PRIVATE JuceLibraryCode)
 file(GLOB_RECURSE SOURCE_FILES
         ${CMAKE_SOURCE_DIR}/Source/*.cpp
         ${CMAKE_SOURCE_DIR}/Source/*.h
+        ${CMAKE_SOURCE_DIR}/Source/gui/*.cpp
+        ${CMAKE_SOURCE_DIR}/Source/gui/*.h
 )
 file(GLOB_RECURSE JUCE_FILES
         ${CMAKE_SOURCE_DIR}/JuceLibraryCode/*.cpp

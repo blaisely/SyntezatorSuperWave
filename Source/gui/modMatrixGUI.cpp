@@ -3,7 +3,7 @@
 //
 
 #include "modMatrixGUI.h"
-#include <JuceHeader.h>
+#include <../../JuceLibraryCode/JuceHeader.h>
 
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;

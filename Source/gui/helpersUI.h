@@ -2,8 +2,8 @@
 // Created by blaze on 13.11.2024.
 //
 #pragma once
-#include <JuceHeader.h>
-#include "helpers.h"
+#include <../../JuceLibraryCode/JuceHeader.h>
+#include "../helpers.h"
 #include "customLook.h"
 
 class customKnob : public juce::Component, public juce::Slider::Listener, juce::Timer

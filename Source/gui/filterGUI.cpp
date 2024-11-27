@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include <JuceHeader.h>
+#include <../../JuceLibraryCode/JuceHeader.h>
 #include "filterGUI.h"
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;

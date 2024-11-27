@@ -10,10 +10,10 @@
 
 #pragma once
 
-#include <JuceHeader.h>
-#include "PluginProcessor.h"
+#include <../../JuceLibraryCode/JuceHeader.h>
+#include "../PluginProcessor.h"
 #include "customLook.h"
-#include "SharedData.h"
+#include "../SharedData.h"
 #include "helpersUI.h"
 
 //==============================================================================

@@ -4,11 +4,11 @@
 
 #ifndef MODMATRIXGUI_H
 #define MODMATRIXGUI_H
-#include <JuceHeader.h>
+#include <../../JuceLibraryCode/JuceHeader.h>
 
 #include "customLook.h"
 #include "helpersUI.h"
-#include "PluginProcessor.h"
+#include "../PluginProcessor.h"
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 typedef juce::AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 typedef juce::AudioProcessorValueTreeState::ComboBoxAttachment ComboBoxAttachment;

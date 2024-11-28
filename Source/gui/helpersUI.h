@@ -48,7 +48,7 @@ public:
         label.setText(labelText,juce::dontSendNotification);
         juce::Rectangle<int> area = getLocalBounds();
         juce::Rectangle<int> labelArea = area.removeFromBottom(14);
-        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth(), 14));
+        label.setBounds(labelArea.withSizeKeepingCentre(area.getWidth()*4, 14));
         slider.setBounds(area);
     }
 
@@ -66,6 +66,28 @@ public:
                 sliderV = slider.getValue();
             sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
         }
+        if(waveform)
+        {
+            float sliderVal = slider.getValue();
+            wave1Percent = juce::String(std::abs(static_cast<float>(std::abs(1.f-(sliderVal)))-static_cast<int>(sliderVal))*100);
+            wave2Percent = juce::String(((sliderVal-(int)sliderVal)*100));
+            if(sliderVal == 0.0)
+                sliderValue = "SIN";
+            if(sliderVal>0.0 && sliderVal<1.0)
+                sliderValue = wave1Percent+"/"+wave2Percent;
+            if(sliderVal ==1.0)
+                sliderValue="TRI";
+            if(sliderVal>1.0 && sliderVal<2.0)
+                sliderValue = wave1Percent+"/"+wave2Percent;
+            if(sliderVal ==2.0)
+                sliderValue="SQR";
+            if(sliderVal>2.0 && sliderVal<3.0)
+                sliderValue = wave1Percent+"/"+wave2Percent;
+            if(sliderVal ==3.0)
+                sliderValue="SAW";
+
+        }
+
         label.setText(sliderValue,juce::dontSendNotification);
         if(!dragStarted)
             startTimer(50);
@@ -93,6 +115,12 @@ public:
             suffix ="%";
         if(suffixNumber==3)
             suffix ="ct";
+        if(suffixNumber==4)
+        {
+            waveform = true;
+            suffix="";
+        }
+
     }
 
     juce::Slider slider;
@@ -103,6 +131,9 @@ private:
     int suffixNumber;
     juce::String suffix;
     bool integer;
+    juce::String wave1Percent;
+    juce::String wave2Percent;
+    bool waveform = false;
     bool dragStarted{false};
     customLookAndFeel customLook;
 

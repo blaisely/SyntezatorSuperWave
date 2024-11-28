@@ -119,30 +119,37 @@ public:
         if(type>=0.0f && type<1.0f)
         {
             value = sine(phase);
-            value2 = poly_saw(phase);
-            value2 -= poly_blep(t, phaseIncrement);
-            output = value*(1.f-type)+(value2*type);
-        }
-        if(type >= 1.f && type<2.f)
-        {
-            value = poly_saw(phase);
-            value -= poly_blep(t, phaseIncrement);
-            value2 = square(phase);
-            value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + pulseWidth2.getCurrentValue(), 1.0f), phaseIncrement);
-            output = value*(2.f-type)+(value2*(type-1.f));
-        }
-        if(type>=2.f && type<=3.f)
-        {
-            value = square(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + pulseWidth2.getCurrentValue(), 1.0f), phaseIncrement);
 
             value2 = triangle(phase);
             value2 += poly_blep(t, phaseIncrement);
             value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
             value2 = phaseIncrement * value2 + (1.0f - phaseIncrement) * lastOutput;
             lastOutput = value2;
+
+            output = value*(1.f-type)+(value2*type);
+        }
+        if(type >= 1.f && type<2.f)
+        {
+            value = triangle(phase);
+            value += poly_blep(t, phaseIncrement);
+            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
+            lastOutput = value;
+
+            value2 = square(phase);
+            value2 += poly_blep(t, phaseIncrement);
+            value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            output = value*(2.f-type)+(value2*(type-1.f));
+        }
+        if(type>=2.f && type<=3.f)
+        {
+            value = square(phase);
+            value += poly_blep(t, phaseIncrement);
+            value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+
+            value2 = poly_saw(phase);
+            value2 -= poly_blep(t, phaseIncrement);
+
             output = value*(3.f-type)+(value2*(type-2.f));
         }
         if(type<0.f || type>3.f)

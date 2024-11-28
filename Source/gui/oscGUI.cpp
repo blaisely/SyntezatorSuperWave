@@ -16,9 +16,9 @@ typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
 oscGUI::oscGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p), Gain_osc1("GAIN",2,false,true),Gain_osc2("GAIN",2,false,true),
 detune("DETUNE",2,false),detuneMix("MIX",2,false),octave_osc1("OCTAVE",0,true),
-octave_osc2("OCTAVE",0,true),coarse_osc1("COARSE",3,true),coarse_osc2("COARSE",3,true),
-semiDetune_osc1("SEMI",0,true),semiDetune_osc2("SEMI",0,true),panOsc1("PAN",2,false,true),
-panOsc2("PAN",2,false,true),waveTypeOSC1("WAVE",0,false),waveTypeOSC2("WAVE",0,false),
+octave_osc2("OCTAVE",0,true),coarse_osc1("FINE",3,true),coarse_osc2("FINE",3,true),
+semiDetune_osc1("COARSE",0,true),semiDetune_osc2("COARSE",0,true),panOsc1("PAN",2,false,true),
+panOsc2("PAN",2,false,true),waveTypeOSC1("WAVE",4,false),waveTypeOSC2("WAVE",4,false),
 PWOSC1("PW",0,true),PWOSC2("PW",0,true)
 {
     addAndMakeVisible(preset);

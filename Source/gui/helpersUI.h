@@ -69,18 +69,21 @@ public:
         if(waveform)
         {
             float sliderVal = slider.getValue();
-            wave1Percent = juce::String(std::abs(static_cast<float>(std::abs(1.f-(sliderVal)))-static_cast<int>(sliderVal))*100);
+            float wave1 = std::abs(static_cast<float>(std::abs(1.f-(sliderVal)))-static_cast<int>(sliderVal))*100;
+            if(wave1<20)
+                wave1=10;
+            wave1Percent = juce::String(wave1);
             wave2Percent = juce::String(((sliderVal-(int)sliderVal)*100));
             if(sliderVal == 0.0)
-                sliderValue = "SIN";
+                sliderValue = "SINE";
             if(sliderVal>0.0 && sliderVal<1.0)
                 sliderValue = wave1Percent+"/"+wave2Percent;
             if(sliderVal ==1.0)
-                sliderValue="TRI";
+                sliderValue="TRIANGLE";
             if(sliderVal>1.0 && sliderVal<2.0)
                 sliderValue = wave1Percent+"/"+wave2Percent;
             if(sliderVal ==2.0)
-                sliderValue="SQR";
+                sliderValue="SQUARE";
             if(sliderVal>2.0 && sliderVal<3.0)
                 sliderValue = wave1Percent+"/"+wave2Percent;
             if(sliderVal ==3.0)

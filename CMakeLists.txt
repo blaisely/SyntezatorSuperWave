@@ -16,7 +16,7 @@ juce_add_plugin(SuperSawSynth
         PLUGIN_MANUFACTURER_CODE Blas
         PLUGIN_CODE Ssaw
         FORMATS VST3 Standalone
-        PRODUCT_NAME "SuperSawSynthesizer")
+        PRODUCT_NAME "SuperWave")
 
 target_include_directories(SuperSawSynth PRIVATE JuceLibraryCode)
 

@@ -142,9 +142,6 @@ void Envelope::paint (juce::Graphics& g)
     g.drawText("AMP",ampLabel,juce::Justification::centred);
     g.drawText("MOD",modLabel,juce::Justification::centred);
     g.drawText("LFO",lfoLabel,juce::Justification::centred);
-
-
-   
 }
 
 void Envelope::resized()
@@ -232,13 +229,6 @@ void Envelope::buttonClicked(juce::Button* button)
 
     if(button == &loopEnvelope)
     {
-        /*bool newToggleState = !button->getToggleState();
-        button->setToggleState(newToggleState, juce::dontSendNotification);
-
-        if(envelope==1)
-            audioProcessor.state.getParameter("loopEnvelope")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);
-        if(envelope==2)
-            audioProcessor.state.getParameter("loopEnvelope2")->setValueNotifyingHost(newToggleState ? 1.0f : 0.0f);*/
     }
     if(button==&modEnvType)
     {
@@ -255,9 +245,6 @@ void Envelope::buttonClicked(juce::Button* button)
             changeEnvelopes(1);
             envelope = 1;
         }
-
-        /*state= button->getToggleState();
-        button->setToggleState(!state,juce::dontSendNotification);*/
     }
 
     if(button==&lfoReset)

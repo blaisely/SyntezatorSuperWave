@@ -2,9 +2,26 @@
 
 <JUCERPROJECT id="itbkic" name="SimpleSynth" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" displaySplashScreen="1" jucerFormatVersion="1"
-              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn">
+              pluginCharacteristicsValue="pluginIsSynth,pluginWantsMidiIn"
+              pluginFormats="buildStandalone,buildVST3">
   <MAINGROUP id="Bc0ude" name="SimpleSynth">
     <GROUP id="{65B43C31-BA5F-4170-7439-4FF771236861}" name="Source">
+      <GROUP id="{10A04B63-BDFF-F181-0591-CB6C64F07CFF}" name="gui">
+        <FILE id="HaAtLo" name="customLook.cpp" compile="1" resource="0" file="Source/gui/customLook.cpp"/>
+        <FILE id="prY03T" name="customLook.h" compile="0" resource="0" file="Source/gui/customLook.h"/>
+        <FILE id="Q9nsMY" name="Envelope.cpp" compile="1" resource="0" file="Source/gui/Envelope.cpp"/>
+        <FILE id="koZDeo" name="Envelope.h" compile="0" resource="0" file="Source/gui/Envelope.h"/>
+        <FILE id="ZcdSyJ" name="filterGUI.cpp" compile="1" resource="0" file="Source/gui/filterGUI.cpp"/>
+        <FILE id="sBUBbr" name="filterGUI.h" compile="0" resource="0" file="Source/gui/filterGUI.h"/>
+        <FILE id="iqLVhU" name="helpersUI.h" compile="0" resource="0" file="Source/gui/helpersUI.h"/>
+        <FILE id="atPGCB" name="modMatrixGUI.cpp" compile="1" resource="0"
+              file="Source/gui/modMatrixGUI.cpp"/>
+        <FILE id="OgxCJo" name="modMatrixGUI.h" compile="0" resource="0" file="Source/gui/modMatrixGUI.h"/>
+        <FILE id="O1VFwu" name="oscGUI.cpp" compile="1" resource="0" file="Source/gui/oscGUI.cpp"/>
+        <FILE id="hNpd3j" name="oscGUI.h" compile="0" resource="0" file="Source/gui/oscGUI.h"/>
+        <FILE id="RaIR33" name="presetGUI.cpp" compile="1" resource="0" file="Source/gui/presetGUI.cpp"/>
+        <FILE id="ohFVmj" name="presetGUI.h" compile="0" resource="0" file="Source/gui/presetGUI.h"/>
+      </GROUP>
       <FILE id="ozfBFy" name="Osc.h" compile="0" resource="0" file="Source/Osc.h"/>
       <FILE id="u3ocFy" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
@@ -14,16 +31,12 @@
             file="Source/PluginEditor.cpp"/>
       <FILE id="H1gHvc" name="SynthSound.h" compile="0" resource="0" file="Source/SynthSound.h"/>
       <FILE id="BcDM0L" name="SynthVoice.h" compile="0" resource="0" file="Source/SynthVoice.h"/>
-      <FILE id="XfAMuI" name="oscGUI.cpp" compile="1" resource="0" file="Source/oscGUI.cpp"/>
-      <FILE id="uwFT0o" name="oscGUI.h" compile="0" resource="0" file="Source/oscGUI.h"/>
-      <FILE id="REWMZZ" name="filterGUI.cpp" compile="1" resource="0" file="Source/filterGUI.cpp"/>
-      <FILE id="zCEQ5P" name="filterGUI.h" compile="0" resource="0" file="Source/filterGUI.h"/>
-      <FILE id="Qg4ZCP" name="Envelope.cpp" compile="1" resource="0" file="Source/Envelope.cpp"/>
-      <FILE id="tHUO8d" name="Envelope.h" compile="0" resource="0" file="Source/Envelope.h"/>
       <FILE id="a6T1EL" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
       <FILE id="coXP6j" name="LFO.h" compile="0" resource="0" file="Source/LFO.h"/>
       <FILE id="txgNYd" name="FilterData.h" compile="0" resource="0" file="Source/FilterData.h"/>
       <FILE id="SqzYTX" name="SharedData.h" compile="0" resource="0" file="Source/SharedData.h"/>
+      <FILE id="GxGtQE" name="ModMatrix.cpp" compile="1" resource="0" file="Source/ModMatrix.cpp"/>
+      <FILE id="YZpabT" name="ModMatrix.h" compile="0" resource="0" file="Source/ModMatrix.h"/>
       <FILE id="bWVob7" name="VAOsc.h" compile="0" resource="0" file="Source/VAOsc.h"/>
     </GROUP>
   </MAINGROUP>
@@ -47,23 +60,23 @@
   <EXPORTFORMATS>
     <VS2022 targetFolder="Builds/VisualStudio2022">
       <CONFIGURATIONS>
-        <CONFIGURATION isDebug="1" name="Debug" targetName="SimpleSynth"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="SimpleSynth"/>
+        <CONFIGURATION isDebug="1" name="Debug" useRuntimeLibDLL="0"/>
+        <CONFIGURATION isDebug="0" name="Release" useRuntimeLibDLL="0"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
-        <MODULEPATH id="juce_audio_basics" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_devices" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_formats" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_plugin_client" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_processors" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_audio_utils" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_core" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_data_structures" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_events" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_graphics" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_basics" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_gui_extra" path="../../../../../../JUCE/modules"/>
-        <MODULEPATH id="juce_dsp" path="../../../../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_basics" path="../../juce"/>
+        <MODULEPATH id="juce_audio_devices" path="../../juce"/>
+        <MODULEPATH id="juce_audio_formats" path="../../juce"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../juce"/>
+        <MODULEPATH id="juce_audio_processors" path="../../juce"/>
+        <MODULEPATH id="juce_audio_utils" path="../../juce"/>
+        <MODULEPATH id="juce_core" path="../../juce"/>
+        <MODULEPATH id="juce_data_structures" path="../../juce"/>
+        <MODULEPATH id="juce_dsp" path="../../juce"/>
+        <MODULEPATH id="juce_events" path="../../juce"/>
+        <MODULEPATH id="juce_graphics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_basics" path="../../juce"/>
+        <MODULEPATH id="juce_gui_extra" path="../../juce"/>
       </MODULEPATHS>
     </VS2022>
   </EXPORTFORMATS>

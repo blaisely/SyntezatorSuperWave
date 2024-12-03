@@ -1,10 +1,11 @@
 cmake_minimum_required(VERSION 3.15)
 
 project(SuperSawSynth VERSION 0.5)
-# Add JUCE subdirectory
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 add_subdirectory(JUCE)
 
-# Plugin project configuration
 juce_add_plugin(SuperSawSynth
         COMPANY_NAME "blaisely"
         IS_SYNTH TRUE
@@ -39,12 +40,13 @@ source_group(TREE ${CMAKE_SOURCE_DIR}/Source PREFIX "Source Files" FILES
 juce_add_binary_data(BinaryData SOURCES
                   Source/graphics/SUPERWAVE_logo.png
 )
-target_compile_definitions(SuperSawSynth
-        PRIVATE
+
+target_compile_definitions(SuperSawSynth PRIVATE
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         CMAKE_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
         JUCE_VST3_CAN_REPLACE_VST2=0)
+
 
 target_link_libraries(SuperSawSynth
         PRIVATE

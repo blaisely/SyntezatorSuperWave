@@ -8,7 +8,7 @@
   ==============================================================================
 */
 
-#include <../../JuceLibraryCode/JuceHeader.h>
+
 
 #include <memory>
 #include "oscGUI.h"
@@ -127,8 +127,9 @@ void oscGUI::resized()
     addItemToFlexBox(osc1Knobs,detune,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,detuneMix,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,octave_osc1,knobSize,knobSize,knobsMargin);
-    addItemToFlexBox(osc1Knobs,coarse_osc1,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc1Knobs,semiDetune_osc1,knobSize,knobSize,knobsMargin);
+    addItemToFlexBox(osc1Knobs,coarse_osc1,knobSize,knobSize,knobsMargin);
+
 
     topSection.items.add(juce::FlexItem(osc1Knobs).withFlex(1).withHeight(knobSize));
     topSection.performLayout(topArea);
@@ -142,8 +143,9 @@ void oscGUI::resized()
     addItemToFlexBox(osc2Knobs,waveTypeOSC2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,PWOSC2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,octave_osc2,knobSize,knobSize,knobsMargin);
-    addItemToFlexBox(osc2Knobs,coarse_osc2,knobSize,knobSize,knobsMargin);
     addItemToFlexBox(osc2Knobs,semiDetune_osc2,knobSize,knobSize,knobsMargin);
+    addItemToFlexBox(osc2Knobs,coarse_osc2,knobSize,knobSize,knobsMargin);
+
 
     bottomSection.items.add(juce::FlexItem(osc2Knobs).withFlex(1).withHeight(knobSize));
     bottomSection.performLayout(bottomArea);
@@ -154,9 +156,6 @@ void oscGUI::resized()
     addItemToFlexBox(bottomLabel,Gain_osc2,sliderWidth,sliderHeight,knobsMargin);
     addItemToFlexBox(bottomLabel,panOsc2,sliderWidth,sliderHeight,knobsMargin);
     bottomLabel.performLayout(bottomLabelArea);
-
-
-
 }
 
 void oscGUI::comboBoxChanged(juce::ComboBox* box) {

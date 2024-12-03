@@ -4,7 +4,7 @@
 
 #ifndef PRESETGUI_H
 #define PRESETGUI_H
-#include <../../JuceLibraryCode/JuceHeader.h>
+#include <JuceHeader.h>
 
 #include "customLook.h"
 #include "helpersUI.h"

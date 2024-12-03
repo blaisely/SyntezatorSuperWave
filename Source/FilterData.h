@@ -313,7 +313,7 @@ public:
 private:
 	enum{kCUTOFF,kRESONANCE,kNumDest};
 	std::array<float,kNumDest> modValue {0.0f};
-	juce::SmoothedValue<float> driveSmooth{0.0f};
+	juce::SmoothedValue<float> driveSmooth{1.0f};
 	float filterDrive{0.0f};
 	float cutOffFrequency{};
 	float resonance{};

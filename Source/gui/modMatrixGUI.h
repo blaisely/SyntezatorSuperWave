@@ -4,7 +4,7 @@
 
 #ifndef MODMATRIXGUI_H
 #define MODMATRIXGUI_H
-#include <../../JuceLibraryCode/JuceHeader.h>
+#include <JuceHeader.h>
 
 #include "customLook.h"
 #include "helpersUI.h"

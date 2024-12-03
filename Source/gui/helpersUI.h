@@ -2,7 +2,7 @@
 // Created by blaze on 13.11.2024.
 //
 #pragma once
-#include <../../JuceLibraryCode/JuceHeader.h>
+#include <JuceHeader.h>
 #include "../helpers.h"
 #include "customLook.h"
 

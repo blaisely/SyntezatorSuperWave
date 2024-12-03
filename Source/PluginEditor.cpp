@@ -39,8 +39,7 @@ void SuperWaveSynthAudioProcessorEditor::paint (juce::Graphics& g)
     g.setColour(juce::Colour(0xff949FD6));
     g.fillRoundedRectangle(nameArea.toFloat(),8);
     juce::AffineTransform rot;
-
-    g.drawImage(logo,nameArea.toFloat(),true,false);
+    g.drawImage(logo,nameArea.toFloat(),false,false);
    
 }
 

@@ -10,7 +10,7 @@
 
 #include <JuceHeader.h>
 
-#include <memory>
+
 #include "Envelope.h"
 
 //==============================================================================

@@ -15,7 +15,6 @@
 #define blackFont juce::Colour(0xff312F2F)
 #define fontStyle  juce::Font customFont("Montserrat",12,0)
 #define whiteFont juce::Colours::whitesmoke
-#include <../../JUCE/modules/juce_gui_basics/detail/juce_LookAndFeelHelpers.h>
 
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
 {

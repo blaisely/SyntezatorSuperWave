@@ -9,7 +9,7 @@
 */
 
 #pragma once
-#include "../../JuceLibraryCode/JuceHeader.h"
+#include <JuceHeader.h>
 
 class customLookAndFeel : public juce::LookAndFeel_V4
 {

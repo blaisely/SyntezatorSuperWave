@@ -450,6 +450,19 @@ juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor
     2, attributesModDestination5));
     layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity5","Mod Intensity 5",
         juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
+
+    auto attributesModDestination6 = juce::AudioParameterChoiceAttributes().withLabel("MOD Destination 6");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("modDestination6", "Mod Destination 6",
+    juce::StringArray{ "No connection","Filter CutOff","Filter Resonance","Detune Volume","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
+        "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
+    "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"},
+    0, attributesModDestination6));
+    auto attributesModSource6 = juce::AudioParameterChoiceAttributes().withLabel("MOD Source 6");
+    layout.add(std::make_unique<juce::AudioParameterChoice>("modSource6", "Mod Source 6",
+    juce::StringArray{"LFO 1","LFO2","LFO3","AMP","Env2","Env3"},
+    4, attributesModDestination5));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("modIntensity6","Mod Intensity 6",
+        juce::NormalisableRange<float>(0.f,100.f,1.f),0.f));
     //SuperSaw params
     layout.add(std::make_unique<juce::AudioParameterFloat>("detuneSuper", "Detune Amount",
         juce::NormalisableRange<float>{ 0.0f, 1.0f, 0.01f},0.0f));
@@ -477,6 +490,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor
     layout.add(std::make_unique<juce::AudioParameterBool>("lfo3Unipolar", "LFO3 Unipolar", 0));
     layout.add(std::make_unique<juce::AudioParameterBool>("reset", "Init", 0));
     layout.add(std::make_unique<juce::AudioParameterInt>("lfoNumber","Selected LFO",1,3,1));
+    layout.add(std::make_unique<juce::AudioParameterBool>("aliasing","Aliasing ON",0));
 
 
     return layout;
@@ -543,10 +557,13 @@ SuperWaveSynthAudioProcessor::chainSettings SuperWaveSynthAudioProcessor::getCha
     settings.modIntensity3 = apvts.getRawParameterValue("modIntensity3")->load();
     settings.modDestination4 = apvts.getRawParameterValue("modDestination4")->load();
     settings.modDestination5 = apvts.getRawParameterValue("modDestination5")->load();
+    settings.modDestination6 = apvts.getRawParameterValue("modDestination6")->load();
     settings.modSource4 = apvts.getRawParameterValue("modSource4")->load();
     settings.modSource5 = apvts.getRawParameterValue("modSource5")->load();
+    settings.modSource6 = apvts.getRawParameterValue("modSource6")->load();
     settings.modIntensity4 = apvts.getRawParameterValue("modIntensity4")->load();
     settings.modIntensity5 = apvts.getRawParameterValue("modIntensity5")->load();
+    settings.modIntensity6 = apvts.getRawParameterValue("modIntensity6")->load();
     settings.loopModEnvelope = apvts.getRawParameterValue("loopEnvelope")->load();
     settings.loopModEnvelope2 = apvts.getRawParameterValue("loopEnvelope2")->load();
     settings.pulseWidthOsc1 = apvts.getRawParameterValue("pulseWidthOsc1")->load();
@@ -558,6 +575,7 @@ SuperWaveSynthAudioProcessor::chainSettings SuperWaveSynthAudioProcessor::getCha
     settings.filterKeytrackOffset = apvts.getRawParameterValue("filterKeytrackOffset")->load();
     settings.reset = apvts.getRawParameterValue("reset")->load();
     settings.lfoNumber = apvts.getRawParameterValue("lfoNumber")->load();
+    settings.aliasingON = apvts.getRawParameterValue("aliasing")->load();
 
 
     return settings;
@@ -678,10 +696,13 @@ void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSetting
     tree.setProperty(IDs::ModIntensity3,s.modIntensity3,nullptr);
     tree.setProperty(IDs::ModDestination4,s.modDestination4,nullptr);
     tree.setProperty(IDs::ModDestination5,s.modDestination5,nullptr);
+    tree.setProperty(IDs::ModDestination6,s.modDestination6,nullptr);
     tree.setProperty(IDs::ModSource4,s.modSource4,nullptr);
     tree.setProperty(IDs::ModSource5,s.modSource5,nullptr);
+    tree.setProperty(IDs::ModSource6,s.modSource6,nullptr);
     tree.setProperty(IDs::ModIntensity4,s.modIntensity4,nullptr);
     tree.setProperty(IDs::ModIntensity5,s.modIntensity5,nullptr);
+    tree.setProperty(IDs::ModIntensity6,s.modIntensity6,nullptr);
     tree.setProperty(IDs::LoopEnvelope,s.loopModEnvelope,nullptr);
     tree.setProperty(IDs::LoopEnvelope2,s.loopModEnvelope2,nullptr);
     tree.setProperty(IDs::PulseWidthOSC1,s.pulseWidthOsc1,nullptr);
@@ -692,4 +713,5 @@ void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSetting
     tree.setProperty(IDs::FilterKeytrackEnable,s.filterKeytrack,nullptr);
     tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
     tree.setProperty(IDs::Reset,s.reset,nullptr);
+    tree.setProperty(IDs::AliasingON,s.aliasingON,nullptr);
 }

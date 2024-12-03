@@ -106,8 +106,11 @@ public:
             value = sine(phase);
 
             value2 = triangle(phase);
-            value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            if(!aliasing)
+            {
+                value2 += poly_blep(t, phaseIncrement);
+                value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            }
             value2 = phaseIncrement * value2 + (1.0f - phaseIncrement) * lastOutput;
             lastOutput = value2;
 
@@ -116,24 +119,34 @@ public:
         if(type >= 1.f && type<2.f)
         {
             value = triangle(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            if(!aliasing)
+            {
+                value += poly_blep(t, phaseIncrement);
+                value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
+            }
             value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
             lastOutput = value;
 
             value2 = square(phase);
-            value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            if(!aliasing)
+            {
+                value2 += poly_blep(t, phaseIncrement);
+                value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            }
             output = value*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
             value = square(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            if(!aliasing)
+            {
+                value += poly_blep(t, phaseIncrement);
+                value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            }
 
             value2 = poly_saw(phase);
-            value2 -= poly_blep(t, phaseIncrement);
+            if(!aliasing)
+                value2 -= poly_blep(t, phaseIncrement);
 
             output = value*(3.f-type)+(value2*(type-2.f));
         }
@@ -275,6 +288,7 @@ public:
         gainAmt = state[IDs::SWgain];
         gain.setGainLinear(gainAmt);
         pw = static_cast<float>(state[IDs::PulseWidthOSC1])/100.f;
+        aliasing = state[IDs::AliasingON];
 
     }
     void resetOsc() {
@@ -342,6 +356,7 @@ private:
     synthParams params;
     juce::SmoothedValue<float> typeOsc{ 0.f };
     juce::dsp::Gain<float> gain;
+    bool aliasing = false;
     float octave{0};
     float fineDetune{0};
     float coarse{0};

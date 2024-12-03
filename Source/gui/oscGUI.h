@@ -13,6 +13,7 @@
 #include <JuceHeader.h>
 #include "../PluginProcessor.h"
 #include "customLook.h"
+#include "Envelope.h"
 #include "../SharedData.h"
 #include "helpersUI.h"
 
@@ -21,14 +22,15 @@
 */
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 class oscGUI  : public juce::Component,
-    private juce::ComboBox::Listener, private juce::Slider::Listener
+    private juce::ComboBox::Listener, private juce::Slider::Listener, juce::Button::Listener
 {
 public:
     template<typename T>
     void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
     explicit oscGUI(SuperWaveSynthAudioProcessor&);
     ~oscGUI() override;
-
+    void buttonClicked(juce::Button*) override;
+    void buttonStateChanged(juce::Button*) override;
     void paint (juce::Graphics&) override;
     void resized() override;
     void comboBoxChanged(juce::ComboBox*) override;
@@ -37,11 +39,11 @@ public:
 private:
     //juce::novationDial dial;
     customLookAndFeel customLook;
-
+    notToggleButtonLook noToggleLook;
     juce::Label OSC1{"OSC1","OSC1"};
 
     juce::Label OSC2{"OSC2","OSC2"};
-
+    juce::TextButton aliasingON;
     juce::ComboBox oscMenu_osc1;
     juce::ComboBox oscMenu_osc2;
     juce::ComboBox preset;
@@ -77,6 +79,7 @@ private:
     std::unique_ptr<SliderAttachment> PWOSC1Attach;
     std::unique_ptr<SliderAttachment> waveTypeOSC2Attach;
     std::unique_ptr<SliderAttachment> PWOSC2Attach;
+    std::unique_ptr<ButtonAttachment> aliasingAttachment;
     juce::ValueTree tree;
     SuperWaveSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (oscGUI)

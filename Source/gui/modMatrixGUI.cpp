@@ -8,57 +8,66 @@
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-modMatrixGUI::modMatrixGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),intens1("Intensity",2,false,true),
-intens2("Intensity",2,false,true),intens3("Intensity",2,false,true),
-intens4("Intensity",2,false,true),intens5("Intensity",2,false,true)
+modMatrixGUI::modMatrixGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p),intens1("Intensity",2,false,true,true),
+intens2("Intensity",2,false,true,true),intens3("Intensity",2,false,true,true),
+intens4("Intensity",2,false,true,true),intens5("Intensity",2,false,true,true),
+intens6("Intensity",2,false,true,true)
 {
     addAndMakeVisible(intens1);
     addAndMakeVisible(intens2);
     addAndMakeVisible(intens3);
     addAndMakeVisible(intens4);
     addAndMakeVisible(intens5);
+    addAndMakeVisible(intens6);
 
     setUpComboBox(source1,sources);
     setUpComboBox(source2,sources);
     setUpComboBox(source3,sources);
     setUpComboBox(source4,sources);
     setUpComboBox(source5,sources);
+    setUpComboBox(source6,sources);
 
     setUpComboBox(dest1,destinations);
     setUpComboBox(dest2,destinations);
     setUpComboBox(dest3,destinations);
     setUpComboBox(dest4,destinations);
     setUpComboBox(dest5,destinations);
+    setUpComboBox(dest6,destinations);
 
     intens1Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity1",intens1.slider);
     intens2Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity2",intens2.slider);
     intens3Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity3",intens3.slider);
     intens4Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity4",intens4.slider);
     intens5Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity5",intens5.slider);
+    intens6Attach = std::make_unique<SliderAttachment>(audioProcessor.state,"modIntensity6",intens6.slider);
 
     source1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource1",source1);
     source2Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource2",source2);
     source3Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource3",source3);
     source4Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource4",source4);
     source5Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource5",source5);
+    source6Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modSource6",source6);
 
     dest1Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination1",dest1);
     dest2Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination2",dest2);
     dest3Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination3",dest3);
     dest4Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination4",dest4);
     dest5Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination5",dest5);
+    dest6Attach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"modDestination6",dest6);
 
     source1.setLookAndFeel(&comboLook);
     source2.setLookAndFeel(&comboLook);
     source3.setLookAndFeel(&comboLook);
     source4.setLookAndFeel(&comboLook);
     source5.setLookAndFeel(&comboLook);
+    source6.setLookAndFeel(&comboLook);
 
     dest1.setLookAndFeel(&comboLook);
     dest2.setLookAndFeel(&comboLook);
     dest3.setLookAndFeel(&comboLook);
     dest4.setLookAndFeel(&comboLook);
     dest5.setLookAndFeel(&comboLook);
+    dest6.setLookAndFeel(&comboLook);
 
     setSize(300, 200);
 }
@@ -70,12 +79,14 @@ modMatrixGUI::~modMatrixGUI()
     source3.setLookAndFeel(nullptr);
     source4.setLookAndFeel(nullptr);
     source5.setLookAndFeel(nullptr);
+    source6.setLookAndFeel(nullptr);
 
     dest1.setLookAndFeel(nullptr);
     dest2.setLookAndFeel(nullptr);
     dest3.setLookAndFeel(nullptr);
     dest4.setLookAndFeel(nullptr);
     dest5.setLookAndFeel(nullptr);
+    dest6.setLookAndFeel(nullptr);
 }
 
 void modMatrixGUI::paint (juce::Graphics& g)
@@ -103,12 +114,15 @@ void modMatrixGUI::resized()
     setUpLayout(row4,source4,intens4,dest4);
     juce::FlexBox row5;
     setUpLayout(row5,source5,intens5,dest5);
+    juce::FlexBox row6;
+    setUpLayout(row6,source6,intens6,dest6);
 
     layout.items.add(juce::FlexItem(row1).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row2).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row3).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row4).withFlex(1.0f));
     layout.items.add(juce::FlexItem(row5).withFlex(1.0f));
+    layout.items.add(juce::FlexItem(row6).withFlex(1.0f));
 
     layout.performLayout(area);
 

@@ -24,7 +24,12 @@ PWOSC1("PW",0,true),PWOSC2("PW",0,true)
     addAndMakeVisible(preset);
     preset.addItem("1",1);
     preset.setJustificationType(juce::Justification::centred);
-
+    aliasingAttachment = std::make_unique<ButtonAttachment>(audioProcessor.state,"aliasing",aliasingON);
+    aliasingON.setToggleable(true);
+    aliasingON.setClickingTogglesState(true);
+    aliasingON.setButtonText("Aliasing OFF");
+    aliasingON.addListener(this);
+    addAndMakeVisible(aliasingON);
     addAndMakeVisible(Gain_osc1);
     Gain_osc1Attach = std::make_unique<SliderAttachment>(audioProcessor.state, "gain_osc1", Gain_osc1.slider);
     addAndMakeVisible(Gain_osc2);
@@ -66,12 +71,33 @@ PWOSC1("PW",0,true),PWOSC2("PW",0,true)
 
     OSC1.setLookAndFeel(&customLook);
     OSC2.setLookAndFeel(&customLook);
+    aliasingON.setLookAndFeel(&noToggleLook);
 }
 
 oscGUI::~oscGUI()
 {
     OSC1.setLookAndFeel(nullptr);
     OSC2.setLookAndFeel(nullptr);
+    aliasingON.setLookAndFeel(nullptr);
+}
+
+void oscGUI::buttonClicked(juce::Button*)
+{
+}
+
+void oscGUI::buttonStateChanged(juce::Button* button)
+{
+    if(button==&aliasingON)
+    {
+        if(aliasingON.getToggleState())
+        {
+            aliasingON.setButtonText("Aliasing ON");
+        }
+        if(!aliasingON.getToggleState())
+        {
+            aliasingON.setButtonText("Aliasing OFF");
+        }
+    }
 }
 
 void oscGUI::paint (juce::Graphics& g)
@@ -115,6 +141,8 @@ void oscGUI::resized()
     addItemToFlexBox(topLabel,OSC1,oscLabelWidth,oscLabelHeight,knobsMargin);
     addItemToFlexBox(topLabel,Gain_osc1,sliderWidth,sliderHeight,knobsMargin);
     addItemToFlexBox(topLabel,panOsc1,sliderWidth,sliderHeight,knobsMargin);
+    addItemToFlexBox(topLabel,aliasingON,sliderWidth/2,sliderHeight,knobsMargin);
+    addItemToFlexBox(topLabel,aliasingON,sliderWidth/2,20,5);
     topLabel.performLayout(topLabelArea);
 
     juce::FlexBox topSection;

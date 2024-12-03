@@ -225,8 +225,8 @@ void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     if (! label.isBeingEdited())
     {
         auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-        const Font font (getLabelFont (label));
-
+        //const Font font (getLabelFont (label));
+        Font font("Montserrat",15,1);
         g.setColour (fontColor);
         g.setFont (font);
 

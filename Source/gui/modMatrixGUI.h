@@ -41,34 +41,41 @@ private:
     juce::ComboBox source3;
     juce::ComboBox source4;
     juce::ComboBox source5;
+    juce::ComboBox source6;
     juce::ComboBox dest1;
     juce::ComboBox dest2;
     juce::ComboBox dest3;
     juce::ComboBox dest4;
     juce::ComboBox dest5;
+    juce::ComboBox dest6;
 
     customSlider intens1;
     customSlider intens2;
     customSlider intens3;
     customSlider intens4;
     customSlider intens5;
+    customSlider intens6;
 
     std::unique_ptr<ComboBoxAttachment> source1Attach;
     std::unique_ptr<ComboBoxAttachment> source2Attach;
     std::unique_ptr<ComboBoxAttachment> source3Attach;
     std::unique_ptr<ComboBoxAttachment> source4Attach;
     std::unique_ptr<ComboBoxAttachment> source5Attach;
+    std::unique_ptr<ComboBoxAttachment> source6Attach;
+
     std::unique_ptr<ComboBoxAttachment> dest1Attach;
     std::unique_ptr<ComboBoxAttachment> dest2Attach;
     std::unique_ptr<ComboBoxAttachment> dest3Attach;
     std::unique_ptr<ComboBoxAttachment> dest4Attach;
     std::unique_ptr<ComboBoxAttachment> dest5Attach;
+    std::unique_ptr<ComboBoxAttachment> dest6Attach;
 
     std::unique_ptr<SliderAttachment> intens1Attach;
     std::unique_ptr<SliderAttachment> intens2Attach;
     std::unique_ptr<SliderAttachment> intens3Attach;
     std::unique_ptr<SliderAttachment> intens4Attach;
     std::unique_ptr<SliderAttachment> intens5Attach;
+    std::unique_ptr<SliderAttachment> intens6Attach;
     juce::StringArray destinations{ "No connection","Filter CutOff","Filter Resonance","Detune Mix","Detune Amount","Pitch OSC1","Pitch OSC2", "Gain OSC1",
         "Gain OSC2","Pan OSC1","Pan OSC2","LFO1 Amount","LFO2 Amount","LFO3 Amount","LFO1 Frequency","LFO2 Frequency","LFO3 Frequency","OSC1 PWM",
     "OSC2 PWM", "OSC1 TYPE","OSC2 TYPE"};

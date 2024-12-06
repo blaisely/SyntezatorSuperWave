@@ -10,7 +10,7 @@
 */
 
 #pragma once
-#include "JuceHeader.h"
+#include <JuceHeader.h>
 #include<random>
 #include "SharedData.h"
 #include "helpers.h"
@@ -96,52 +96,42 @@ public:
         return y;
     }
     float nextSample(float& phase,const float& phaseIncrement, float& lastOutput)  {
-        const float t = phase / juce::MathConstants<float>::twoPi;
+
+        float pw=pulseWidth.getNextValue();
+        const float t = phase/ (juce::MathConstants<float>::twoPi);
         float value = 0.0f;
         float value2 = 0.0f;
+        float value_tr = 0.0f;
+        float value_tr2 = 0.0f;
         float output = 0.0f;
         float type = typeOsc.getNextValue();
         if(type>=0.0f && type<1.0f)
         {
             value = sine(phase);
 
-            value2 = triangle(phase);
-            if(!aliasing)
-            {
-                value2 += poly_blep(t, phaseIncrement);
-                value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
-            }
-            value2 = phaseIncrement * value2 + (1.0f - phaseIncrement) * lastOutput;
-            lastOutput = value2;
+            value_tr = triangle(phase);
 
-            output = value*(1.f-type)+(value2*type);
+            output = value*(1.f-type)+(value_tr*type);
         }
         if(type >= 1.f && type<2.f)
         {
-            value = triangle(phase);
-            if(!aliasing)
-            {
-                value += poly_blep(t, phaseIncrement);
-                value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
-            }
-            value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
-            lastOutput = value;
+            value_tr2 = triangle(phase);
 
-            value2 = square(phase);
+            value2 = square(phase,pw);
             if(!aliasing)
             {
                 value2 += poly_blep(t, phaseIncrement);
-                value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+                value2 -= poly_blep(fmod(t-pw+1.f, 1.0f), phaseIncrement);
             }
-            output = value*(2.f-type)+(value2*(type-1.f));
+            output = value_tr2*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
-            value = square(phase);
+            value = square(phase,pw);
             if(!aliasing)
             {
                 value += poly_blep(t, phaseIncrement);
-                value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+                value -= poly_blep(fmod(t -pw+1.f, 1.0f), phaseIncrement);
             }
 
             value2 = poly_saw(phase);
@@ -185,8 +175,8 @@ public:
         return sin(phase);
     }
 
-    static float square(const float& phase) {
-        return (phase < (juce::MathConstants<float>::twoPi * pulseWidth.getNextValue())) ? 1.0f : -1.0f;
+    static float square(const float& phase, const float& pw) {
+        return (phase < (juce::MathConstants<float>::twoPi * pw)) ? 1.0f : -1.0f;
     }
 
     static float triangle(const float& phase) {

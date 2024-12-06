@@ -112,6 +112,7 @@ public:
 
     float nextSample(float& phase,const float& phaseIncrement, float& lastOutput)  {
         const float t = phase / juce::MathConstants<float>::twoPi;
+        const float t_sqr = phase / juce::MathConstants<float>::twoPi*pulseWidth2.getCurrentValue();
         float value = 0.0f;
         float value2 = 0.0f;
         float output = 0.0f;
@@ -137,15 +138,15 @@ public:
             lastOutput = value;
 
             value2 = square(phase);
-            value2 += poly_blep(t, phaseIncrement);
-            value2 -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            value2 += poly_blep(t_sqr, phaseIncrement);
+            value2 -= poly_blep(fmod(t_sqr, 1.0f), phaseIncrement);
             output = value*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
             value = square(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + pulseWidth.getCurrentValue(), 1.0f), phaseIncrement);
+            value += poly_blep(t_sqr, phaseIncrement);
+            value -= poly_blep(fmod(t_sqr, 1.0f), phaseIncrement);
 
             value2 = poly_saw(phase);
             value2 -= poly_blep(t, phaseIncrement);

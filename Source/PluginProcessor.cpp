@@ -44,7 +44,7 @@ SuperWaveSynthAudioProcessor::SuperWaveSynthAudioProcessor()
 {
     mySynth.clearVoices();
 
-    for (int i = 0; i < 6; ++i) {
+    for (int i = 0; i < 16; ++i) {
         mySynth.addVoice(new SynthVoice(tree));
     }
 

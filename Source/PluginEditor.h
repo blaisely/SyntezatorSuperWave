@@ -29,9 +29,6 @@ public:
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;
-
-    
-
 private:
     SuperWaveSynthAudioProcessor& audioProcessor;
     juce::Image logo;

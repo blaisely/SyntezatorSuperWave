@@ -14,9 +14,10 @@ SuperWaveSynthAudioProcessorEditor::SuperWaveSynthAudioProcessorEditor (SuperWav
     : AudioProcessorEditor (&p), audioProcessor (p), filterGui(p), oscGui(p), envelopeGui(p),matrixGui(p),presetGui(p)
 {
     setSize (840, 500);
-    logo = juce::ImageCache::getFromMemory(BinaryData::SUPERWAVE_logo_png,BinaryData::SUPERWAVE_logo_pngSize);
+    logo = juce::ImageCache::getFromMemory(BinaryData::SUPERWAVE_logo_png, BinaryData::SUPERWAVE_logo_pngSize);
     if(!logo.isValid())
         DBG("Image Invalid");
+        
     addAndMakeVisible(oscGui);
     addAndMakeVisible(envelopeGui);
     addAndMakeVisible(filterGui);

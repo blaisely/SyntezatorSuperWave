@@ -25,7 +25,7 @@ public:
     {
         addAndMakeVisible(slider);
         addAndMakeVisible(label);
-        label.setFont(getCustomFont().withHeight(18.f));
+        label.setFont(getCustomFont().withHeight(16.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         integer=isInt;
@@ -70,13 +70,14 @@ public:
             sliderValue= juce::String((int)slider.getValue())+suffix;
         if(!integer)
         {
+            slider.setNumDecimalPlacesToDisplay(2);
             auto maxValue = slider.getMaximum();
-            float sliderV=0;
+            float sliderV = 0.f;
             if(maxValue<=1.f)
-                sliderV = slider.getValue()*100.f;
+                sliderV = static_cast<float>(slider.getValue())*100.f;
             else
                 sliderV = slider.getValue();
-            sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
+            sliderValue= juce::String(sliderV)+suffix;
         }
         if(waveform)
         {
@@ -160,7 +161,7 @@ public:
     {
         addAndMakeVisible(slider);
         addAndMakeVisible(label);
-        label.setFont(getCustomFont().withHeight(17.f));
+        label.setFont(getCustomFont().withHeight(16.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         suffixNumber = suff;
@@ -188,9 +189,9 @@ public:
         addAndMakeVisible(label);
         this->small = small;
         if(small)
-            label.setFont(getCustomFont().withHeight(14.f));
+            label.setFont(getCustomFont().withHeight(12.f));
         else
-            label.setFont(getCustomFont().withHeight(17.f));
+            label.setFont(getCustomFont().withHeight(16.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         suffixNumber = suff;
@@ -248,13 +249,14 @@ public:
             sliderValue= juce::String((int)slider.getValue())+suffix;
         if(!integer)
         {
+            slider.setNumDecimalPlacesToDisplay(0);
             auto maxValue = slider.getMaximum();
             float sliderV=0;
             if(maxValue<=1.f)
                 sliderV = slider.getValue()*100.f;
             else
                 sliderV = slider.getValue();
-            sliderValue= juce::String(roundTwoDec(sliderV))+suffix;
+            sliderValue= juce::String(sliderV)+suffix;
         }
 
 

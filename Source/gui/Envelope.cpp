@@ -33,16 +33,17 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
     addAndMakeVisible(lfoDepth);
     addAndMakeVisible(lfoFreq);
 
-
     juce::StringArray lfoOptions{"Sine","Square","Saw","Sample&Hold"};
     lfoType.addItemList(lfoOptions,1);
     lfoType.addListener(this);
     addAndMakeVisible(lfoType);
 
     modEnvType.setToggleable(true);
+    modEnvType.setToggleState(true,juce::dontSendNotification);
     modEnvType.setClickingTogglesState(true);
     modEnvType.setButtonText("Env 1");
     modEnvType.addListener(this);
+    addAndMakeVisible(modEnvType);
 
     loopEnvelope.setButtonText("Loop");
     loopEnvelope.setClickingTogglesState(true);
@@ -69,9 +70,10 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
 
     addAndMakeVisible(sharedAmp);
     sharedAmp.setToggleable(true);
-    sharedAmp.setButtonText("Env1 -> OSC2");
+    sharedAmp.setButtonText("Control OSC2 ");
     sharedAmp.setClickingTogglesState(true);
     sharedAmp.addListener(this);
+
 
     attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "attack", attackAmp.slider);
     decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.state, "decay", decayAmp.slider);
@@ -91,7 +93,7 @@ lfoDepth("Depth",2,true),lfoFreq("Freq",1,false),modAmount("Amount",2,true,false
     sharedAmpAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"commonEnvelope",sharedAmp);
     lfoTypeAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoType",lfoType);
     lfoNumberAttach = std::make_unique<ComboBoxAttachment>(audioProcessor.state,"lfoNumber",lfoNumber);
-    addAndMakeVisible(modEnvType);
+
 
 
 
@@ -168,7 +170,6 @@ void Envelope::resized()
     juce::Rectangle<int> blank = area.removeFromLeft(5);
     juce::Rectangle<int> lfoArea = area.removeFromLeft(150).reduced(0,5);
     juce::Rectangle<int> lfoKnobsArea = lfoArea.removeFromLeft(80);
-
 
     juce::FlexBox amp;
     amp.flexDirection = juce::FlexBox::Direction::row;

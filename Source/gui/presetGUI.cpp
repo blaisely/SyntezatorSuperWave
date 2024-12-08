@@ -37,7 +37,7 @@ void presetGUI::resized()
     juce::Rectangle<int> leftSection = area.removeFromLeft(50);
 
     gain.setBounds(gainSection);
-    init.setBounds(leftSection);
+    init.setBounds(leftSection.reduced(5));
 
 }
 

@@ -193,7 +193,7 @@ void customLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& butt
 {
     using namespace juce;
     Font font (getTextButtonFont (button, button.getHeight()));
-    Font customFont(getCustomFont().withHeight(16.f));
+    Font customFont(getCustomFont().withHeight(15.f));
     auto fontColourOn = juce::Colour(0xff312F2F);
     auto fontColourOff = juce::Colours::whitesmoke;
     g.setFont (customFont);

@@ -137,7 +137,7 @@ void Envelope::paint (juce::Graphics& g)
     juce::Rectangle<int> ampLabel = ampArea.removeFromBottom(15).removeFromRight(40).reduced(2);
     juce::Rectangle<int> modLabel = modEnvelope.removeFromBottom(15).removeFromRight(40).reduced(2);
     juce::Rectangle<int> lfoLabel = lfoArea.removeFromBottom(15).removeFromRight(40).reduced(2);
-    g.setFont(juce::Font(juce::FontOptions("Montserrat",12,1)));
+    g.setFont(getCustomBoldFont().withHeight(16.f));
     g.setColour(juce::Colours::white);
     g.drawText("AMP",ampLabel,juce::Justification::centred);
     g.drawText("MOD",modLabel,juce::Justification::centred);

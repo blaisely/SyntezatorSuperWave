@@ -39,6 +39,8 @@ source_group(TREE ${CMAKE_SOURCE_DIR}/Source PREFIX "Source Files" FILES
 )
 juce_add_binary_data(BinaryData SOURCES
                   Source/graphics/SUPERWAVE_logo.png
+                Source/graphics/Montserrat-Regular.ttf
+                Source/graphics/Montserrat-Bold.ttf
 )
 
 target_compile_definitions(SuperSawSynth PRIVATE

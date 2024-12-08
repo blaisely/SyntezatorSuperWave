@@ -8,6 +8,9 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include <windows.h>
+#include <DbgHelp.h>
+#pragma comment(lib,"Dbghelp.lib")
 
 template<typename FloatType>
 static inline juce::NormalisableRange<FloatType> makeLogarithmicRange(FloatType min, FloatType max)
@@ -50,6 +53,53 @@ SuperWaveSynthAudioProcessor::SuperWaveSynthAudioProcessor()
 
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
+    juce::SystemStats::setApplicationCrashHandler([](void*)
+        {
+            juce::String crashReport = "Crash Report:\n\n";
+            crashReport += "Stack Trace:\n" + juce::SystemStats::getStackBacktrace() + "\n\n";
+            crashReport += juce::SystemStats::getCpuModel()+"\n";
+            juce::String threadInfo = "Thread Information: \n";
+            threadInfo += "Current Thread ID: " + juce::String((uint64_t)juce::Thread::getCurrentThreadId()) + "\n";
+            threadInfo += "Is this the Message Thread? " + juce::String(juce::MessageManager::getInstance()->isThisTheMessageThread() ? "Yes" : "No") + "\n";
+           
+            crashReport += threadInfo;
+
+            juce::File crashFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory)
+                .getChildFile("CrashReport.txt");
+            crashFile.replaceWithText(crashReport);
+
+ 
+            juce::File dumpFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory)
+                .getChildFile("crash_dump_juce.dmp");
+            dumpFile.replaceWithText(crashReport);
+
+            HANDLE hFile = CreateFile("crash_dmp.dmp",
+                GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+
+            if (hFile != INVALID_HANDLE_VALUE)
+            {
+                MINIDUMP_EXCEPTION_INFORMATION mdei;
+                mdei.ThreadId = GetCurrentThreadId();
+                mdei.ExceptionPointers = nullptr;
+                mdei.ClientPointers = FALSE;
+
+                if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &mdei, nullptr, nullptr))
+                {
+                    DBG("Crash dump written to: " + dumpFile.getFullPathName());
+                }
+                else
+                {
+                    DBG("Failed to write dump file. Error: " + juce::String(GetLastError()));
+                }
+
+                CloseHandle(hFile);
+            }
+            else
+            {
+                DBG("Failed to create dump file. Error: " + juce::String(GetLastError()));
+            }
+        });
+
 }
 
 SuperWaveSynthAudioProcessor::~SuperWaveSynthAudioProcessor()
@@ -121,7 +171,6 @@ void SuperWaveSynthAudioProcessor::changeProgramName (int index, const juce::Str
 //==============================================================================
 void SuperWaveSynthAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    
     juce::dsp::ProcessSpec spec;
     spec.maximumBlockSize = samplesPerBlock;
     spec.sampleRate = sampleRate;

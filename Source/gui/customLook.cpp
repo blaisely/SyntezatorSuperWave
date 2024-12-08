@@ -9,11 +9,12 @@
 */
 
 #include "customLook.h"
+
+#include "helpersUI.h"
 #define colourButton juce::Colour(0xffFCF1F1)
 #define highlitedColour juce::Colour(0xffc4b1b1)
 #define boxOutline juce::Colour(0xffe3d8d8)
 #define blackFont juce::Colour(0xff312F2F)
-#define fontStyle  juce::Font customFont("Montserrat",12,0)
 #define whiteFont juce::Colours::whitesmoke
 
 void customLookAndFeel::drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos, float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider)
@@ -192,7 +193,7 @@ void customLookAndFeel::drawButtonText(juce::Graphics& g, juce::TextButton& butt
 {
     using namespace juce;
     Font font (getTextButtonFont (button, button.getHeight()));
-    Font customFont("Montserrat",12,0);
+    Font customFont(getCustomFont().withHeight(16.f));
     auto fontColourOn = juce::Colour(0xff312F2F);
     auto fontColourOff = juce::Colours::whitesmoke;
     g.setFont (customFont);
@@ -226,7 +227,7 @@ void customLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     {
         auto alpha = label.isEnabled() ? 1.0f : 0.5f;
         //const Font font (getLabelFont (label));
-        Font font("Montserrat",15,1);
+        Font font(getCustomBoldFont().withHeight(19.f));
         g.setColour (fontColor);
         g.setFont (font);
 
@@ -542,7 +543,7 @@ void notToggleButtonLook::drawButtonText(juce::Graphics& g, juce::TextButton& bu
 {
     using namespace juce;
     Font font (getTextButtonFont (button, button.getHeight()));
-    Font customFont("Montserrat",12,0);
+    Font customFont(getCustomFont().withHeight(16.f));
     auto fontColourOn = juce::Colour(0xff312F2F);
     auto fontColourOff = juce::Colours::whitesmoke;
     g.setFont (customFont);
@@ -631,7 +632,7 @@ void comboBoxLookAndFeel::positionComboBoxText(juce::ComboBox& box, juce::Label&
     label.setBounds (1, 1,
                      box.getWidth() - 20,
                      box.getHeight() - 2);
-    juce::Font customFont("Montserrat",12,0);
+    juce::Font customFont(getCustomFont().withHeight(15.f));
     auto fontColourOn = juce::Colour(0xff312F2F);
     auto fontColourOff = juce::Colours::whitesmoke;
     label.setFont (customFont);
@@ -645,7 +646,7 @@ void comboBoxLookAndFeel::drawLabel(juce::Graphics& g, juce::Label& label)
     if (! label.isBeingEdited())
     {
         auto alpha = label.isEnabled() ? 1.0f : 0.5f;
-        const Font font ("Montserrat",12,0);
+        const Font font (getCustomFont().withHeight(15.f));
 
         g.setColour (blackFont);
         g.setFont (font);

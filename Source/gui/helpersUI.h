@@ -2,10 +2,22 @@
 // Created by blaze on 13.11.2024.
 //
 #pragma once
+#include "BinaryData.h"
 #include <JuceHeader.h>
 #include "../helpers.h"
 #include "customLook.h"
-
+static juce::Font getCustomFont()
+{
+    static auto typeface = juce::Typeface::createSystemTypefaceFor (BinaryData::MontserratRegular_ttf,
+        BinaryData::MontserratRegular_ttfSize);
+    return juce::Font (typeface);
+}
+static juce::Font getCustomBoldFont()
+{
+    static auto typeface = juce::Typeface::createSystemTypefaceFor (BinaryData::MontserratBold_ttf,
+        BinaryData::MontserratBold_ttfSize);
+    return juce::Font (typeface);
+}
 class customKnob : public juce::Component, public juce::Slider::Listener, juce::Timer
 {
 public:
@@ -13,7 +25,7 @@ public:
     {
         addAndMakeVisible(slider);
         addAndMakeVisible(label);
-        label.setFont(juce::Font(juce::FontOptions("Montserrat",14.0f,0)));
+        label.setFont(getCustomFont().withHeight(18.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         integer=isInt;
@@ -139,8 +151,7 @@ private:
     bool waveform = false;
     bool dragStarted{false};
     customLookAndFeel customLook;
-
-
+    juce::Typeface::Ptr customTypeFace;
 };
 class customSlider : public juce::Component, public juce::Slider::Listener, juce::Timer
 {
@@ -149,7 +160,7 @@ public:
     {
         addAndMakeVisible(slider);
         addAndMakeVisible(label);
-        label.setFont(juce::Font(juce::FontOptions("Montserrat",14.0f,0)));
+        label.setFont(getCustomFont().withHeight(17.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         suffixNumber = suff;
@@ -177,9 +188,9 @@ public:
         addAndMakeVisible(label);
         this->small = small;
         if(small)
-            label.setFont(juce::Font(juce::FontOptions("Montserrat",12.0f,0)));
+            label.setFont(getCustomFont().withHeight(14.f));
         else
-            label.setFont(juce::Font(juce::FontOptions("Montserrat",14.0f,0)));
+            label.setFont(getCustomFont().withHeight(17.f));
         label.setColour(juce::Label::ColourIds::textColourId, juce::Colours::white);
         this->labelText = labelText;
         suffixNumber = suff;

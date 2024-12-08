@@ -74,6 +74,7 @@ public:
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();
     static void syncStates(juce::ValueTree& tree,chainSettings& s);
+
 private:
     juce::ValueTree tree;
     juce::Synthesiser mySynth;
@@ -84,6 +85,7 @@ private:
     juce::SmoothedValue<float> gainAmt{0.0f};
     float sampleRate{48000.f};
     void reset() override;
+    float* pointer = nullptr;
      juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
 
     //==============================================================================

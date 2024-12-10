@@ -312,71 +312,70 @@ public:
 
 	void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
 	{
-    jassert(isPrepared);
-    if (!isVoiceActive())
+		jassert(isPrepared);
+		if (!isVoiceActive())
         return;
 
-    setUpBuffer(outputBuffer, numSamples);
-    juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
+		setUpBuffer(outputBuffer, numSamples);
+		juce::dsp::AudioBlock<float> oscillatorSW{swBuffer};
 
-    auto inputLeft = swBuffer.getReadPointer(0);
-    auto inputRight = swBuffer.getReadPointer(1);
-    auto outputLeft = swBuffer.getWritePointer(0);
-    auto outputRight = swBuffer.getWritePointer(1);
+		auto inputLeft = swBuffer.getReadPointer(0);
+		auto inputRight = swBuffer.getReadPointer(1);
+		auto outputLeft = swBuffer.getWritePointer(0);
+		auto outputRight = swBuffer.getWritePointer(1);
 
-	int remainingSamples = numSamples;
-    int samplePos = 0;
+		int remainingSamples = numSamples;
+		int samplePos = 0;
 
-    while (remainingSamples > 0)
-    {
-        const int numToProcess = juce::jmin(remainingSamples, updateCounter);
+		while (remainingSamples > 0)
+		{
+			const int numToProcess = juce::jmin(remainingSamples, updateCounter);
 
-        for (int sample = 0; sample < numToProcess; ++sample)
-        {
-        	vaSVF.calculateFilterCoeffs();
-        	ladder.updateModulation();
-        	ladder.updateSmoothing();
-			updatePan();
-            float channelLeft = 0.0f;
-            float channelRight = 0.0f;
-
-            nextAmpSample = ampEnv.nextValue();
-            nextAmp2Sample = amp2Env.nextValue();
-        	nextModEnv1 = modEnv.nextValue()*envelopeAmount;
-        	nextModEnv2 = modEnv2.nextValue()*envelopeAmount2;
-
-        	float osc2Output = oscVA.getNextSample();
-        	float osc1Output = oscSW.getNextSample();
-
-			loopModEnvelope1();
-        	loopModEnvelope2();
-
-			if(!env1OSC2)
+			for (int sample = 0; sample < numToProcess; ++sample)
 			{
-				channelLeft += osc2Output * nextAmpSample * panLeft[1];
-				channelRight += osc2Output * nextAmpSample * panRight[1];
-			}
-        	else
-        	{
-        		channelLeft += osc2Output * nextAmp2Sample * panLeft[1];
-        		channelRight += osc2Output * nextAmp2Sample * panRight[1];
-        	}
-            channelLeft += osc1Output * nextAmpSample * panLeft[0];
-            channelRight += osc1Output * nextAmpSample * panRight[0];
+        		vaSVF.calculateFilterCoeffs();
+        		ladder.updateModulation();
+        		ladder.updateSmoothing();
+				updatePan();
+				float channelLeft = 0.0f;
+				float channelRight = 0.0f;
 
-            if (SVFEnabled)
-            {
-                processSVF(channelLeft, channelRight);
-            }
-            else
-            {
-                processLadder(channelLeft, channelRight);
-            }
+				nextAmpSample = ampEnv.nextValue();
+				nextAmp2Sample = amp2Env.nextValue();
+        		nextModEnv1 = modEnv.nextValue()*envelopeAmount;
+        		nextModEnv2 = modEnv2.nextValue()*envelopeAmount2;
 
-            processGain(channelLeft, channelRight);
+        		float osc2Output = oscVA.getNextSample();
+        		float osc1Output = oscSW.getNextSample();
 
-            outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
-            outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
+				loopModEnvelope1();
+        		loopModEnvelope2();
+
+				if(!env1OSC2)
+				{
+					channelLeft += osc2Output * nextAmpSample * panLeft[1];
+					channelRight += osc2Output * nextAmpSample * panRight[1];
+				}
+        		else
+        		{
+        			channelLeft += osc2Output * nextAmp2Sample * panLeft[1];
+        			channelRight += osc2Output * nextAmp2Sample * panRight[1];
+        		}
+				channelLeft += osc1Output * nextAmpSample * panLeft[0];
+				channelRight += osc1Output * nextAmpSample * panRight[0];
+				if (SVFEnabled)
+				{
+					processSVF(channelLeft, channelRight);
+				}
+				else
+				{
+					processLadder(channelLeft, channelRight);
+				}
+
+				processGain(channelLeft, channelRight);
+
+				outputLeft[samplePos + sample] = channelLeft + inputLeft[samplePos + sample];
+				outputRight[samplePos + sample] = channelRight + inputRight[samplePos + sample];
         }
 
         remainingSamples -= numToProcess;
@@ -503,7 +502,9 @@ public:
 		oscVA.resetOsc();
 	}
 	void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
-	{}
+	{
+
+	}
 
 	static constexpr int numChannelsToProcess{2};
 

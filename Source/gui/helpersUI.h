@@ -225,7 +225,6 @@ public:
     void paint(juce::Graphics& g) override
     {
     }
-
     void resized() override
     {
         label.setText(labelText,juce::dontSendNotification);

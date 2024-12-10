@@ -15,7 +15,7 @@
 //==============================================================================
 /**
 */
-class SuperWaveSynthAudioProcessor  : public juce::AudioProcessor
+class SuperWaveSynthAudioProcessor  : public juce::AudioProcessor, public juce::ValueTree::Listener
 {
 public:
     //==============================================================================
@@ -31,6 +31,7 @@ public:
    #endif
     void updateFilter();
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+    void valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged, const juce::Identifier& property) override;
 
     //==============================================================================
     juce::AudioProcessorEditor* createEditor() override;
@@ -74,6 +75,7 @@ public:
     static chainSettings getChainSettings(juce::AudioProcessorValueTreeState& apvts);
     static juce::ValueTree createValueTree();
     static void syncStates(juce::ValueTree& tree,chainSettings& s);
+    void update();
 
 private:
     juce::ValueTree tree;
@@ -85,8 +87,8 @@ private:
     juce::SmoothedValue<float> gainAmt{0.0f};
     float sampleRate{48000.f};
     void reset() override;
-    float* pointer = nullptr;
-     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
+    std::atomic<bool> parametersChanged{false};
+    juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  DCOffset;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SuperWaveSynthAudioProcessor)

@@ -52,8 +52,8 @@ public:
         return sin(phase);
     }
 
-     static float square(const float& phase) {
-        return (phase < (juce::MathConstants<float>::twoPi * pulseWidth2.getNextValue())) ? 1.0f : -1.0f;
+     static float square(const float& phase, const float& pw) {
+        return (phase < (juce::MathConstants<float>::twoPi * pw)) ? 1.0f : -1.0f;
     }
 
     static float triangle(const float& phase) {
@@ -112,7 +112,7 @@ public:
 
     float nextSample(float& phase,const float& phaseIncrement, float& lastOutput)  {
         const float t = phase / juce::MathConstants<float>::twoPi;
-        const float t_sqr = phase / juce::MathConstants<float>::twoPi*pulseWidth2.getCurrentValue();
+        float pw = pulseWidth2.getNextValue();
         float value = 0.0f;
         float value2 = 0.0f;
         float output = 0.0f;
@@ -132,25 +132,18 @@ public:
         if(type >= 1.f && type<2.f)
         {
             value = triangle(phase);
-            value += poly_blep(t, phaseIncrement);
-            value -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
-            value = phaseIncrement * value + (1.0f - phaseIncrement) * lastOutput;
-            lastOutput = value;
-
-            value2 = square(phase);
-            value2 += poly_blep(t_sqr, phaseIncrement);
-            value2 -= poly_blep(fmod(t_sqr, 1.0f), phaseIncrement);
+            value2 = square(phase,pw);
+            value2 += poly_blep(t, phaseIncrement);
+            value2 -= poly_blep(fmod(t-pw+1.f, 1.0f), phaseIncrement);
             output = value*(2.f-type)+(value2*(type-1.f));
         }
         if(type>=2.f && type<=3.f)
         {
-            value = square(phase);
-            value += poly_blep(t_sqr, phaseIncrement);
-            value -= poly_blep(fmod(t_sqr, 1.0f), phaseIncrement);
-
+            value = square(phase,pw);
+            value += poly_blep(t, phaseIncrement);
+            value -= poly_blep(fmod(t -pw+1.f, 1.0f), phaseIncrement);
             value2 = poly_saw(phase);
             value2 -= poly_blep(t, phaseIncrement);
-
             output = value*(3.f-type)+(value2*(type-2.f));
         }
         if(type<0.f || type>3.f)

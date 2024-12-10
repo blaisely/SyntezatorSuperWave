@@ -1,10 +1,4 @@
-/*
-  ==============================================================================
 
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
@@ -53,57 +47,13 @@ SuperWaveSynthAudioProcessor::SuperWaveSynthAudioProcessor()
 
     mySynth.clearSounds();
     mySynth.addSound(new SynthSound());
-    juce::SystemStats::setApplicationCrashHandler([](void*)
-        {
-            juce::String crashReport = "Crash Report:\n\n";
-            crashReport += "Stack Trace:\n" + juce::SystemStats::getStackBacktrace() + "\n\n";
-            crashReport += juce::SystemStats::getCpuModel()+"\n";
-            juce::String threadInfo = "Thread Information: \n";
-            threadInfo += "Current Thread ID: " + juce::String((uint64_t)juce::Thread::getCurrentThreadId()) + "\n";
-            threadInfo += "Is this the Message Thread? " + juce::String(juce::MessageManager::getInstance()->isThisTheMessageThread() ? "Yes" : "No") + "\n";
-           
-            crashReport += threadInfo;
 
-            juce::File crashFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory)
-                .getChildFile("CrashReport.txt");
-            crashFile.replaceWithText(crashReport);
-
- 
-            juce::File dumpFile = juce::File::getSpecialLocation(juce::File::userDesktopDirectory)
-                .getChildFile("crash_dump_juce.dmp");
-            dumpFile.replaceWithText(crashReport);
-
-            HANDLE hFile = CreateFile("crash_dmp.dmp",
-                GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-
-            if (hFile != INVALID_HANDLE_VALUE)
-            {
-                MINIDUMP_EXCEPTION_INFORMATION mdei;
-                mdei.ThreadId = GetCurrentThreadId();
-                mdei.ExceptionPointers = nullptr;
-                mdei.ClientPointers = FALSE;
-
-                if (MiniDumpWriteDump(GetCurrentProcess(), GetCurrentProcessId(), hFile, MiniDumpNormal, &mdei, nullptr, nullptr))
-                {
-                    DBG("Crash dump written to: " + dumpFile.getFullPathName());
-                }
-                else
-                {
-                    DBG("Failed to write dump file. Error: " + juce::String(GetLastError()));
-                }
-
-                CloseHandle(hFile);
-            }
-            else
-            {
-                DBG("Failed to create dump file. Error: " + juce::String(GetLastError()));
-            }
-        });
-
+    state.state.addListener(this);
 }
 
 SuperWaveSynthAudioProcessor::~SuperWaveSynthAudioProcessor()
 {
+    state.state.removeListener(this);
 }
 
 //==============================================================================
@@ -146,8 +96,7 @@ double SuperWaveSynthAudioProcessor::getTailLengthSeconds() const
 
 int SuperWaveSynthAudioProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    return 1;
 }
 
 int SuperWaveSynthAudioProcessor::getCurrentProgram()
@@ -190,6 +139,7 @@ void SuperWaveSynthAudioProcessor::prepareToPlay (double sampleRate, int samples
             voice->prepareToPlay(sampleRate, samplesPerBlock, getTotalNumOutputChannels());
         }
     }
+    parametersChanged.store(true);
 }
 
 void SuperWaveSynthAudioProcessor::releaseResources()
@@ -204,15 +154,10 @@ bool SuperWaveSynthAudioProcessor::isBusesLayoutSupported (const BusesLayout& la
     juce::ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
+
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
-
-    // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
@@ -231,22 +176,23 @@ void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     juce::ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
-    auto chainSettings = getChainSettings(state);
-    syncStates(tree,chainSettings);
-    resetSynth = tree[IDs::Reset];
-    DBG("loop Envelope: "+ std::to_string(chainSettings.loopModEnvelope));
-    if(resetSynth)
-        reset();
-    state.getParameter("reset")->setValueNotifyingHost(0);
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) {
 
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-    for (int i = 0; i < mySynth.getNumVoices(); i++) {
-
-        if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
+    bool expected = true;
+    if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
+        //TODO update()
+        auto chainSettings = getChainSettings(state);
+        syncStates(tree,chainSettings);
+        resetSynth = tree[IDs::Reset];
+        if(resetSynth)
+            reset();
+        state.getParameter("reset")->setValueNotifyingHost(0);
+        for (int i = 0; i < mySynth.getNumVoices(); i++) {
+            if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
                 myVoice->update();
+            }
         }
     }
 
@@ -257,7 +203,6 @@ void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     DCOffset.process(context);
     gainAmt.setTargetValue(static_cast<float>(tree[IDs::GainOvr]));
 
-    //Process every sample by gain value
         for(auto sample=0;sample<buffer.getNumSamples();sample++)
         {
             pluginGain.setGainLinear(gainAmt.getNextValue());
@@ -269,6 +214,13 @@ void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
 
 }
 
+void SuperWaveSynthAudioProcessor::valueTreePropertyChanged(juce::ValueTree& treeWhosePropertyHasChanged,
+    const juce::Identifier& property)
+{
+    parametersChanged.store(true);
+}
+
+
 //==============================================================================
 bool SuperWaveSynthAudioProcessor::hasEditor() const
 {
@@ -278,7 +230,6 @@ bool SuperWaveSynthAudioProcessor::hasEditor() const
 juce::AudioProcessorEditor* SuperWaveSynthAudioProcessor::createEditor()
 {
     return new SuperWaveSynthAudioProcessorEditor (*this);
-    //return new juce::GenericAudioProcessorEditor(*this);
 }
 
 //==============================================================================
@@ -318,7 +269,6 @@ void SuperWaveSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueT
 }
 
 //==============================================================================
-// This creates new instances of the plugin..
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SuperWaveSynthAudioProcessor();
@@ -633,53 +583,6 @@ SuperWaveSynthAudioProcessor::chainSettings SuperWaveSynthAudioProcessor::getCha
 juce::ValueTree SuperWaveSynthAudioProcessor::createValueTree()
 {
     juce::ValueTree v(IDs::Parameters);
-    juce::ValueTree Osc(IDs::Oscillator);
-    juce::ValueTree Filter(IDs::Filter);
-    juce::ValueTree Lfo(IDs::LFO);
-    juce::ValueTree SWosc(IDs::SuperWaveOsc);
-    juce::ValueTree VAosc(IDs::VAOsc);
-    juce::ValueTree ADSR1(IDs::ADSR1);
-    juce::ValueTree ADSR2(IDs::ADSR2);
-
-    v.addChild(Osc, -1, nullptr);
-    v.addChild(Filter, -1, nullptr);
-    v.addChild(Lfo, -1, nullptr);
-    v.addChild(ADSR1, -1, nullptr);
-    v.addChild(ADSR2, -1, nullptr);
-    
-    Osc.addChild(SWosc, -1, nullptr);
-    Osc.addChild(VAosc, -1, nullptr);
-
-    SWosc.setProperty(IDs::SWdetune, 0.0f, nullptr);
-    SWosc.setProperty(IDs::SWdetuneS, 0.0f, nullptr);
-    SWosc.setProperty(IDs::SWgain, 0.0f, nullptr);
-    SWosc.setProperty(IDs::SWoctave, 0.0f, nullptr);
-    SWosc.setProperty(IDs::SWtype, 0.0f, nullptr);
-    SWosc.setProperty(IDs::SWvolumeS, 0.0f, nullptr);
-
-    VAosc.setProperty(IDs::VAdetune, 0.0, nullptr);
-    VAosc.setProperty(IDs::VAgain, 0.0, nullptr);
-    VAosc.setProperty(IDs::VAtype, 0.0, nullptr);
-    VAosc.setProperty(IDs::VAoctave, 0.0, nullptr);
-
-    Filter.setProperty(IDs::Cutoff, 0.0f, nullptr);
-    Filter.setProperty(IDs::Resonance, 0.1f, nullptr);
-
-    Lfo.setProperty(IDs::LFODepth, 0.0f, nullptr);
-    Lfo.setProperty(IDs::LFOFreq, 0.0f, nullptr);
-    Lfo.setProperty(IDs::LFOMod, 0.0f, nullptr);
-    Lfo.setProperty(IDs::LFOType, 0.0f, nullptr);
-
-    ADSR1.setProperty(IDs::ADSR1Attack, 0.0f, nullptr);
-    ADSR1.setProperty(IDs::ADSR1Decay, 0.0f, nullptr);
-    ADSR1.setProperty(IDs::ADSR1Sustain, 0.0f, nullptr);
-    ADSR1.setProperty(IDs::ADSR1Release, 0.0f, nullptr);
-
-    ADSR2.setProperty(IDs::ADSR2Attack, 0.0f, nullptr);
-    ADSR2.setProperty(IDs::ADSR2Decay, 0.0f, nullptr);
-    ADSR2.setProperty(IDs::ADSR2Sustain, 0.0f, nullptr);
-    ADSR2.setProperty(IDs::ADSR2Release, 0.0f, nullptr);
-    ADSR2.setProperty(IDs::ADSR2Mod, 0.0f, nullptr);
     return v;
 
 }
@@ -763,4 +666,9 @@ void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSetting
     tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
     tree.setProperty(IDs::Reset,s.reset,nullptr);
     tree.setProperty(IDs::AliasingON,s.aliasingON,nullptr);
+}
+
+void SuperWaveSynthAudioProcessor::update()
+{
+
 }

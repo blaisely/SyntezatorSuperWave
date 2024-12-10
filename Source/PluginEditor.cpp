@@ -24,6 +24,7 @@ SuperWaveSynthAudioProcessorEditor::SuperWaveSynthAudioProcessorEditor (SuperWav
     addAndMakeVisible(matrixGui);
     addAndMakeVisible(presetGui);
 
+
    
 }
 
@@ -50,6 +51,7 @@ void SuperWaveSynthAudioProcessorEditor::resized()
     juce::Rectangle<int> top = area.removeFromTop(295);
     juce::Rectangle<int> topSection = top.removeFromLeft(530);
     juce::Rectangle<int> leftSection = top.removeFromLeft(220);
+    juce::Rectangle<int> midiKeys = area.removeFromBottom(150);
     juce::Rectangle<int> bottomSection = area.removeFromBottom(200);
     juce::Rectangle<int> leftBottomSection = bottomSection.removeFromLeft(530);
     juce::Rectangle<int> matrixSection = bottomSection.removeFromLeft(300);

@@ -264,19 +264,41 @@ public:
     }
     void setParameters()
     {
-        detuneSuperSaw = state[IDs::SWdetuneS];
-        volumeSuperSaw = state[IDs::SWvolumeS];
-        setSideOsc(detuneSuperSaw,volumeSuperSaw);
-        octave = static_cast<float>(state[IDs::SWoctave])*12;
-        coarse = static_cast<float>(state[IDs::SWdetune]);
-        fineDetune = static_cast<float>(state[IDs::SWCoarse])/100.f;
-        updatePitch();
+        if(superWaveParametersHasChanged())
+        {
+            detuneSuperSaw = state[IDs::SWdetuneS];
+            volumeSuperSaw = state[IDs::SWvolumeS];
+            setSideOsc(detuneSuperSaw,volumeSuperSaw);
+        }
+        if(tuningHasChanged())
+        {
+            octave = static_cast<float>(state[IDs::SWoctave])*12;
+            coarse = static_cast<float>(state[IDs::SWdetune]);
+            fineDetune = static_cast<float>(state[IDs::SWCoarse])/100.f;
+            updatePitch();
+        }
         typeOsc.setTargetValue(state.getProperty(IDs::SWtype));
         gainAmt = state[IDs::SWgain];
         gain.setGainLinear(gainAmt);
         pw = static_cast<float>(state[IDs::PulseWidthOSC1])/100.f;
         aliasing = state[IDs::AliasingON];
 
+    }
+    bool superWaveParametersHasChanged()
+    {
+        if(detuneSuperSaw!=static_cast<float>(state[IDs::SWdetuneS])||
+            volumeSuperSaw!=static_cast<float>(state[IDs::SWvolumeS]))
+        return true;
+
+    }
+    bool tuningHasChanged()
+    {
+        if(octave!=static_cast<float>(state[IDs::SWoctave])*12.f ||
+            coarse != static_cast<float>(state[IDs::SWdetune]) ||
+            fineDetune != static_cast<float>(state[IDs::SWCoarse])/100.f)
+            return true;
+        else
+            return false;
     }
     void resetOsc() {
         gain.reset();

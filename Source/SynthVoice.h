@@ -243,14 +243,10 @@ public:
 	}
 	void getEnvelopeParameters()
 	{
-		calculateADSR((float)state[IDs::ADSR1Attack],(float)state[IDs::ADSR1Decay],state[IDs::ADSR1Sustain],state[IDs::ADSR1Release],
-			ampEnv);
-		calculateADSR(state[IDs::ADSR2Attack],state[IDs::ADSR2Decay],state[IDs::ADSR2Sustain],state[IDs::ADSR2Release],
-			amp2Env);
-		calculateADSR(state[IDs::ADSR2Attack],state[IDs::ADSR2Decay],state[IDs::ADSR2Sustain],state[IDs::ADSR2Release],
-			modEnv);
-		calculateADSR(state[IDs::ADSR3Attack],state[IDs::ADSR3Decay],state[IDs::ADSR3Sustain],state[IDs::ADSR3Release],
-			modEnv2);
+		ampEnv.setParameters(state[IDs::ADSR1Attack],state[IDs::ADSR1Decay],state[IDs::ADSR1Sustain],state[IDs::ADSR1Release]);
+		amp2Env.setParameters(state[IDs::ADSR1Attack],state[IDs::ADSR1Decay],state[IDs::ADSR1Sustain],state[IDs::ADSR1Release]);
+		modEnv.setParameters(state[IDs::ADSR2Attack],state[IDs::ADSR2Decay],state[IDs::ADSR2Sustain],state[IDs::ADSR2Release]);
+		modEnv2.setParameters(state[IDs::ADSR3Attack],state[IDs::ADSR3Decay],state[IDs::ADSR3Sustain],state[IDs::ADSR3Release]);
 
 		envelopeAmount = static_cast<float>(state[IDs::FilterEnvelopeAmount])/100.f;
 		envelopeAmount2 = static_cast<float>(state[IDs::FilterEnvelopeAmount2])/100.f;
@@ -258,20 +254,7 @@ public:
 		loopEnvelope = state[IDs::LoopEnvelope];
 		loopEnvelope2 = state[IDs::LoopEnvelope2];
 	}
-	void calculateADSR(const float& a, const float& d,const float& s, const float& r, analogEG& envelope) const
-	{
-		envelope.attackMultiplier = std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * a));
-		envelope.decayMultiplier = std::exp(-inverseSampleRate *
-			std::exp(5.5f - 0.075f * d));
-		envelope.sustainLevel = s/100.f;
-		float envRelease = r;
-		if (envRelease < 1.0f) {
-			envelope.releaseMultiplier = 0.75f;  // extra fast release
-		} else {
-			envelope.releaseMultiplier = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
-		}
-	}
+
 	void setPanParameters()
 	{
 		panOSC1.setTargetValue(std::clamp(static_cast<float>(state[IDs::PanOsc1])+panMod1,-1.f,1.f));

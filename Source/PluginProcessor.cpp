@@ -182,13 +182,11 @@ void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
     }
     bool expected = true;
     if (isNonRealtime() || parametersChanged.compare_exchange_strong(expected, false)) {
-        //TODO update()
-        auto chainSettings = getChainSettings(state);
-        syncStates(tree,chainSettings);
+        update();
         resetSynth = tree[IDs::Reset];
         if(resetSynth)
             reset();
-        state.getParameter("reset")->setValueNotifyingHost(0);
+
         for (int i = 0; i < mySynth.getNumVoices(); i++) {
             if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
                 myVoice->update();
@@ -284,6 +282,7 @@ void SuperWaveSynthAudioProcessor::reset() {
     pluginGain.reset();
     DCOffset.reset();
     resetAllParameters(state);
+    parametersChanged.store(true);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor::createParameterLayout() {
@@ -670,5 +669,42 @@ void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSetting
 
 void SuperWaveSynthAudioProcessor::update()
 {
+    auto s = getChainSettings(state);
+    float inverseSampleRate = 1.0f / getSampleRate();
+    s.attack = static_cast<float> (std::exp(-inverseSampleRate *
+            std::exp(5.5f - 0.075f * s.attack)));
+    s.decay = std::exp(-inverseSampleRate *
+        std::exp(5.5f - 0.075f * s.decay));
+    s.sustain = s.sustain/100.f;
+    float envRelease = s.release;
+    if (envRelease < 1.0f) {
+        s.release = 0.75f;  // extra fast release
+    } else {
+        s.release = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
+    }
 
+    s.attackEnv2 = static_cast<float> (std::exp(-inverseSampleRate *
+            std::exp(5.5f - 0.075f * s.attackEnv2)));
+    s.decayEnv2 = std::exp(-inverseSampleRate *
+        std::exp(5.5f - 0.075f * s.decayEnv2));
+    s.sustainEnv2 = s.sustainEnv2/100.f;
+    envRelease = s.releaseEnv2;
+    if (envRelease < 1.0f) {
+        s.releaseEnv2 = 0.75f;  // extra fast release
+    } else {
+        s.releaseEnv2 = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
+    }
+
+    s.attackEnv3 = static_cast<float> (std::exp(-inverseSampleRate *
+            std::exp(5.5f - 0.075f * s.attackEnv3)));
+    s.decayEnv3 = std::exp(-inverseSampleRate *
+        std::exp(5.5f - 0.075f * s.decayEnv3));
+    s.sustainEnv3 = s.sustainEnv3/100.f;
+    envRelease = s.releaseEnv3;
+    if (envRelease < 1.0f) {
+        s.releaseEnv3 = 0.75f;  // extra fast release
+    } else {
+        s.releaseEnv3 = std::exp(-inverseSampleRate * std::exp(5.5f - 0.075f * envRelease));
+    }
+    syncStates(tree,s);
 }

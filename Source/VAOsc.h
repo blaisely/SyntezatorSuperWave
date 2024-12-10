@@ -177,13 +177,23 @@ public:
     void setParameters()
     {
         type = state[IDs::VAtype];
-        octave = static_cast<float>(state[IDs::VAoctave])*12;
-        detuneSemi = state[IDs::VAdetune];
-        detuneFine = static_cast<float>(state[IDs::VACoarse])/100.f;
-        updatePitch();
+        if(tuningHasChanged())
+        {
+            octave = static_cast<float>(state[IDs::VAoctave])*12;
+            detuneSemi = state[IDs::VAdetune];
+            detuneFine = static_cast<float>(state[IDs::VACoarse])/100.f;
+            updatePitch();
+        }
         gainAmt = state[IDs::VAgain];
         gain.setGainLinear(gainAmt);
         pw = static_cast<float>(state[IDs::PulseWidthOSC2])/100.f;
+    }
+    bool tuningHasChanged()
+    {
+        if(octave != static_cast<float>(state[IDs::VAoctave])*12||
+            detuneSemi != static_cast<float>(state[IDs::VAdetune])||
+            detuneFine != static_cast<float>(state[IDs::VACoarse])/100.f)
+            return true;
     }
     float* getModPitch()
     {

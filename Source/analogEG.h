@@ -12,6 +12,13 @@ public:
         target = 0.0f;
         multiplier = 0.0f;
     }
+    void setParameters(float a,float d,float s,float r)
+    {
+        attackMultiplier =static_cast<float>(a);
+        decayMultiplier = static_cast<float>(d);
+        sustainLevel = static_cast<float>(s);
+        releaseMultiplier = static_cast<float>(r);
+    }
     float nextValue()
     {
         // Update the amplitude envelope. This is a one-pole filter creating

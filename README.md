@@ -1,5 +1,5 @@
 # SuperWave
-Programowy instrument muzyczny wykorzystujący oscylatory superwave utworzony za pomocą biblitoeki JUCE w formatch VST3 oraz aplikacji samodzielnej.
+Programowy instrument muzyczny wykorzystujący oscylatory superwave utworzony za pomocą biblioteki JUCE w formatch VST3 oraz aplikacji samodzielnej.
 
 ![image](https://github.com/user-attachments/assets/206cd803-dd65-4ed3-bb16-255022b71a0c)
 

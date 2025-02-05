@@ -233,23 +233,22 @@ juce::AudioProcessorEditor* SuperWaveSynthAudioProcessor::createEditor()
 //==============================================================================
 void SuperWaveSynthAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    copyXmlToBinary(*state.copyState().createXml(), destData);
-
-    DBG(state.copyState().toXmlString());
+    juce::MemoryOutputStream mos (destData,true);
+    state.state.writeToStream(mos);
 }
 
 void SuperWaveSynthAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
-    if (xml.get() != nullptr && xml->hasTagName(state.state.getType())) {
-        state.replaceState(juce::ValueTree::fromXml(*xml));
-    }
+    if(const auto tree = juce::ValueTree::readFromData(data,static_cast<size_t>(sizeInBytes)); tree.isValid())
+        state.replaceState(tree);
 }
 
 void SuperWaveSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueTreeState& s)
 {
-    juce::ValueTree state = s.copyState();  // grab a copy of the current parameters Value Tree
-    std::unique_ptr<juce::XmlElement> tempXml (state.createXml());  // convert parameters Value Tree to an XML object
+    // grab a copy of the current parameters Value Tree
+    juce::ValueTree state = s.copyState();
+    // convert parameters Value Tree to an XML object
+    std::unique_ptr<juce::XmlElement> tempXml (state.createXml());
     //iterate through XML elements with "PARAM" TAG
     for (auto* child : tempXml->getChildWithTagNameIterator("PARAM")){
         //get attribute of a parameter
@@ -261,9 +260,7 @@ void SuperWaveSynthAudioProcessor::resetAllParameters(juce::AudioProcessorValueT
             child->setAttribute("value", defaultValue);
         }
     }
-
     s.replaceState (juce::ValueTree::fromXml (*tempXml));
-
 }
 
 //==============================================================================
@@ -294,7 +291,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor
     juce::NormalisableRange<float> decayRange{0.0f,100.0f,1.f};
     juce::NormalisableRange<float> sustainRange{0.0f,100.0f,1.f};
     juce::NormalisableRange<float> releaseRange{0.0f,100.f,1.f};
-    layout.add(std::make_unique<juce::AudioParameterFloat>("gainOVR","Gain",0.f,1.f,0.1f));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("gainOVR","Gain",0.f,1.f,0.6f));
     //Filter Params
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterCutoff", "FilterCutOff",logRange ,20480.0f));
     layout.add(std::make_unique<juce::AudioParameterFloat>("filterRes", "FilterRes",

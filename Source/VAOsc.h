@@ -9,7 +9,10 @@
 static juce::SmoothedValue<float> pulseWidth2 {0.5f};
 class VAOsc:juce::ValueTree::Listener {
 public:
-    explicit VAOsc(juce::ValueTree v) :state(v), phase(0.0), phaseIncrement(0.0f)
+    explicit VAOsc(juce::ValueTree&  v) :
+    phase(0.0),
+    phaseIncrement(0.0f),
+    state(v)
     {
         state.addListener(this);
     }
@@ -194,6 +197,7 @@ public:
             detuneSemi != static_cast<float>(state[IDs::VAdetune])||
             detuneFine != static_cast<float>(state[IDs::VACoarse])/100.f)
             return true;
+
     }
     float* getModPitch()
     {

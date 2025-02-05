@@ -284,14 +284,16 @@ public:
         aliasing = state[IDs::AliasingON];
 
     }
-    bool superWaveParametersHasChanged()
+    bool superWaveParametersHasChanged() const
     {
         if(detuneSuperSaw!=static_cast<float>(state[IDs::SWdetuneS])||
             volumeSuperSaw!=static_cast<float>(state[IDs::SWvolumeS]))
-        return true;
+            return true;
+        else
+            return false;
 
     }
-    bool tuningHasChanged()
+    bool tuningHasChanged() const
     {
         if(octave!=static_cast<float>(state[IDs::SWoctave])*12.f ||
             coarse != static_cast<float>(state[IDs::SWdetune]) ||
@@ -339,6 +341,7 @@ public:
     {
         return &modValue[kGAIN];
     }
+
     void setModValue(const float mod,int number)
     {
         modValue[number]=mod;

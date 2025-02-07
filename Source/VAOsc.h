@@ -31,6 +31,11 @@ public:
             v.reset(sampleRate,0.001f);
         }
         pulseWidth2.reset(sampleRate,0.001f);
+        waveshaper.prepare(spec);
+        waveshaper.functionToUse = [](float x)
+        {
+            return juce::jlimit ( (-0.1f), (0.1f), x);
+        };
     }
 
     static float poly_blep(float t, const float& phaseIncrement) {
@@ -92,8 +97,10 @@ public:
         smoothedMod[kGAIN].setTargetValue(std::clamp(gainAmt+modValue[kGAIN],0.f,1.f));
         gain.setGainLinear(smoothedMod[kGAIN].getNextValue());
 
-        y = gain.processSample(y);
+        float waveshapedSignal = waveshaper.processSample(y);
+        y = gain.processSample(y + waveshapedSignal*0.5f);
         y = y*0.5f*noteVelocity;
+
 
         return y;
     }
@@ -108,6 +115,7 @@ public:
             v.reset(lastSampleRate,0.001f);
         }
         pulseWidth2.reset(lastSampleRate,0.001f);
+        waveshaper.reset();
 
     }
     void setRandomPhase(const float& phase)
@@ -125,7 +133,6 @@ public:
         if(type>=0.0f && type<1.0f)
         {
             value = sine(phase);
-
             value2 = triangle(phase);
             value2 += poly_blep(t, phaseIncrement);
             value2 -= poly_blep(fmod(t + 0.5f, 1.0f), phaseIncrement);
@@ -255,5 +262,6 @@ private:
     float pw{0.0f};
     float analog{0.0f};
     float noteVelocity{0.0f};
+    juce::dsp::WaveShaper<float> waveshaper;
 };
 

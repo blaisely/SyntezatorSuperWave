@@ -317,6 +317,7 @@ public:
         pulseWidth.reset(lastSampleRate,0.001f);
         typeOsc.reset(lastSampleRate,0.001f);
     }
+    enum oscDest {kDETUNE,kVOLUME,kPITCH,kGAIN,kPWM,kOSC_TYPE,kNumDest};
     float* getModDetune()
     {
         return &modValue[kDETUNE];
@@ -341,12 +342,19 @@ public:
     {
         return &modValue[kGAIN];
     }
-
+    std::array<float,kNumDest>* getModArray()
+    {
+        return &modValue;
+    }
+    void setModArray(std::array<float,kNumDest>* arr)
+    {
+        std::copy(arr->begin(),arr->end(),modValue.begin());
+    }
     void setModValue(const float mod,int number)
     {
         modValue[number]=mod;
     }
-    enum oscDest {kDETUNE,kVOLUME,kPITCH,kGAIN,kPWM,kOSC_TYPE,kNumDest};
+
 
 private:
 

@@ -17,6 +17,7 @@ namespace IDs{
 
     const juce::Identifier Parameters("Parameters");
     ID Oscillator("Oscillator");
+    ID Stereo("StereoAmount");
     ID VAOsc("VAOscillator");
     ID SuperWaveOsc("SuperWaveOsc");
     ID Cutoff("Cutoff");

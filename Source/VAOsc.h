@@ -9,6 +9,8 @@
 static juce::SmoothedValue<float> pulseWidth2 {0.5f};
 class VAOsc:juce::ValueTree::Listener {
 public:
+    enum{kGAIN,kPITCH,kPWM,kOSC_TYPE,kNumDest};
+
     explicit VAOsc(juce::ValueTree&  v) :
     phase(0.0),
     phaseIncrement(0.0f),
@@ -191,12 +193,14 @@ public:
         gain.setGainLinear(gainAmt);
         pw = static_cast<float>(state[IDs::PulseWidthOSC2])/100.f;
     }
-    bool tuningHasChanged()
+    bool tuningHasChanged() const
     {
         if(octave != static_cast<float>(state[IDs::VAoctave])*12||
             detuneSemi != static_cast<float>(state[IDs::VAdetune])||
             detuneFine != static_cast<float>(state[IDs::VACoarse])/100.f)
             return true;
+        else
+            return false;
 
     }
     float* getModPitch()
@@ -215,11 +219,23 @@ public:
     {
         return &modValue[kPWM];
     }
+    std::array<float,kNumDest>* getModArray()
+    {
+        return &modValue;
+    }
+    void setModArray(std::array<float,kNumDest>* arr)
+    {
+        std::copy(arr->begin(),arr->end(),modValue.begin());
+    }
+    void setModValue(const float mod,int number)
+    {
+        modValue[number]=mod;
+    }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
     }
 private:
-    enum{kGAIN,kPITCH,kPWM,kOSC_TYPE,kNumDest};
+
     std::array<float,kNumDest> modValue{0.0f};
     std::array<juce::SmoothedValue<float>,kNumDest> smoothedMod{0.0f};
     juce::ValueTree state;

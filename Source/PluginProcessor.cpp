@@ -144,7 +144,6 @@ void SuperWaveSynthAudioProcessor::prepareToPlay (double sampleRate, int samples
 
 void SuperWaveSynthAudioProcessor::releaseResources()
 {
-   reset();
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -185,8 +184,7 @@ void SuperWaveSynthAudioProcessor::processBlock (juce::AudioBuffer<float>& buffe
         update();
         resetSynth = tree[IDs::Reset];
         if(resetSynth)
-            reset();
-
+            resetAllParameters(state);
         for (int i = 0; i < mySynth.getNumVoices(); i++) {
             if (myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i))) {
                 myVoice->update();
@@ -278,7 +276,6 @@ void SuperWaveSynthAudioProcessor::reset() {
     }
     pluginGain.reset();
     DCOffset.reset();
-    resetAllParameters(state);
     parametersChanged.store(true);
 }
 
@@ -486,6 +483,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout SuperWaveSynthAudioProcessor
     layout.add(std::make_unique<juce::AudioParameterBool>("reset", "Init", 0));
     layout.add(std::make_unique<juce::AudioParameterInt>("lfoNumber","Selected LFO",1,3,1));
     layout.add(std::make_unique<juce::AudioParameterBool>("aliasing","Aliasing ON",0));
+    layout.add(std::make_unique<juce::AudioParameterFloat>("stereoAmount","Stereo Amount",0.f,1.f,0.f));
 
 
     return layout;
@@ -571,6 +569,7 @@ SuperWaveSynthAudioProcessor::chainSettings SuperWaveSynthAudioProcessor::getCha
     settings.reset = apvts.getRawParameterValue("reset")->load();
     settings.lfoNumber = apvts.getRawParameterValue("lfoNumber")->load();
     settings.aliasingON = apvts.getRawParameterValue("aliasing")->load();
+    settings.stereo = apvts.getRawParameterValue("stereoAmount")->load();
 
 
     return settings;
@@ -662,6 +661,7 @@ void SuperWaveSynthAudioProcessor::syncStates(juce::ValueTree& tree,chainSetting
     tree.setProperty(IDs::FilterKeytrackOffset,s.filterKeytrackOffset,nullptr);
     tree.setProperty(IDs::Reset,s.reset,nullptr);
     tree.setProperty(IDs::AliasingON,s.aliasingON,nullptr);
+    tree.setProperty(IDs::Stereo,s.stereo,nullptr);
 }
 
 void SuperWaveSynthAudioProcessor::update()

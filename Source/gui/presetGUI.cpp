@@ -5,14 +5,17 @@
 
 typedef juce::AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
 //==============================================================================
-presetGUI::presetGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p), gain("GAIN",2,false,true)
+presetGUI::presetGUI(SuperWaveSynthAudioProcessor& p) : audioProcessor(p), gain("GAIN",2,false,true),
+stereo(("STEREO"),1,false,true)
 {
     addAndMakeVisible(gain);
     addAndMakeVisible(init);
+    addAndMakeVisible(stereo);
     init.setButtonText("INIT");
     init.setClickingTogglesState(true);
     init.addListener(this);
     gainAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"gainOVR",gain.slider);
+    stereoAttach = std::make_unique<SliderAttachment>(audioProcessor.state,"stereoAmount",stereo.slider);
     initAttach = std::make_unique<ButtonAttachment>(audioProcessor.state,"reset",init);
     setSize(530, 50);
 
@@ -34,9 +37,11 @@ void presetGUI::resized()
 
     juce::Rectangle<int> area = getLocalBounds().reduced(5);
     juce::Rectangle<int> gainSection = area.removeFromRight(150);
+    juce::Rectangle<int> stereoSection = area.removeFromRight(150);
     juce::Rectangle<int> leftSection = area.removeFromLeft(50);
 
     gain.setBounds(gainSection);
+    stereo.setBounds(stereoSection);
     init.setBounds(leftSection.reduced(5));
 
 }

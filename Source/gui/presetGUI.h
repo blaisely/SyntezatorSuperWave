@@ -17,7 +17,7 @@ class presetGUI  : public juce::Component, private juce::ComboBox::Listener, pri
 public:
     template<typename T>
     void addItemToFlexBox(juce::FlexBox& fb,T& item,const int& w, const int& h,const int& margin);
-    presetGUI(SuperWaveSynthAudioProcessor&);
+    explicit presetGUI(SuperWaveSynthAudioProcessor&);
     ~presetGUI() override;
 
     void paint (juce::Graphics&) override;
@@ -31,10 +31,13 @@ public:
 
 private:
     customSlider gain;
+    customSlider stereo;
     customLookAndFeel customLook;
     juce::TextButton init;
     juce::Label gainLabel{"Gain","GAIN"};
+    juce::Label stereoLabel{"Stereo","STEREO"};
     std::unique_ptr<SliderAttachment> gainAttach;
+    std::unique_ptr<SliderAttachment> stereoAttach;
     std::unique_ptr<ButtonAttachment> initAttach;
     SuperWaveSynthAudioProcessor& audioProcessor;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (presetGUI)

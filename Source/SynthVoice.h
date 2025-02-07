@@ -23,7 +23,8 @@ public:
 
     explicit SynthVoice::SynthVoice(juce::ValueTree& v):
     hiPassKeytrack(juce::dsp::IIR::Coefficients<float>::makeFirstOrderHighPass(getSampleRate(),20.0f)), state(v),
-    oscSW{Osc(v),Osc(v)},oscVA(v),
+    oscSW{Osc(v),Osc(v)},
+    oscVA{VAOsc(v),VAOsc(v)},
     vaSVF(v),
     ladder(v),
     lfoGenerator1(v), lfoGenerator2(v), lfoGenerator3(v)
@@ -37,7 +38,7 @@ public:
         return dynamic_cast<SynthSound*>(sound) != nullptr;
     }
 
-    void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound,
+    void startNote(const int midiNoteNumber, const float velocity, juce::SynthesiserSound* sound,
                    int currentPitchWheelPosition) override {
         midiNote = midiNoteNumber;
         resetLFO();
@@ -59,14 +60,14 @@ public:
     }
     void setOscillatorsFrequency(const int midiNote, const float velocity)
     {
-        float analogOffset =0;
-        for(auto i=0;i<2;++i)
-        {
-            analogOffset = juce::Random::getSystemRandom().nextFloat()*0.008f;
-            oscSW[i].setFrequency(frequency, midiNote, velocity, analogOffset+0.3f);
-        }
+        float analogOffset = 0;
 
-        oscVA.setFrequency(frequency, midiNote, velocity,analogOffset);
+        analogOffset = juce::Random::getSystemRandom().nextFloat()*0.008f;
+        oscSW[kLeft].setFrequency(static_cast<float>(frequency), midiNote, velocity, analogOffset);
+        oscSW[kRight].setFrequency(static_cast<float>(frequency), midiNote, velocity, analogOffset+phaseOffset);
+
+        oscVA[kLeft].setFrequency(static_cast<float>(frequency), midiNote, velocity,analogOffset);
+        oscVA[kRight].setFrequency(static_cast<float>(frequency), midiNote, velocity,analogOffset + phaseOffset);
     }
     void setRandomPhase()
     {
@@ -77,7 +78,8 @@ public:
         }
         oscSW[kLeft].setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
         oscSW[kRight].setRandomPhase(phase,phases[0], phases[1], phases[2], phases[3], phases[4], phases[5]);
-        oscVA.setRandomPhase(phase);
+        oscVA[kLeft].setRandomPhase(phase);
+        oscVA[kRight].setRandomPhase(phase);
     }
 
     void stopNote(float velocity, bool allowTailOff) override
@@ -116,14 +118,15 @@ public:
         level.prepare(spec);
         hiPassKeytrack.prepare(spec);
         ladder.prepare(spec);
-        ladder.prepareSmoother(sampleRate);
+        ladder.prepareSmoother(static_cast<float>(sampleRate));
         level.setGainLinear(0.5f);
         lfoGenerator1.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
         lfoGenerator2.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
         lfoGenerator3.prepareToPlay(sampleRate,samplesPerBlock,outputChannels);
-        oscSW[kLeft].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-        oscSW[kRight].prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
-        oscVA.prepareToPlay(sampleRate, samplesPerBlock, outputChannels);
+        oscSW[kLeft].prepareToPlay(static_cast<float>(sampleRate), samplesPerBlock, outputChannels);
+        oscSW[kRight].prepareToPlay(static_cast<float>(sampleRate), samplesPerBlock, outputChannels);
+        oscVA[kLeft].prepareToPlay(static_cast<float>(sampleRate), samplesPerBlock, outputChannels);
+        oscVA[kRight].prepareToPlay(static_cast<float>(sampleRate), samplesPerBlock, outputChannels);
         panOSC1.reset(sampleRate,0.001);
         panOSC2.reset(sampleRate,0.001);
         modMatrix.addDestination(ModMatrix::modDestination::kFILTER_CUTOFFSVF,vaSVF.getModCutOff());
@@ -132,8 +135,8 @@ public:
         modMatrix.addDestination(ModMatrix::modDestination::kOSC_VOLUME,oscSW[kLeft].getModVolume());
         modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PITCH,oscSW[kLeft].getModPitch());
         modMatrix.addDestination(ModMatrix::modDestination::kOSC1_GAIN,oscSW[kLeft].getModGain());
-        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_GAIN,oscVA.getModGain());
-        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PITCH,oscVA.getModPitch());
+        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_GAIN,oscVA[kLeft].getModGain());
+        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PITCH,oscVA[kLeft].getModPitch());
         modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PAN,&panMod1);
         modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PAN,&panMod2);
         modMatrix.addDestination(ModMatrix::modDestination::kLFO1_AMT,lfoGenerator1.getModAmount());
@@ -144,8 +147,8 @@ public:
         modMatrix.addDestination(ModMatrix::modDestination::kLFO3_FREQ,lfoGenerator3.getModFrequency());
         modMatrix.addDestination(ModMatrix::modDestination::kOSC1_PWM,oscSW[kLeft].getModPWM());
         modMatrix.addDestination(ModMatrix::modDestination::kOSC1_TYPE,oscSW[kLeft].getModOscType());
-        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_TYPE,oscVA.getModOscType());
-        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PWM,oscVA.getModPWM());
+        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_TYPE,oscVA[kLeft].getModOscType());
+        modMatrix.addDestination(ModMatrix::modDestination::kOSC2_PWM,oscVA[kLeft].getModPWM());
         modMatrix.addSource(ModMatrix::modSource::kLFO,&lfo1Mod);
         modMatrix.addSource(ModMatrix::modSource::kEG,&nextModEnv1);
         modMatrix.addSource(ModMatrix::modSource::kEG2,&nextModEnv2);
@@ -166,6 +169,13 @@ public:
         setPanParameters();
         updatePan();
         setModMatrix();
+        updateStereoAmount();
+    }
+    void updateStereoAmount()
+    {
+        stereoAmount = state[IDs::Stereo];
+        modOffset = stereoAmount*0.5f;
+        phaseOffset =  stereoAmount * 0.25f;
     }
     void setKeytrack()
     {
@@ -246,7 +256,8 @@ public:
     {
         oscSW[kLeft].setParameters();
         oscSW[kRight].setParameters();
-        oscVA.setParameters();
+        oscVA[kLeft].setParameters();
+        oscVA[kRight].setParameters();
     }
     void getEnvelopeParameters()
     {
@@ -276,21 +287,21 @@ public:
     }
     void setLFOParameters()
     {
-        float depthLfo1 =static_cast<float>(state[IDs::LFODepth])/100.f;
-        float freqLfo1 = state[IDs::LFOFreq];
-        int typeLfo1 = state[IDs::LFOType];
+       const float depthLfo1 =static_cast<float>(state[IDs::LFODepth])/100.f;
+        const float freqLfo1 = state[IDs::LFOFreq];
+        const int typeLfo1 = state[IDs::LFOType];
 
-        float depthLfo2 =static_cast<float>(state[IDs::LFO2Depth])/100.f;
-        float freqLfo2 = state[IDs::LFO2Freq];
-        int typeLfo2 = state[IDs::LFO2Type];
+        const float depthLfo2 =static_cast<float>(state[IDs::LFO2Depth])/100.f;
+        const float freqLfo2 = state[IDs::LFO2Freq];
+        const int typeLfo2 = state[IDs::LFO2Type];
 
-        float depthLfo3 =static_cast<float>(state[IDs::LFO3Depth])/100.f;
-        float freqLfo3 = state[IDs::LFO3Freq];
-        int typeLfo3 = state[IDs::LFO3Type];
+        const float depthLfo3 =static_cast<float>(state[IDs::LFO3Depth])/100.f;
+        const float freqLfo3 = state[IDs::LFO3Freq];
+        const int typeLfo3 = state[IDs::LFO3Type];
 
-        bool lfo1Unipolar = state[IDs::LFO1Unipolar];
-        bool lfo2Unipolar = state[IDs::LFO2Unipolar];
-        bool lfo3Unipolar = state[IDs::LFO3Unipolar];
+        const bool lfo1Unipolar = state[IDs::LFO1Unipolar];
+        const bool lfo2Unipolar = state[IDs::LFO2Unipolar];
+        const bool lfo3Unipolar = state[IDs::LFO3Unipolar];
         lfo1Reset = state[IDs::LFOReset];
         lfo2Reset = state[IDs::LFOReset2];
         lfo3Reset = state[IDs::LFOReset3];
@@ -335,7 +346,8 @@ public:
                 nextModEnv1 = modEnv.nextValue()*envelopeAmount;
                 nextModEnv2 = modEnv2.nextValue()*envelopeAmount2;
 
-                float osc2Output = oscVA.getNextSample();
+                float oscVAOutL = oscVA[kLeft].getNextSample();
+                float oscVAOutR = oscVA[kRight].getNextSample();
                 float oscSWOutL = oscSW[kLeft].getNextSample();
                 float oscSWOutR = oscSW[kRight].getNextSample();
 
@@ -344,13 +356,13 @@ public:
 
                 if(!env1OSC2)
                 {
-                    channelLeft += osc2Output * nextAmpSample * panLeft[1];
-                    channelRight += osc2Output * nextAmpSample * panRight[1];
+                    channelLeft += oscVAOutL * nextAmpSample * panLeft[1];
+                    channelRight += oscVAOutR * nextAmpSample * panRight[1];
                 }
                 else
                 {
-                    channelLeft += osc2Output * nextAmp2Sample * panLeft[1];
-                    channelRight += osc2Output * nextAmp2Sample * panRight[1];
+                    channelLeft += oscVAOutL * nextAmp2Sample * panLeft[1];
+                    channelRight += oscVAOutR * nextAmp2Sample * panRight[1];
                 }
                 channelLeft += oscSWOutL * nextAmpSample * panLeft[0];
                 channelRight += oscSWOutR * nextAmpSample * panRight[0];
@@ -383,12 +395,18 @@ public:
                 ladder.setModResonance(*vaSVF.getModResonance());
                 ladder.setModCutOff(*vaSVF.getModCutOff());
 
-                oscSW[kRight].setModValue(*oscSW[kLeft].getModDetune(),0);
-                oscSW[kRight].setModValue(*oscSW[kLeft].getModVolume(),1);
+
+                oscSW[kRight].setModValue(*oscSW[kLeft].getModDetune() + modOffset*0.5f,0);
+                oscSW[kRight].setModValue(*oscSW[kLeft].getModVolume() + modOffset*0.5f,1);
                 oscSW[kRight].setModValue(*oscSW[kLeft].getModPitch(),2);
                 oscSW[kRight].setModValue(*oscSW[kLeft].getModGain(),3);
-                oscSW[kRight].setModValue(*oscSW[kLeft].getModPWM()+modDetune,4);
-                oscSW[kRight].setModValue(*oscSW[kLeft].getModOscType()+modDetune,5);
+                oscSW[kRight].setModValue(*oscSW[kLeft].getModPWM()+modOffset,4);
+                oscSW[kRight].setModValue(*oscSW[kLeft].getModOscType()+modOffset,5);
+
+                oscVA[kRight].setModValue(*oscVA[kLeft].getModPitch(),1);
+                oscVA[kRight].setModValue(*oscVA[kLeft].getModGain(),0);
+                oscVA[kRight].setModValue(*oscVA[kLeft].getModPWM()+modOffset,2);
+                oscVA[kRight].setModValue(*oscVA[kLeft].getModOscType()+modOffset,3);
             }
         }
         processKeytrack(oscillatorSW);
@@ -497,7 +515,8 @@ public:
     {
         oscSW[kLeft].resetOsc();
         oscSW[kRight].resetOsc();
-        oscVA.resetOsc();
+        oscVA[kLeft].resetOsc();
+        oscVA[kRight].resetOsc();
     }
     void valueTreePropertyChanged(juce::ValueTree& v, const juce::Identifier& id) override
     {
@@ -507,7 +526,9 @@ public:
     static constexpr int numChannelsToProcess{2};
 
 private:
-    float modDetune=0.2f;
+    float stereoAmount {0.0f};
+    float modOffset {0.0f};
+    float phaseOffset{0.0f};
     enum
     {
         kLeft,
@@ -544,17 +565,16 @@ private:
     double frequency{};
     float panMod1{0.0f};
     float panMod2{0.0f};
-    bool SVFEnabled;
-    bool env1OSC2;
-    bool lfo1Reset;
-    bool lfo2Reset;
-    bool lfo3Reset;
+    bool SVFEnabled{};
+    bool env1OSC2{};
+    bool lfo1Reset{};
+    bool lfo2Reset{};
+    bool lfo3Reset{};
     bool loopEnvelope = false;
     bool loopEnvelope2 = false;
     float oldFrequency{ 0.0f };
     std::array<Osc,2> oscSW;
-    //Osc  oscSW;
-    VAOsc oscVA;
+    std::array<VAOsc,2> oscVA;
     ModMatrix modMatrix;
     juce::dsp::Gain<float> level;
     ZVAFilter vaSVF;
@@ -566,10 +586,10 @@ private:
     juce::AudioBuffer<float> synthBuffer;
     juce::dsp::ProcessorDuplicator<juce::dsp::IIR::Filter<float>, juce::dsp::IIR::Coefficients<float>>  hiPassKeytrack;
     juce::ValueTree state;
-    analogEG ampEnv;
-    analogEG amp2Env;
-    analogEG modEnv;
-    analogEG modEnv2;
+    analogEG ampEnv{};
+    analogEG amp2Env{};
+    analogEG modEnv{};
+    analogEG modEnv2{};
     int updateRate{ 32 };
     int updateCounter{ updateRate };
 };
